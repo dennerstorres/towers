@@ -1,5 +1,5 @@
-import { Config } from '../core/Config';
-import { Enemy } from '../entities/Enemy';
+import { Config } from '../core/Config.js';
+import { Enemy } from '../entities/Enemy.js';
 
 export class WaveManager {
     constructor() {

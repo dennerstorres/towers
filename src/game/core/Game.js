@@ -1,7 +1,7 @@
-import { Config } from './Config';
-import { Tower } from '../entities/Tower';
-import { WaveManager } from '../managers/WaveManager';
-import { CanvasRenderer } from '../../ui/CanvasRenderer';
+import { Config } from './Config.js';
+import { Tower } from '../entities/Tower.js';
+import { WaveManager } from '../managers/WaveManager.js';
+import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 
 export class Game {
     constructor(canvas) {
@@ -56,6 +56,7 @@ export class Game {
     }
 
     start() {
+        console.log('Game iniciado');
         this.state.gameRunning = true;
         this.waveManager.startWave(this.state);
         this.gameLoop();

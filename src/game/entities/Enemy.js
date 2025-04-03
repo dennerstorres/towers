@@ -1,4 +1,4 @@
-import { Config } from '../core/Config';
+import { Config } from '../core/Config.js';
 
 export class Enemy {
     constructor() {

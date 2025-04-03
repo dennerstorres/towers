@@ -1,4 +1,4 @@
-import { Config } from '../game/core/Config';
+import { Config } from '../game/core/Config.js';
 
 export class CanvasRenderer {
     constructor(canvas) {
