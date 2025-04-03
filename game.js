@@ -249,7 +249,6 @@ config.canvas.addEventListener('click', (e) => {
     const x = Math.floor((e.clientX - rect.left) / config.gridSize);
     const y = Math.floor((e.clientY - rect.top) / config.gridSize);
     
-    // Verificar se é um local válido para construir
     const isValidLocation = !config.path.some(point => 
         point.x === x && point.y === y
     ) && !config.towers.some(tower => 
