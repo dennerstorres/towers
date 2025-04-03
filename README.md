@@ -45,17 +45,45 @@ Uma tentativa de recriar um jogo em flash que era jogado no navegador mas foi pe
 - **Cursor IA**
 - HTML5
 - CSS3
-- JavaScript Vanilla
+- JavaScript Vanilla (ES6+)
 - Canvas API
+- Módulos ES6
 
 ## 📁 Estrutura do Projeto
 
 ```
 towers/
-├── index.html      # Página principal do jogo
-├── game.js         # Lógica principal do jogo
-└── .gitignore      # Arquivos ignorados pelo Git
+├── src/
+│   ├── game/
+│   │   ├── core/
+│   │   │   ├── Game.js       # Classe principal do jogo
+│   │   │   ├── Config.js     # Configurações do jogo
+│   │   │   └── Utils.js      # Funções utilitárias
+│   │   ├── entities/
+│   │   │   ├── Tower.js      # Classe das torres
+│   │   │   └── Enemy.js      # Classe dos inimigos
+│   │   └── managers/
+│   │       ├── WaveManager.js # Gerenciador de ondas
+│   │       ├── TowerManager.js # Gerenciador de torres
+│   │       └── EnemyManager.js # Gerenciador de inimigos
+│   ├── ui/
+│   │   ├── GameUI.js         # Interface do usuário
+│   │   └── CanvasRenderer.js # Renderização do canvas
+│   └── main.js               # Ponto de entrada
+├── assets/                   # Recursos (imagens, sons, etc)
+├── index.html               # Página principal
+└── README.md                # Documentação
 ```
+
+## 🏗️ Arquitetura
+
+O projeto segue uma arquitetura modular e orientada a objetos, com as seguintes características:
+
+- **Separação de Responsabilidades**: Cada classe tem uma responsabilidade única e bem definida
+- **Modularidade**: Código organizado em módulos ES6 para melhor manutenção
+- **Configuração Centralizada**: Todas as configurações do jogo em um único lugar
+- **Gerenciadores Dedicados**: Classes específicas para gerenciar diferentes aspectos do jogo
+- **Renderização Separada**: Lógica de renderização isolada da lógica do jogo
 
 ## 🎨 Interface
 
