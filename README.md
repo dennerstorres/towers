@@ -1,6 +1,7 @@
 # 🏰 Tower Defense Game
 
-Um jogo de Tower Defense desenvolvido em JavaScript puro, onde você deve defender seu território construindo torres estratégicas para impedir que os inimigos cheguem ao final do caminho.
+Um jogo de Tower Defense desenvolvido em JavaScript puro, onde você deve defender seu território construindo torres estratégicas para impedir que os inimigos cheguem ao final do caminho. 
+Uma tentativa de recriar um jogo em flash que era jogado no navegador mas foi perdido com o tempo.
 
 ## 🎮 Como Jogar
 
@@ -41,6 +42,7 @@ Um jogo de Tower Defense desenvolvido em JavaScript puro, onde você deve defend
 
 ## 🚀 Tecnologias Utilizadas
 
+- **Cursor IA**
 - HTML5
 - CSS3
 - JavaScript Vanilla
