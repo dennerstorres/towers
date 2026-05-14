@@ -203,6 +203,114 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
+    drawEnemy(enemy) {
+        const size = Config.gridSize * 0.7;
+        const x = enemy.x - size / 2;
+        const y = enemy.y - size / 2;
+
+        this.ctx.save();
+
+        // Body color based on type
+        let bodyColor = '#27ae60'; // Goblin (Green)
+        if (enemy.type === 'orc') bodyColor = '#8e44ad'; // Orc (Purple/Dark)
+        if (enemy.type === 'scout') bodyColor = '#d35400'; // Scout (Orange)
+
+        // Body
+        this.ctx.fillStyle = bodyColor;
+        this.ctx.beginPath();
+        this.ctx.roundRect(x + 5, y + 5, size - 10, size - 10, 5);
+        this.ctx.fill();
+
+        // Ears (different for Orc)
+        this.ctx.beginPath();
+        if (enemy.type === 'orc') {
+            // Orc has horn-like ears
+            this.ctx.moveTo(x + 8, y + 5);
+            this.ctx.lineTo(x + 2, y - 2);
+            this.ctx.lineTo(x + 12, y + 8);
+
+            this.ctx.moveTo(x + size - 8, y + 5);
+            this.ctx.lineTo(x + size - 2, y - 2);
+            this.ctx.lineTo(x + size - 12, y + 8);
+        } else {
+            // Goblin/Scout has pointed ears
+            this.ctx.moveTo(x + 5, y + 10);
+            this.ctx.lineTo(x, y + 5);
+            this.ctx.lineTo(x + 5, y + 15);
+
+            this.ctx.moveTo(x + size - 5, y + 10);
+            this.ctx.lineTo(x + size, y + 5);
+            this.ctx.lineTo(x + size - 5, y + 15);
+        }
+        this.ctx.fill();
+
+        // Eyes (Orc has red eyes)
+        const eyeColor = enemy.type === 'orc' ? '#e74c3c' : '#fff';
+        this.ctx.fillStyle = eyeColor;
+        this.ctx.beginPath();
+        this.ctx.arc(x + size * 0.35, y + size * 0.4, 3, 0, Math.PI * 2);
+        this.ctx.arc(x + size * 0.65, y + size * 0.4, 3, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.fillStyle = '#000';
+        this.ctx.beginPath();
+        this.ctx.arc(x + size * 0.35, y + size * 0.4, 1.5, 0, Math.PI * 2);
+        this.ctx.arc(x + size * 0.65, y + size * 0.4, 1.5, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Mouth (different for each)
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        if (enemy.type === 'orc') {
+            // Orc tusks
+            this.ctx.moveTo(x + size * 0.3, y + size * 0.8);
+            this.ctx.lineTo(x + size * 0.35, y + size * 0.6);
+            this.ctx.moveTo(x + size * 0.7, y + size * 0.8);
+            this.ctx.lineTo(x + size * 0.65, y + size * 0.6);
+        } else {
+            // Goblin/Scout teeth
+            this.ctx.moveTo(x + size * 0.4, y + size * 0.7);
+            this.ctx.lineTo(x + size * 0.45, y + size * 0.65);
+            this.ctx.lineTo(x + size * 0.5, y + size * 0.7);
+            this.ctx.lineTo(x + size * 0.55, y + size * 0.65);
+            this.ctx.lineTo(x + size * 0.6, y + size * 0.7);
+        }
+        this.ctx.stroke();
+
+        // Health Bar
+        const healthPercent = enemy.health / enemy.maxHealth;
+        const barWidth = Config.gridSize * 0.8;
+        const barHeight = 4;
+        const barX = enemy.x - barWidth / 2;
+        const barY = enemy.y - size / 2 - 8;
+
+        // Bar Background
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        this.ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        // Bar Fill
+        // Color interpolation (Green -> Yellow -> Red)
+        let color;
+        if (healthPercent > 0.5) {
+            color = '#2ecc71'; // Green
+        } else if (healthPercent > 0.2) {
+            color = '#f1c40f'; // Yellow
+        } else {
+            color = '#e74c3c'; // Red
+        }
+
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
+
+        // Bar Border
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        this.ctx.lineWidth = 0.5;
+        this.ctx.strokeRect(barX, barY, barWidth, barHeight);
+
+        this.ctx.restore();
+    }
+
     clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }

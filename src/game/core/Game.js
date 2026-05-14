@@ -86,7 +86,7 @@ export class Game {
         // Atualiza e desenha inimigos
         for (let enemy of this.state.enemies) {
             enemy.update();
-            enemy.draw(this.renderer.ctx);
+            this.renderer.drawEnemy(enemy);
         }
 
         // Remove inimigos mortos
