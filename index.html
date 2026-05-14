@@ -50,57 +50,79 @@
 
         #gameCanvas {
             display: none;
-            border: 4px solid #7f8c8d;
+            border: 8px solid #7f8c8d;
             background-color: #27ae60;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            box-shadow: 0 0 40px rgba(0,0,0,0.6);
         }
 
         #startScreen {
             text-align: center;
-            padding: 40px;
+            padding: 60px;
             background-color: #2c3e50;
-            border: 4px solid #7f8c8d;
-            border-radius: 15px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.7);
-            max-width: 500px;
+            background-image: radial-gradient(circle, #34495e 0%, #2c3e50 100%);
+            border: 6px double #f1c40f;
+            border-radius: 4px;
+            box-shadow: 0 0 0 8px #7f8c8d, 0 0 50px rgba(0,0,0,0.8);
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+        }
+
+        #startScreen::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border: 1px solid rgba(241, 196, 15, 0.2);
+            pointer-events: none;
         }
 
         #startScreen h1 {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px #c0392b;
+            font-size: 4.5rem;
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #f1c40f;
+            text-shadow: 4px 4px #c0392b, 8px 8px rgba(0,0,0,0.5);
+            letter-spacing: 4px;
+            line-height: 1.1;
         }
 
         #startScreen p {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             color: #ecf0f1;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            font-style: italic;
         }
 
         #startButton {
-            padding: 15px 40px;
-            font-size: 24px;
+            padding: 20px 60px;
+            font-size: 28px;
             font-family: 'MedievalSharp', cursive, serif;
             background-color: #c0392b;
             color: #f1c40f;
-            border: 2px solid #f1c40f;
-            border-radius: 8px;
+            border: 3px solid #f1c40f;
+            border-radius: 0;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s ease;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 4px #922b21;
+            letter-spacing: 3px;
+            box-shadow: 0 6px #922b21, 0 10px 20px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
         }
 
         #startButton:hover {
             background-color: #e74c3c;
-            transform: translateY(-2px);
-            box-shadow: 0 6px #922b21;
+            transform: translateY(-3px);
+            box-shadow: 0 9px #922b21, 0 15px 25px rgba(0,0,0,0.5);
         }
 
         #startButton:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px #922b21;
+            transform: translateY(3px);
+            box-shadow: 0 3px #922b21, 0 5px 10px rgba(0,0,0,0.5);
         }
     </style>
 </head>
