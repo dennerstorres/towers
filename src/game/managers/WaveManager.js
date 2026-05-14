@@ -16,7 +16,9 @@ export class WaveManager {
         
         this.enemySpawnInterval = setInterval(() => {
             if (this.enemiesSpawned < this.enemiesToSpawn && gameState.enemies.length < 10) {
-                gameState.enemies.push(new Enemy());
+                const types = ['goblin', 'goblin', 'orc', 'scout'];
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                gameState.enemies.push(new Enemy(randomType));
                 this.enemiesSpawned++;
             }
         }, 2000);
