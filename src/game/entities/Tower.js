@@ -10,19 +10,6 @@ export class Tower {
         this.lastShot = 0;
     }
 
-    draw(ctx) {
-        ctx.fillStyle = '#3498db';
-        ctx.beginPath();
-        ctx.arc(
-            this.x * Config.gridSize + Config.gridSize/2,
-            this.y * Config.gridSize + Config.gridSize/2,
-            Config.gridSize/2,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-    }
-
     update(currentTime, enemies) {
         if (currentTime - this.lastShot > this.cooldown) {
             this.shoot(enemies);
