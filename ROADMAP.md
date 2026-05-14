@@ -28,7 +28,7 @@
 - [x] **T05** — Visual dos inimigos e barra de vida
   Sprites distintos por tipo de inimigo. Barra de vida mais elegante com cor variando de verde para vermelho conforme HP cai. Modificar `CanvasRenderer.js` e `Enemy.js`.
 
-- [ ] **T06** — Efeitos visuais de tiro e impacto  
+- [x] **T06** — Efeitos visuais de tiro e impacto
   Projéteis visíveis no canvas (bola de fogo, flecha, etc.) e partículas ou flash de impacto ao acertar inimigos. Adicionar sistema de partículas leve em `CanvasRenderer.js` ou novo arquivo `src/game/effects/ParticleSystem.js`.
 
 ---
@@ -96,3 +96,4 @@
 | T03 | Em revisão | #3 | 14/05/2026 |
 | T04 | Em revisão | #4 | 14/05/2026 |
 | T05 | Em revisão | #5 | 14/05/2026 |
+| T06 | Em revisão | #6 | 14/05/2026 |

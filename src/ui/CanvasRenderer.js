@@ -161,6 +161,32 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
+    drawProjectile(projectile) {
+        this.ctx.save();
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.beginPath();
+        this.ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Glow effect
+        this.ctx.shadowBlur = 5;
+        this.ctx.shadowColor = Config.THEME.colors.gold;
+        this.ctx.stroke();
+        this.ctx.restore();
+    }
+
+    drawParticles(particles) {
+        this.ctx.save();
+        for (const p of particles) {
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+        this.ctx.restore();
+    }
+
     drawTower(tower) {
         const x = tower.x * Config.gridSize;
         const y = tower.y * Config.gridSize;

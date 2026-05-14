@@ -3,6 +3,7 @@ import { Tower } from '../entities/Tower.js';
 import { WaveManager } from '../managers/WaveManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
+import { ParticleSystem } from '../effects/ParticleSystem.js';
 
 export class Game {
     constructor(canvas) {
@@ -10,10 +11,12 @@ export class Game {
         this.renderer = new CanvasRenderer(canvas);
         this.ui = new GameUI();
         this.waveManager = new WaveManager();
+        this.particleSystem = new ParticleSystem();
         
         this.state = {
             towers: [],
             enemies: [],
+            projectiles: [],
             money: Config.initialMoney,
             lives: Config.initialLives,
             gameRunning: false
@@ -79,8 +82,28 @@ export class Game {
 
         // Atualiza e desenha torres
         for (let tower of this.state.towers) {
-            tower.update(timestamp, this.state.enemies);
+            const projectile = tower.update(timestamp, this.state.enemies);
+            if (projectile) {
+                this.state.projectiles.push(projectile);
+            }
             this.renderer.drawTower(tower);
+        }
+
+        // Atualiza projéteis
+        for (let i = this.state.projectiles.length - 1; i >= 0; i--) {
+            const p = this.state.projectiles[i];
+            p.update();
+
+            if (p.reached) {
+                if (p.target && p.target.health <= 0) {
+                    this.particleSystem.emit(p.x, p.y, Config.THEME.colors.bloodRed, Config.particleCount);
+                } else {
+                    this.particleSystem.emit(p.x, p.y, '#f1c40f', 5);
+                }
+                this.state.projectiles.splice(i, 1);
+            } else {
+                this.renderer.drawProjectile(p);
+            }
         }
 
         // Atualiza e desenha inimigos
@@ -88,6 +111,10 @@ export class Game {
             enemy.update();
             this.renderer.drawEnemy(enemy);
         }
+
+        // Atualiza e desenha partículas
+        this.particleSystem.update();
+        this.renderer.drawParticles(this.particleSystem.getParticles());
 
         // Remove inimigos mortos
         const enemiesBefore = this.state.enemies.length;
