@@ -2,11 +2,13 @@ import { Config } from './Config.js';
 import { Tower } from '../entities/Tower.js';
 import { WaveManager } from '../managers/WaveManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
+import { GameUI } from '../../ui/GameUI.js';
 
 export class Game {
     constructor(canvas) {
         this.canvas = canvas;
         this.renderer = new CanvasRenderer(canvas);
+        this.ui = new GameUI();
         this.waveManager = new WaveManager();
         
         this.state = {
@@ -73,7 +75,7 @@ export class Game {
         this.renderer.clear();
         this.renderer.drawGrid();
         this.renderer.drawPath();
-        this.renderer.drawUI(this.state, this.waveManager);
+        this.renderer.drawUI(this.state, this.waveManager, this.ui);
 
         // Atualiza e desenha torres
         for (let tower of this.state.towers) {
