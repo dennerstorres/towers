@@ -13,7 +13,7 @@
 
 ## Fase 1 — Fundação Visual & Feedback (dias 1–6)
 
-- [ ] **T01** — Design system e tema visual  
+- [x] **T01** — Design system e tema visual
   Definir paleta de cores medieval (pedra, ouro, vermelho sangue), tipografia temática e aplicar ao canvas. Substituir fundo `#f0f0f0` e border `#333` por um tema coeso. Atualizar `index.html` e `CanvasRenderer.js`.
 
 - [ ] **T02** — Redesign da tela inicial (Start Screen)  
@@ -91,4 +91,4 @@
 
 | Tarefa | Status | PR | Data |
 |--------|--------|----|------|
-| — | — | — | — |
+| T01 | Em revisão | #1 | 14/05/2026 |
