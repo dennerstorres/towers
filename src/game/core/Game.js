@@ -80,7 +80,7 @@ export class Game {
         // Atualiza e desenha torres
         for (let tower of this.state.towers) {
             tower.update(timestamp, this.state.enemies);
-            tower.draw(this.renderer.ctx);
+            this.renderer.drawTower(tower);
         }
 
         // Atualiza e desenha inimigos

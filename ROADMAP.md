@@ -22,7 +22,7 @@
 - [x] **T03** — Redesign do HUD in-game
   Painel lateral ou barra superior com ícones para ouro, vidas e onda atual. Substituir texto puro por elementos visuais com ícones e contadores estilizados. Modificar `GameUI.js` e `CanvasRenderer.js`.
 
-- [ ] **T04** — Sprites e visual das torres  
+- [x] **T04** — Sprites e visual das torres
   Desenhar torres com Canvas 2D API usando formas temáticas (torre de pedra, torre de arqueiro, etc.). Substituir retângulos simples. Modificar `CanvasRenderer.js` e `Tower.js`.
 
 - [ ] **T05** — Visual dos inimigos e barra de vida  
@@ -94,3 +94,4 @@
 | T01 | Em revisão | #1 | 14/05/2026 |
 | T02 | Em revisão | #2 | 14/05/2026 |
 | T03 | Em revisão | #3 | 14/05/2026 |
+| T04 | Em revisão | #4 | 14/05/2026 |
