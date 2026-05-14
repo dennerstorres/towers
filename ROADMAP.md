@@ -25,7 +25,7 @@
 - [x] **T04** — Sprites e visual das torres
   Desenhar torres com Canvas 2D API usando formas temáticas (torre de pedra, torre de arqueiro, etc.). Substituir retângulos simples. Modificar `CanvasRenderer.js` e `Tower.js`.
 
-- [ ] **T05** — Visual dos inimigos e barra de vida  
+- [x] **T05** — Visual dos inimigos e barra de vida
   Sprites distintos por tipo de inimigo. Barra de vida mais elegante com cor variando de verde para vermelho conforme HP cai. Modificar `CanvasRenderer.js` e `Enemy.js`.
 
 - [ ] **T06** — Efeitos visuais de tiro e impacto  
@@ -95,3 +95,4 @@
 | T02 | Em revisão | #2 | 14/05/2026 |
 | T03 | Em revisão | #3 | 14/05/2026 |
 | T04 | Em revisão | #4 | 14/05/2026 |
+| T05 | Em revisão | #5 | 14/05/2026 |
