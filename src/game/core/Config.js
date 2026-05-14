@@ -17,6 +17,8 @@ export const Config = {
     towerRange: 150,
     towerDamage: 18,
     towerCooldown: 1000,
+    projectileSpeed: 6,
+    particleCount: 10,
     enemyHealth: 110,
     enemySpeed: 1.6,
     enemySpeedIncrease: 0.6,
