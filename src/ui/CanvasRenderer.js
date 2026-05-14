@@ -7,7 +7,7 @@ export class CanvasRenderer {
     }
 
     drawGrid() {
-        this.ctx.strokeStyle = '#ddd';
+        this.ctx.strokeStyle = Config.THEME.colors.grid;
         this.ctx.lineWidth = 1;
         
         for (let i = 0; i < this.canvas.width; i += Config.gridSize) {
@@ -24,7 +24,7 @@ export class CanvasRenderer {
     }
 
     drawPath() {
-        this.ctx.strokeStyle = '#95a5a6';
+        this.ctx.strokeStyle = Config.THEME.colors.path;
         this.ctx.lineWidth = Config.gridSize;
         
         this.ctx.beginPath();
@@ -44,12 +44,25 @@ export class CanvasRenderer {
     }
 
     drawUI(gameState, waveManager) {
-        this.ctx.fillStyle = '#000';
-        this.ctx.font = '20px Arial';
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `20px ${Config.THEME.font}`;
+
+        // Add a small shadow to text for better readability
+        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        this.ctx.shadowBlur = 4;
+        this.ctx.shadowOffsetX = 2;
+        this.ctx.shadowOffsetY = 2;
+
         this.ctx.fillText(`Dinheiro: $${gameState.money}`, 10, 30);
         this.ctx.fillText(`Vidas: ${gameState.lives}`, 10, 60);
         this.ctx.fillText(`Fase: ${waveManager.currentWave}`, 10, 90);
         this.ctx.fillText(`Inimigos: ${waveManager.enemiesToSpawn - waveManager.enemiesKilled}/${waveManager.enemiesToSpawn}`, 10, 120);
+
+        // Reset shadow
+        this.ctx.shadowColor = 'transparent';
+        this.ctx.shadowBlur = 0;
+        this.ctx.shadowOffsetX = 0;
+        this.ctx.shadowOffsetY = 0;
     }
 
     clear() {

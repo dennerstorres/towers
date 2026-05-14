@@ -22,5 +22,18 @@ export const Config = {
     enemySpeedIncrease: 0.6,
     waveEnemyIncrease: 4,
     waveMoneyReward: 40,
-    waveMoneyIncrease: 8
+    waveMoneyIncrease: 8,
+    THEME: {
+        colors: {
+            stone: '#7f8c8d',
+            darkStone: '#2c3e50',
+            gold: '#f1c40f',
+            bloodRed: '#c0392b',
+            grass: '#27ae60',
+            path: '#95a5a6',
+            grid: 'rgba(0, 0, 0, 0.05)',
+            text: '#2c3e50'
+        },
+        font: "'MedievalSharp', cursive, serif"
+    }
 }; 
