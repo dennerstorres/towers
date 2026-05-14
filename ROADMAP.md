@@ -19,7 +19,7 @@
 - [x] **T02** — Redesign da tela inicial (Start Screen)
   Substituir o card branco básico por uma tela de título temática com logo, arte de fundo e botão estilizado. Modificar o bloco `#startScreen` no `index.html` e seus estilos.
 
-- [ ] **T03** — Redesign do HUD in-game  
+- [x] **T03** — Redesign do HUD in-game
   Painel lateral ou barra superior com ícones para ouro, vidas e onda atual. Substituir texto puro por elementos visuais com ícones e contadores estilizados. Modificar `GameUI.js` e `CanvasRenderer.js`.
 
 - [ ] **T04** — Sprites e visual das torres  
@@ -93,3 +93,4 @@
 |--------|--------|----|------|
 | T01 | Em revisão | #1 | 14/05/2026 |
 | T02 | Em revisão | #2 | 14/05/2026 |
+| T03 | Em revisão | #3 | 14/05/2026 |

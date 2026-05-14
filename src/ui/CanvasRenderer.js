@@ -43,26 +43,122 @@ export class CanvasRenderer {
         this.ctx.stroke();
     }
 
-    drawUI(gameState, waveManager) {
-        this.ctx.fillStyle = Config.THEME.colors.gold;
-        this.ctx.font = `20px ${Config.THEME.font}`;
+    drawUI(gameState, waveManager, ui) {
+        const hudHeight = ui.hudHeight;
+        const padding = 20;
+        const itemWidth = 160;
 
-        // Add a small shadow to text for better readability
-        this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-        this.ctx.shadowBlur = 4;
-        this.ctx.shadowOffsetX = 2;
-        this.ctx.shadowOffsetY = 2;
+        // HUD Background
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.globalAlpha = 0.9;
+        this.ctx.fillRect(0, 0, this.canvas.width, hudHeight);
+        this.ctx.globalAlpha = 1.0;
 
-        this.ctx.fillText(`Dinheiro: $${gameState.money}`, 10, 30);
-        this.ctx.fillText(`Vidas: ${gameState.lives}`, 10, 60);
-        this.ctx.fillText(`Fase: ${waveManager.currentWave}`, 10, 90);
-        this.ctx.fillText(`Inimigos: ${waveManager.enemiesToSpawn - waveManager.enemiesKilled}/${waveManager.enemiesToSpawn}`, 10, 120);
+        // HUD Bottom Border
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 3;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, hudHeight);
+        this.ctx.lineTo(this.canvas.width, hudHeight);
+        this.ctx.stroke();
 
-        // Reset shadow
-        this.ctx.shadowColor = 'transparent';
-        this.ctx.shadowBlur = 0;
-        this.ctx.shadowOffsetX = 0;
-        this.ctx.shadowOffsetY = 0;
+        const items = ui.getHUDData(gameState, waveManager);
+
+        items.forEach((item, index) => {
+            const x = padding + index * itemWidth;
+            const y = hudHeight / 2;
+
+            this.drawIcon(item.icon, x, y, 20, item.color);
+
+            this.ctx.fillStyle = '#ecf0f1';
+            this.ctx.font = `bold 18px ${Config.THEME.font}`;
+            this.ctx.textAlign = 'left';
+            this.ctx.textBaseline = 'middle';
+
+            // Add a small shadow to text
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.shadowBlur = 2;
+            this.ctx.shadowOffsetX = 1;
+            this.ctx.shadowOffsetY = 1;
+
+            this.ctx.fillText(item.value, x + 30, y);
+
+            this.ctx.shadowColor = 'transparent';
+            this.ctx.shadowBlur = 0;
+            this.ctx.shadowOffsetX = 0;
+            this.ctx.shadowOffsetY = 0;
+        });
+    }
+
+    drawIcon(type, x, y, size, color) {
+        this.ctx.save();
+        this.ctx.fillStyle = color;
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 2;
+        this.ctx.lineJoin = 'round';
+        this.ctx.lineCap = 'round';
+
+        switch (type) {
+            case 'gold':
+                // Draw Coin
+                this.ctx.beginPath();
+                this.ctx.arc(x + size/2, y, size/2, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#d4ac0d';
+                this.ctx.stroke();
+                this.ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                this.ctx.font = `bold ${size*0.8}px serif`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('$', x + size/2, y);
+                break;
+            case 'heart':
+                // Draw Heart
+                const hX = x;
+                const hY = y - size/2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(hX + size/2, hY + size/4);
+                this.ctx.bezierCurveTo(hX + size/2, hY, hX, hY, hX, hY + size/4);
+                this.ctx.bezierCurveTo(hX, hY + size/2, hX + size/2, hY + size*0.75, hX + size/2, hY + size);
+                this.ctx.bezierCurveTo(hX + size/2, hY + size*0.75, hX + size, hY + size/2, hX + size, hY + size/4);
+                this.ctx.bezierCurveTo(hX + size, hY, hX + size/2, hY, hX + size/2, hY + size/4);
+                this.ctx.fill();
+                break;
+            case 'wave':
+                // Draw Shield
+                const sX = x;
+                const sY = y - size/2;
+                this.ctx.beginPath();
+                this.ctx.moveTo(sX, sY);
+                this.ctx.lineTo(sX + size, sY);
+                this.ctx.lineTo(sX + size, sY + size/2);
+                this.ctx.quadraticCurveTo(sX + size, sY + size, sX + size/2, sY + size);
+                this.ctx.quadraticCurveTo(sX, sY + size, sX, sY + size/2);
+                this.ctx.closePath();
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#f1c40f';
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+                break;
+            case 'enemy':
+                // Draw simple skull-ish shape
+                const eX = x;
+                const eY = y - size/2;
+                this.ctx.beginPath();
+                this.ctx.arc(eX + size/2, eY + size/3, size/3, Math.PI, 0);
+                this.ctx.lineTo(eX + size*0.8, eY + size);
+                this.ctx.lineTo(eX + size*0.2, eY + size);
+                this.ctx.closePath();
+                this.ctx.fill();
+                // Eyes
+                this.ctx.fillStyle = Config.THEME.colors.darkStone;
+                this.ctx.beginPath();
+                this.ctx.arc(eX + size*0.35, eY + size/3, size/8, 0, Math.PI*2);
+                this.ctx.arc(eX + size*0.65, eY + size/3, size/8, 0, Math.PI*2);
+                this.ctx.fill();
+                break;
+        }
+        this.ctx.restore();
     }
 
     clear() {
