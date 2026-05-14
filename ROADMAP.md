@@ -16,7 +16,7 @@
 - [x] **T01** — Design system e tema visual
   Definir paleta de cores medieval (pedra, ouro, vermelho sangue), tipografia temática e aplicar ao canvas. Substituir fundo `#f0f0f0` e border `#333` por um tema coeso. Atualizar `index.html` e `CanvasRenderer.js`.
 
-- [ ] **T02** — Redesign da tela inicial (Start Screen)  
+- [x] **T02** — Redesign da tela inicial (Start Screen)
   Substituir o card branco básico por uma tela de título temática com logo, arte de fundo e botão estilizado. Modificar o bloco `#startScreen` no `index.html` e seus estilos.
 
 - [ ] **T03** — Redesign do HUD in-game  
@@ -92,3 +92,4 @@
 | Tarefa | Status | PR | Data |
 |--------|--------|----|------|
 | T01 | Em revisão | #1 | 14/05/2026 |
+| T02 | Em revisão | #2 | 14/05/2026 |
