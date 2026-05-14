@@ -161,6 +161,48 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
+    drawTower(tower) {
+        const x = tower.x * Config.gridSize;
+        const y = tower.y * Config.gridSize;
+        const size = Config.gridSize;
+
+        this.ctx.save();
+
+        // Shadow
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(x + size/2 + 2, y + size - 5, 12, 5, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Tower Body
+        this.ctx.fillStyle = Config.THEME.colors.stone;
+        this.ctx.fillRect(x + 8, y + 10, 24, 25);
+
+        // Tower Top (the platform)
+        this.ctx.fillStyle = Config.THEME.colors.stone;
+        this.ctx.fillRect(x + 5, y + 5, 30, 7);
+
+        // Battlements (merlons)
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.fillRect(x + 5, y + 2, 6, 3);
+        this.ctx.fillRect(x + 17, y + 2, 6, 3);
+        this.ctx.fillRect(x + 29, y + 2, 6, 3);
+
+        // Decorative line under battlements
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.fillRect(x + 5, y + 12, 30, 1);
+
+        // Window
+        this.ctx.fillStyle = '#2c3e50';
+        this.ctx.fillRect(x + 18, y + 18, 4, 6);
+
+        // Base/Foundation
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.fillRect(x + 6, y + 35, 28, 3);
+
+        this.ctx.restore();
+    }
+
     clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
