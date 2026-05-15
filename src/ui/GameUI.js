@@ -72,4 +72,30 @@ export class GameUI {
             }
         };
     }
+
+    /**
+     * Retorna o layout para as telas de vitória e derrota
+     */
+    getEndGameLayout(canvas) {
+        const width = 400;
+        const height = 300;
+        const buttonWidth = 200;
+        const buttonHeight = 50;
+
+        return {
+            modal: {
+                x: canvas.width / 2 - width / 2,
+                y: canvas.height / 2 - height / 2,
+                width: width,
+                height: height
+            },
+            restartButton: {
+                x: canvas.width / 2 - buttonWidth / 2,
+                y: canvas.height / 2 + 50,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Jogar Novamente'
+            }
+        };
+    }
 }

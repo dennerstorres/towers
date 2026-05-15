@@ -94,6 +94,10 @@ export class CanvasRenderer {
         if (gameState.selectedPlacedTower) {
             this.drawTowerMenu(gameState.selectedPlacedTower, gameState.money, ui);
         }
+
+        if (gameState.isGameOver || gameState.isVictory) {
+            this.drawEndGameScreen(gameState, waveManager, ui);
+        }
     }
 
     drawTowerMenu(tower, money, ui) {
@@ -532,6 +536,47 @@ export class CanvasRenderer {
         this.ctx.strokeRect(barX, barY, barWidth, barHeight);
 
         this.ctx.restore();
+    }
+
+    drawEndGameScreen(gameState, waveManager, ui) {
+        const layout = ui.getEndGameLayout(this.canvas);
+        const { modal, restartButton } = layout;
+
+        // Overlay
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Modal Background
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 4;
+        this.ctx.fillRect(modal.x, modal.y, modal.width, modal.height);
+        this.ctx.strokeRect(modal.x, modal.y, modal.width, modal.height);
+
+        // Title
+        this.ctx.fillStyle = gameState.isVictory ? Config.THEME.colors.gold : Config.THEME.colors.bloodRed;
+        this.ctx.font = `bold 40px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        const title = gameState.isVictory ? 'VITÓRIA!' : 'GAME OVER';
+        this.ctx.fillText(title, this.canvas.width / 2, modal.y + 60);
+
+        // Stats
+        this.ctx.fillStyle = '#ecf0f1';
+        this.ctx.font = `20px ${Config.THEME.font}`;
+        this.ctx.fillText(`Ondas Sobrevividas: ${waveManager.currentWave - 1}`, this.canvas.width / 2, modal.y + 120);
+        this.ctx.fillText(`Inimigos Derrotados: ${waveManager.enemiesKilled}`, this.canvas.width / 2, modal.y + 150);
+
+        // Restart Button
+        this.ctx.fillStyle = Config.THEME.colors.bloodRed;
+        this.ctx.fillRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 20px ${Config.THEME.font}`;
+        this.ctx.fillText(restartButton.label, restartButton.x + restartButton.width / 2, restartButton.y + restartButton.height / 2);
     }
 
     clear() {

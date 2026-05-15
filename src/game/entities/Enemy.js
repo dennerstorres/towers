@@ -34,6 +34,9 @@ export class Enemy {
             
             if (distance < this.speed) {
                 this.pathIndex++;
+                if (this.pathIndex >= Config.path.length - 1) {
+                    this.reachedEnd = true;
+                }
             } else {
                 this.x += (dx / distance) * this.speed;
                 this.y += (dy / distance) * this.speed;
