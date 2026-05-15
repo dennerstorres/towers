@@ -16,13 +16,13 @@ export class Game {
         this.particleSystem = new ParticleSystem();
         
         this.state = {
-            towers: [],
             enemies: [],
             projectiles: [],
             money: Config.initialMoney,
             lives: Config.initialLives,
             gameRunning: false,
-            towerManager: this.towerManager
+            towerManager: this.towerManager,
+            selectedPlacedTower: null
         };
 
         this.setupEventListeners();
@@ -47,10 +47,50 @@ export class Game {
             const x = Math.floor(clickX / Config.gridSize);
             const y = Math.floor(clickY / Config.gridSize);
             
-            if (this.canPlaceTower(x, y)) {
+            if (this.state.selectedPlacedTower) {
+                if (this.handleContextMenuClick(clickX, clickY)) {
+                    return;
+                }
+            }
+
+            const existingTower = this.towerManager.getTowerAt(x, y);
+            if (existingTower) {
+                this.state.selectedPlacedTower = existingTower;
+            } else if (this.canPlaceTower(x, y)) {
                 this.placeTower(x, y);
+                this.state.selectedPlacedTower = null;
+            } else {
+                this.state.selectedPlacedTower = null;
             }
         });
+    }
+
+    handleContextMenuClick(clickX, clickY) {
+        const layout = this.ui.getTowerMenuLayout(this.state.selectedPlacedTower);
+
+        // Verifica Upgrade
+        if (clickX >= layout.upgrade.x && clickX <= layout.upgrade.x + layout.upgrade.width &&
+            clickY >= layout.upgrade.y && clickY <= layout.upgrade.y + layout.upgrade.height) {
+
+            const cost = this.state.selectedPlacedTower.getUpgradeCost();
+            if (this.state.money >= cost && this.state.selectedPlacedTower.upgrade()) {
+                this.state.money -= cost;
+            }
+            return true;
+        }
+
+        // Verifica Venda
+        if (clickX >= layout.sell.x && clickX <= layout.sell.x + layout.sell.width &&
+            clickY >= layout.sell.y && clickY <= layout.sell.y + layout.sell.height) {
+
+            const value = this.state.selectedPlacedTower.getSellValue();
+            this.state.money += value;
+            this.towerManager.removeTower(this.state.selectedPlacedTower);
+            this.state.selectedPlacedTower = null;
+            return true;
+        }
+
+        return false;
     }
 
     handlePanelClick(y) {
@@ -80,16 +120,14 @@ export class Game {
         }
         
         // Verifica se já existe uma torre
-        for (let tower of this.state.towers) {
-            if (tower.x === x && tower.y === y) return false;
-        }
+        if (this.towerManager.getTowerAt(x, y)) return false;
         
         return true;
     }
 
     placeTower(x, y) {
         const selectedTower = this.towerManager.getSelectedTower();
-        this.state.towers.push(new Tower(x, y, selectedTower.type));
+        this.towerManager.addTower(x, y, selectedTower.type);
         this.state.money -= selectedTower.cost;
     }
 
@@ -114,7 +152,7 @@ export class Game {
         this.renderer.drawUI(this.state, this.waveManager, this.ui);
 
         // Atualiza e desenha torres
-        for (let tower of this.state.towers) {
+        for (let tower of this.towerManager.placedTowers) {
             const projectile = tower.update(timestamp, this.state.enemies);
             if (projectile) {
                 this.state.projectiles.push(projectile);

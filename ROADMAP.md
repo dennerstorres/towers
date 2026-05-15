@@ -38,7 +38,7 @@
 - [x] **T07** — Múltiplos tipos de torre com painel de seleção
   Pelo menos 3 tipos (arqueiro rápido/fraco, canhão lento/forte, mágica com splash). Painel lateral para selecionar qual torre construir antes de clicar no grid. Atualizar `TowerManager.js`, `Tower.js`, `Config.js` e `GameUI.js`.
 
-- [ ] **T08** — Venda e upgrade de torres  
+- [x] **T08** — Venda e upgrade de torres
   Clique em torre existente para abrir menu de contexto: vender (recuperar parte do ouro) ou fazer upgrade (nível 1→2→3 com aumento de stats visível). Modificar `TowerManager.js`, `Tower.js` e `GameUI.js`.
 
 - [ ] **T09** — Visualização de alcance das torres  
@@ -97,3 +97,4 @@
 | T04 | Em revisão | #4 | 14/05/2026 |
 | T05 | Em revisão | #5 | 14/05/2026 |
 | T06 | Em revisão | #6 | 14/05/2026 |
+| T08 | Em revisão | #7 | 15/05/2026 |

@@ -15,7 +15,35 @@ export class Tower {
         this.projectileSpeed = stats.projectileSpeed;
         this.splashRadius = stats.splashRadius || 0;
 
+        this.baseCost = stats.cost;
+        this.totalInvested = stats.cost;
+        this.level = 1;
+        this.maxLevel = 3;
+
         this.lastShot = 0;
+    }
+
+    upgrade() {
+        if (this.level >= this.maxLevel) return false;
+
+        const upgradeCost = this.getUpgradeCost();
+        this.totalInvested += upgradeCost;
+        this.level++;
+
+        // Melhora de stats: +50% dano, +10% alcance por nível
+        this.damage = Math.floor(this.damage * 1.5);
+        this.range = Math.floor(this.range * 1.1);
+
+        return true;
+    }
+
+    getUpgradeCost() {
+        if (this.level >= this.maxLevel) return Infinity;
+        return Math.floor(this.baseCost * Math.pow(Config.UPGRADE_MULTIPLIER, this.level));
+    }
+
+    getSellValue() {
+        return Math.floor(this.totalInvested * Config.SELL_REFUND_PERCENTAGE);
     }
 
     update(currentTime, enemies) {
