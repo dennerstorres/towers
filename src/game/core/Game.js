@@ -21,12 +21,15 @@ export class Game {
             money: Config.initialMoney,
             lives: Config.initialLives,
             gameRunning: false,
+            isGameOver: false,
+            isVictory: false,
             towerManager: this.towerManager,
             selectedPlacedTower: null,
             mouseX: 0,
             mouseY: 0
         };
 
+        this.isLoopRunning = false;
         this.setupEventListeners();
     }
 
@@ -38,12 +41,20 @@ export class Game {
         });
 
         this.canvas.addEventListener('click', (e) => {
-            if (!this.state.gameRunning) return;
-            
             const rect = this.canvas.getBoundingClientRect();
             const clickX = e.clientX - rect.left;
             const clickY = e.clientY - rect.top;
 
+            if (this.state.isGameOver || this.state.isVictory) {
+                const layout = this.ui.getEndGameLayout(this.canvas);
+                if (clickX >= layout.restartButton.x && clickX <= layout.restartButton.x + layout.restartButton.width &&
+                    clickY >= layout.restartButton.y && clickY <= layout.restartButton.y + layout.restartButton.height) {
+                    this.restart();
+                }
+                return;
+            }
+
+            if (!this.state.gameRunning) return;
             // Verifica clique no painel lateral
             const panelX = this.canvas.width - this.ui.panelWidth;
             if (clickX >= panelX) {
@@ -143,7 +154,11 @@ export class Game {
         console.log('Game iniciado');
         this.state.gameRunning = true;
         this.waveManager.startWave(this.state);
-        this.gameLoop();
+
+        if (!this.isLoopRunning) {
+            this.isLoopRunning = true;
+            this.gameLoop();
+        }
     }
 
     stop() {
@@ -151,8 +166,25 @@ export class Game {
         this.waveManager.endWave(this.state);
     }
 
+    restart() {
+        this.state.money = Config.initialMoney;
+        this.state.lives = Config.initialLives;
+        this.state.enemies = [];
+        this.state.projectiles = [];
+        this.state.isGameOver = false;
+        this.state.isVictory = false;
+        this.state.selectedPlacedTower = null;
+        this.towerManager.reset();
+        this.waveManager.reset();
+        this.particleSystem.particles = [];
+        this.start();
+    }
+
     gameLoop(timestamp = 0) {
-        if (!this.state.gameRunning) return;
+        if (!this.state.gameRunning && !this.state.isGameOver && !this.state.isVictory) {
+            this.isLoopRunning = false;
+            return;
+        }
 
         this.renderer.clear();
         this.renderer.drawGrid();
@@ -192,20 +224,34 @@ export class Game {
         this.particleSystem.update();
         this.renderer.drawParticles(this.particleSystem.getParticles());
 
-        // Remove inimigos mortos
+        // Remove inimigos mortos ou que chegaram ao fim
         const enemiesBefore = this.state.enemies.length;
-        this.state.enemies = this.state.enemies.filter(enemy => enemy.health > 0);
+        this.state.enemies = this.state.enemies.filter(enemy => {
+            if (enemy.reachedEnd) {
+                this.state.lives--;
+                return false;
+            }
+            return enemy.health > 0;
+        });
         this.waveManager.enemiesKilled += enemiesBefore - this.state.enemies.length;
 
-        // Verifica se o jogo acabou
-        if (this.state.lives <= 0) {
-            this.stop();
-            alert(`Game Over! Você chegou até a fase ${this.waveManager.currentWave}`);
-            return;
+        // Verifica vitória
+        if (this.waveManager.currentWave > Config.maxWaves) {
+            this.state.isVictory = true;
+            this.state.gameRunning = false;
         }
 
-        // Atualiza o gerenciador de ondas
-        this.waveManager.update(this.state);
+        // Verifica derrota
+        if (this.state.lives <= 0) {
+            this.state.lives = 0; // Garante que não fique negativo
+            this.state.isGameOver = true;
+            this.state.gameRunning = false;
+        }
+
+        // Atualiza o gerenciador de ondas se o jogo ainda estiver rodando
+        if (this.state.gameRunning) {
+            this.waveManager.update(this.state);
+        }
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }

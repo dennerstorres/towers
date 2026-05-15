@@ -4,6 +4,10 @@ import { Tower } from '../entities/Tower.js';
 
 export class TowerManager {
     constructor() {
+        this.reset();
+    }
+
+    reset() {
         this.selectedTowerType = 'archer';
         this.availableTowers = Object.values(Config.TOWERS);
         this.placedTowers = [];
