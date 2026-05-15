@@ -26,14 +26,28 @@ export class Game {
             towerManager: this.towerManager,
             selectedPlacedTower: null,
             mouseX: 0,
-            mouseY: 0
+            mouseY: 0,
+            isPaused: false,
+            gameSpeed: 1,
+            logicalTime: 0
         };
+
+        this.lastTime = 0;
+        this.accumulator = 0;
+        this.timeStep = 1000 / 60; // 16.67ms
 
         this.isLoopRunning = false;
         this.setupEventListeners();
     }
 
     setupEventListeners() {
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                this.togglePause();
+            }
+        });
+
         this.canvas.addEventListener('mousemove', (e) => {
             const rect = this.canvas.getBoundingClientRect();
             this.state.mouseX = e.clientX - rect.left;
@@ -55,6 +69,15 @@ export class Game {
             }
 
             if (!this.state.gameRunning) return;
+
+            // Verifica clique nos botões de controle
+            if (this.handleControlsClick(clickX, clickY)) {
+                return;
+            }
+
+            // Se estiver pausado, não permite outras interações no canvas (exceto controles)
+            if (this.state.isPaused) return;
+
             // Verifica clique no painel lateral
             const panelX = this.canvas.width - this.ui.panelWidth;
             if (clickX >= panelX) {
@@ -110,6 +133,37 @@ export class Game {
         }
 
         return false;
+    }
+
+    handleControlsClick(clickX, clickY) {
+        const layout = this.ui.getControlButtonsLayout(this.canvas);
+
+        // Clique Pausa
+        if (clickX >= layout.pause.x && clickX <= layout.pause.x + layout.pause.width &&
+            clickY >= layout.pause.y && clickY <= layout.pause.y + layout.pause.height) {
+            this.togglePause();
+            return true;
+        }
+
+        // Clique Velocidade
+        if (clickX >= layout.speed.x && clickX <= layout.speed.x + layout.speed.width &&
+            clickY >= layout.speed.y && clickY <= layout.speed.y + layout.speed.height) {
+            this.toggleSpeed();
+            return true;
+        }
+
+        return false;
+    }
+
+    togglePause() {
+        if (this.state.isGameOver || this.state.isVictory) return;
+        this.state.isPaused = !this.state.isPaused;
+        console.log(this.state.isPaused ? 'Jogo Pausado' : 'Jogo Retomado');
+    }
+
+    toggleSpeed() {
+        this.state.gameSpeed = this.state.gameSpeed === 1 ? 2 : 1;
+        console.log(`Velocidade: ${this.state.gameSpeed}x`);
     }
 
     handlePanelClick(y) {
@@ -173,6 +227,9 @@ export class Game {
         this.state.projectiles = [];
         this.state.isGameOver = false;
         this.state.isVictory = false;
+        this.state.isPaused = false;
+        this.state.gameSpeed = 1;
+        this.state.logicalTime = 0;
         this.state.selectedPlacedTower = null;
         this.towerManager.reset();
         this.waveManager.reset();
@@ -183,22 +240,67 @@ export class Game {
     gameLoop(timestamp = 0) {
         if (!this.state.gameRunning && !this.state.isGameOver && !this.state.isVictory) {
             this.isLoopRunning = false;
+            this.lastTime = 0;
             return;
         }
 
+        if (this.lastTime === 0) this.lastTime = timestamp;
+        let deltaTime = timestamp - this.lastTime;
+        this.lastTime = timestamp;
+
+        // Limita o deltaTime para evitar "espirais da morte" em travamentos
+        if (deltaTime > 100) deltaTime = 100;
+
+        if (!this.state.isPaused && this.state.gameRunning) {
+            this.accumulator += deltaTime * this.state.gameSpeed;
+
+            while (this.accumulator >= this.timeStep) {
+                this.updateLogic();
+                this.accumulator -= this.timeStep;
+            }
+        }
+
+        // Renderização (sempre ocorre para manter UI responsiva)
         this.renderer.clear();
         this.renderer.drawGrid();
         this.renderer.drawPath();
         this.drawRangeVisuals();
+
+        // Desenha torres
+        for (let tower of this.towerManager.placedTowers) {
+            this.renderer.drawTower(tower);
+        }
+
+        // Desenha projéteis
+        for (let p of this.state.projectiles) {
+            this.renderer.drawProjectile(p);
+        }
+
+        // Desenha inimigos
+        for (let enemy of this.state.enemies) {
+            this.renderer.drawEnemy(enemy);
+        }
+
+        // Desenha partículas
+        this.renderer.drawParticles(this.particleSystem.getParticles());
+
+        // Desenha UI por cima de tudo
         this.renderer.drawUI(this.state, this.waveManager, this.ui);
 
-        // Atualiza e desenha torres
+        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
+
+    updateLogic() {
+        if (!this.state.gameRunning || this.state.isPaused || this.state.isGameOver || this.state.isVictory) return;
+
+        this.state.logicalTime += this.timeStep;
+
+        // Atualiza torres
         for (let tower of this.towerManager.placedTowers) {
-            const projectile = tower.update(timestamp, this.state.enemies);
+            const projectile = tower.update(this.state.logicalTime, this.state.enemies);
             if (projectile) {
                 this.state.projectiles.push(projectile);
             }
-            this.renderer.drawTower(tower);
         }
 
         // Atualiza projéteis
@@ -209,20 +311,16 @@ export class Game {
             if (p.reached) {
                 this.applyDamage(p);
                 this.state.projectiles.splice(i, 1);
-            } else {
-                this.renderer.drawProjectile(p);
             }
         }
 
-        // Atualiza e desenha inimigos
+        // Atualiza inimigos
         for (let enemy of this.state.enemies) {
             enemy.update();
-            this.renderer.drawEnemy(enemy);
         }
 
-        // Atualiza e desenha partículas
+        // Atualiza partículas
         this.particleSystem.update();
-        this.renderer.drawParticles(this.particleSystem.getParticles());
 
         // Remove inimigos mortos ou que chegaram ao fim
         const enemiesBefore = this.state.enemies.length;
@@ -252,8 +350,6 @@ export class Game {
         if (this.state.gameRunning) {
             this.waveManager.update(this.state);
         }
-
-        requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
     }
 
     drawRangeVisuals() {

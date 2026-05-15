@@ -47,7 +47,7 @@
 - [x] **T10** — Telas de Game Over e vitória
   Substituir estado silencioso de derrota por tela com score, ondas sobrevividas e botão de reiniciar. Adicionar tela de vitória se atingir onda máxima. Modificar `GameUI.js` e `Game.js`.
 
-- [ ] **T11** — Pausa e controle de velocidade  
+- [x] **T11** — Pausa e controle de velocidade
   Botão de pausa (tecla Espaço ou botão na UI) e opção de 2× velocidade. Modificar `Game.js` e `GameUI.js`.
 
 - [ ] **T12** — Efeitos sonoros básicos  
@@ -98,4 +98,5 @@
 | T05 | Em revisão | #5 | 14/05/2026 |
 | T06 | Em revisão | #6 | 14/05/2026 |
 | T08 | Em revisão | #7 | 15/05/2026 |
-| T09 | Em revisão | #[PR_NUMBER] | 15/05/2026 |
+| T09 | Em revisão | #8 | 15/05/2026 |
+| T11 | Em revisão | #9 | 15/05/2026 |

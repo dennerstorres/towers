@@ -74,6 +74,33 @@ export class GameUI {
     }
 
     /**
+     * Retorna o layout para os botões de controle (Pausa e Velocidade)
+     */
+    getControlButtonsLayout(canvas) {
+        const padding = 10;
+        const buttonWidth = 80;
+        const buttonHeight = 30;
+        const panelX = canvas.width - this.panelWidth;
+
+        return {
+            pause: {
+                x: panelX - (buttonWidth * 2) - (padding * 2),
+                y: padding,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Pausar'
+            },
+            speed: {
+                x: panelX - buttonWidth - padding,
+                y: padding,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: '1x'
+            }
+        };
+    }
+
+    /**
      * Retorna o layout para as telas de vitória e derrota
      */
     getEndGameLayout(canvas) {

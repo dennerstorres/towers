@@ -11,28 +11,24 @@ export class WaveManager {
         this.enemiesToSpawn = Config.initialEnemiesPerWave;
         this.enemiesSpawned = 0;
         this.enemiesKilled = 0;
-        if (this.enemySpawnInterval) {
-            clearInterval(this.enemySpawnInterval);
-            this.enemySpawnInterval = null;
-        }
+        this.spawnTimer = 0;
+        this.spawnInterval = 120; // Aproximadamente 2 segundos a 60fps
     }
 
     startWave(gameState) {
         this.enemiesSpawned = 0;
         this.enemiesKilled = 0;
-        
-        this.enemySpawnInterval = setInterval(() => {
-            if (this.enemiesSpawned < this.enemiesToSpawn && gameState.enemies.length < 10) {
-                const types = ['goblin', 'goblin', 'orc', 'scout'];
-                const randomType = types[Math.floor(Math.random() * types.length)];
-                gameState.enemies.push(new Enemy(randomType));
-                this.enemiesSpawned++;
-            }
-        }, 2000);
+        this.spawnTimer = 0;
+    }
+
+    spawnEnemy(gameState) {
+        const types = ['goblin', 'goblin', 'orc', 'scout'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        gameState.enemies.push(new Enemy(randomType));
+        this.enemiesSpawned++;
     }
 
     endWave(gameState) {
-        clearInterval(this.enemySpawnInterval);
         this.currentWave++;
         this.enemiesToSpawn = Config.initialEnemiesPerWave + (this.currentWave - 1) * Config.waveEnemyIncrease;
         gameState.money += Config.waveMoneyReward + (this.currentWave - 1) * Config.waveMoneyIncrease;
@@ -43,9 +39,21 @@ export class WaveManager {
     }
 
     update(gameState) {
+        // Lógica de spawn baseada em frames
+        if (this.enemiesSpawned < this.enemiesToSpawn) {
+            this.spawnTimer++;
+            if (this.spawnTimer >= this.spawnInterval) {
+                if (gameState.enemies.length < 10) {
+                    this.spawnEnemy(gameState);
+                    this.spawnTimer = 0;
+                }
+            }
+        }
+
+        // Verifica fim da onda
         if (this.enemiesKilled >= this.enemiesToSpawn && gameState.enemies.length === 0) {
             this.endWave(gameState);
             this.startWave(gameState);
         }
     }
-} 
+}
