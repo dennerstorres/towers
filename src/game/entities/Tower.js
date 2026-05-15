@@ -2,12 +2,19 @@ import { Config } from '../core/Config.js';
 import { Projectile } from './Projectile.js';
 
 export class Tower {
-    constructor(x, y) {
+    constructor(x, y, type = 'archer') {
         this.x = x;
         this.y = y;
-        this.range = Config.towerRange;
-        this.damage = Config.towerDamage;
-        this.cooldown = Config.towerCooldown;
+        this.type = type;
+
+        const stats = Config.TOWERS[type.toUpperCase()] || Config.TOWERS.ARCHER;
+
+        this.range = stats.range;
+        this.damage = stats.damage;
+        this.cooldown = stats.cooldown;
+        this.projectileSpeed = stats.projectileSpeed;
+        this.splashRadius = stats.splashRadius || 0;
+
         this.lastShot = 0;
     }
 
@@ -32,7 +39,11 @@ export class Tower {
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance < this.range) {
-                return new Projectile(centerX, centerY, enemy, this.damage);
+                const projectile = new Projectile(centerX, centerY, enemy, this.damage);
+                projectile.type = this.type;
+                projectile.speed = this.projectileSpeed;
+                projectile.splashRadius = this.splashRadius;
+                return projectile;
             }
         }
         return null;
