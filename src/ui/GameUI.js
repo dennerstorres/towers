@@ -43,4 +43,33 @@ export class GameUI {
             isSelected: tower.type === towerManager.selectedTowerType
         }));
     }
+
+    /**
+     * Retorna o layout dos botões do menu de contexto de uma torre
+     */
+    getTowerMenuLayout(tower) {
+        const x = tower.x * Config.gridSize;
+        const y = tower.y * Config.gridSize;
+        const buttonWidth = 100;
+        const buttonHeight = 30;
+        const spacing = 5;
+
+        // Posiciona o menu acima da torre
+        return {
+            upgrade: {
+                x: x + Config.gridSize / 2 - buttonWidth / 2,
+                y: y - buttonHeight * 2 - spacing,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Upgrade'
+            },
+            sell: {
+                x: x + Config.gridSize / 2 - buttonWidth / 2,
+                y: y - buttonHeight,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Vender'
+            }
+        };
+    }
 }

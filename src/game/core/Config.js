@@ -11,6 +11,8 @@ export const Config = {
     ],
     initialMoney: 100,
     initialLives: 10,
+    UPGRADE_MULTIPLIER: 1.5,
+    SELL_REFUND_PERCENTAGE: 0.7,
     initialWave: 1,
     initialEnemiesPerWave: 5,
     TOWERS: {

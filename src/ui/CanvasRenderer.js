@@ -90,6 +90,46 @@ export class CanvasRenderer {
         });
 
         this.drawTowerSelectionPanel(gameState, ui);
+
+        if (gameState.selectedPlacedTower) {
+            this.drawTowerMenu(gameState.selectedPlacedTower, gameState.money, ui);
+        }
+    }
+
+    drawTowerMenu(tower, money, ui) {
+        const layout = ui.getTowerMenuLayout(tower);
+        const upgradeCost = tower.getUpgradeCost();
+        const sellValue = tower.getSellValue();
+
+        this.ctx.save();
+        this.ctx.font = `bold 12px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+
+        // Draw Upgrade Button
+        if (tower.level < tower.maxLevel) {
+            const canAfford = money >= upgradeCost;
+            this.drawButton(layout.upgrade, canAfford ? Config.THEME.colors.gold : Config.THEME.colors.bloodRed, `${layout.upgrade.label} (${upgradeCost}G)`);
+        } else {
+            this.drawButton(layout.upgrade, Config.THEME.colors.stone, 'Nível Máximo', true);
+        }
+
+        // Draw Sell Button
+        this.drawButton(layout.sell, Config.THEME.colors.bloodRed, `${layout.sell.label} (${sellValue}G)`);
+
+        this.ctx.restore();
+    }
+
+    drawButton(btn, color, label, disabled = false) {
+        this.ctx.fillStyle = 'rgba(44, 62, 80, 0.9)';
+        this.ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
+
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
+
+        this.ctx.fillStyle = disabled ? '#95a5a6' : '#ecf0f1';
+        this.ctx.fillText(label, btn.x + btn.width / 2, btn.y + btn.height / 2);
     }
 
     drawTowerSelectionPanel(gameState, ui) {
@@ -351,6 +391,19 @@ export class CanvasRenderer {
         // Base/Foundation
         this.ctx.fillStyle = Config.THEME.colors.darkStone;
         this.ctx.fillRect(x + 6, y + 35, 28, 3);
+
+        // Level Indicators
+        if (!isIcon) {
+            for (let i = 0; i < tower.level; i++) {
+                this.ctx.fillStyle = Config.THEME.colors.gold;
+                this.ctx.beginPath();
+                this.ctx.arc(x + 10 + i * 10, y + 32, 3, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 0.5;
+                this.ctx.stroke();
+            }
+        }
 
         this.ctx.restore();
     }
