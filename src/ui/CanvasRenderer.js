@@ -23,6 +23,24 @@ export class CanvasRenderer {
         }
     }
 
+    drawRange(x, y, range, color = 'rgba(255, 255, 255, 0.2)') {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, range, 0, Math.PI * 2);
+
+        // Fill semi-transparent
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+
+        // Dashed border
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.strokeStyle = color.replace('0.2', '0.5'); // Slightly more opaque for the border
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+
+        this.ctx.restore();
+    }
+
     drawPath() {
         this.ctx.strokeStyle = Config.THEME.colors.path;
         this.ctx.lineWidth = Config.gridSize;

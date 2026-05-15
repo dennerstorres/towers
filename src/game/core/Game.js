@@ -22,13 +22,27 @@ export class Game {
             lives: Config.initialLives,
             gameRunning: false,
             towerManager: this.towerManager,
-            selectedPlacedTower: null
+            selectedPlacedTower: null,
+            mouseX: 0,
+            mouseY: 0,
+            hoveredTower: null
         };
 
         this.setupEventListeners();
     }
 
     setupEventListeners() {
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.state.mouseX = e.clientX - rect.left;
+            this.state.mouseY = e.clientY - rect.top;
+
+            const gridX = Math.floor(this.state.mouseX / Config.gridSize);
+            const gridY = Math.floor(this.state.mouseY / Config.gridSize);
+
+            this.state.hoveredTower = this.towerManager.getTowerAt(gridX, gridY);
+        });
+
         this.canvas.addEventListener('click', (e) => {
             if (!this.state.gameRunning) return;
             
@@ -149,6 +163,10 @@ export class Game {
         this.renderer.clear();
         this.renderer.drawGrid();
         this.renderer.drawPath();
+
+        // Desenha alcances
+        this.drawRanges();
+
         this.renderer.drawUI(this.state, this.waveManager, this.ui);
 
         // Atualiza e desenha torres
@@ -199,6 +217,36 @@ export class Game {
         this.waveManager.update(this.state);
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
+
+    drawRanges() {
+        // 1. Preview de alcance ao posicionar nova torre
+        const selectedTowerConfig = this.towerManager.getSelectedTower();
+        const panelX = this.canvas.width - this.ui.panelWidth;
+
+        if (selectedTowerConfig && this.state.mouseX < panelX && this.state.mouseY > this.ui.hudHeight) {
+            const gridX = Math.floor(this.state.mouseX / Config.gridSize);
+            const gridY = Math.floor(this.state.mouseY / Config.gridSize);
+            const centerX = gridX * Config.gridSize + Config.gridSize / 2;
+            const centerY = gridY * Config.gridSize + Config.gridSize / 2;
+
+            const color = this.canPlaceTower(gridX, gridY) ? 'rgba(255, 255, 255, 0.2)' : 'rgba(192, 57, 43, 0.2)';
+            this.renderer.drawRange(centerX, centerY, selectedTowerConfig.range, color);
+        }
+
+        // 2. Alcance da torre selecionada
+        if (this.state.selectedPlacedTower) {
+            const centerX = this.state.selectedPlacedTower.x * Config.gridSize + Config.gridSize / 2;
+            const centerY = this.state.selectedPlacedTower.y * Config.gridSize + Config.gridSize / 2;
+            this.renderer.drawRange(centerX, centerY, this.state.selectedPlacedTower.range, 'rgba(241, 196, 15, 0.2)');
+        }
+
+        // 3. Alcance ao passar o mouse (hover)
+        if (this.state.hoveredTower && this.state.hoveredTower !== this.state.selectedPlacedTower) {
+            const centerX = this.state.hoveredTower.x * Config.gridSize + Config.gridSize / 2;
+            const centerY = this.state.hoveredTower.y * Config.gridSize + Config.gridSize / 2;
+            this.renderer.drawRange(centerX, centerY, this.state.hoveredTower.range, 'rgba(255, 255, 255, 0.1)');
+        }
     }
 
     applyDamage(projectile) {
