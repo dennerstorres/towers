@@ -6,13 +6,17 @@ export class Projectile {
         this.y = y;
         this.target = target;
         this.damage = damage;
-        this.speed = Config.projectileSpeed || 5;
+        this.speed = 5;
         this.radius = 4;
         this.reached = false;
+        this.type = 'archer';
+        this.splashRadius = 0;
     }
 
     update() {
-        if (!this.target || this.target.health <= 0) {
+        if (!this.target || (this.target.health <= 0 && !this.reached)) {
+            // Se o alvo morreu antes do projétil chegar, marcamos como atingido
+            // Futuramente poderia continuar até a última posição conhecida
             this.reached = true;
             return;
         }
@@ -24,7 +28,6 @@ export class Projectile {
         if (distance < this.speed) {
             this.x = this.target.x;
             this.y = this.target.y;
-            this.target.health -= this.damage;
             this.reached = true;
         } else {
             this.x += (dx / distance) * this.speed;

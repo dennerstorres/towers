@@ -88,6 +88,78 @@ export class CanvasRenderer {
             this.ctx.shadowOffsetX = 0;
             this.ctx.shadowOffsetY = 0;
         });
+
+        this.drawTowerSelectionPanel(gameState, ui);
+    }
+
+    drawTowerSelectionPanel(gameState, ui) {
+        const panelWidth = ui.panelWidth;
+        const x = this.canvas.width - panelWidth;
+        const y = ui.hudHeight;
+        const height = this.canvas.height - ui.hudHeight;
+
+        // Panel Background
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.globalAlpha = 0.8;
+        this.ctx.fillRect(x, y, panelWidth, height);
+        this.ctx.globalAlpha = 1.0;
+
+        // Panel Left Border
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(x, y);
+        this.ctx.lineTo(x, this.canvas.height);
+        this.ctx.stroke();
+
+        const towerData = ui.getTowerSelectionData(gameState.towerManager);
+        const itemHeight = 80;
+        const padding = 10;
+
+        towerData.forEach((tower, index) => {
+            const itemY = y + padding + index * (itemHeight + padding);
+            const itemX = x + padding;
+            const itemWidth = panelWidth - padding * 2;
+
+            // Highlight if selected
+            if (tower.isSelected) {
+                this.ctx.fillStyle = 'rgba(241, 196, 15, 0.2)';
+                this.ctx.fillRect(itemX, itemY, itemWidth, itemHeight);
+                this.ctx.strokeStyle = Config.THEME.colors.gold;
+                this.ctx.lineWidth = 2;
+                this.ctx.strokeRect(itemX, itemY, itemWidth, itemHeight);
+            } else {
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(itemX, itemY, itemWidth, itemHeight);
+            }
+
+            // Draw Mini Tower Icon
+            this.drawTowerIcon(tower.type, itemX + itemWidth / 2, itemY + 30);
+
+            // Cost
+            this.ctx.fillStyle = gameState.money >= tower.cost ? Config.THEME.colors.gold : Config.THEME.colors.bloodRed;
+            this.ctx.font = `bold 14px ${Config.THEME.font}`;
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(`${tower.cost} G`, itemX + itemWidth / 2, itemY + 65);
+        });
+    }
+
+    drawTowerIcon(type, x, y) {
+        this.ctx.save();
+        this.ctx.translate(x - 15, y - 15);
+        this.ctx.scale(0.8, 0.8);
+
+        // Mock a tower object for drawTower
+        const mockTower = { x: 0, y: 0, type: type };
+        const originalGridSize = Config.gridSize;
+
+        // Temporarily adjust gridSize for icon drawing
+        const tempGridSize = 40;
+
+        this.drawTower(mockTower, true);
+
+        this.ctx.restore();
     }
 
     drawIcon(type, x, y, size, color) {
@@ -163,15 +235,37 @@ export class CanvasRenderer {
 
     drawProjectile(projectile) {
         this.ctx.save();
-        this.ctx.fillStyle = Config.THEME.colors.gold;
+
+        let color = Config.THEME.colors.gold;
+        let radius = projectile.radius;
+        let glow = true;
+
+        if (projectile.type === 'cannon') {
+            color = '#34495e';
+            radius = 6;
+            glow = false;
+        } else if (projectile.type === 'mage') {
+            color = Config.THEME.colors.mage;
+            radius = 5;
+        }
+
+        this.ctx.fillStyle = color;
         this.ctx.beginPath();
-        this.ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
+        this.ctx.arc(projectile.x, projectile.y, radius, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Glow effect
-        this.ctx.shadowBlur = 5;
-        this.ctx.shadowColor = Config.THEME.colors.gold;
-        this.ctx.stroke();
+        if (glow) {
+            this.ctx.shadowBlur = 8;
+            this.ctx.shadowColor = color;
+            this.ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+        } else {
+            this.ctx.strokeStyle = '#2c3e50';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+        }
+
         this.ctx.restore();
     }
 
@@ -187,25 +281,41 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
-    drawTower(tower) {
-        const x = tower.x * Config.gridSize;
-        const y = tower.y * Config.gridSize;
-        const size = Config.gridSize;
+    drawTower(tower, isIcon = false) {
+        const x = isIcon ? 0 : tower.x * Config.gridSize;
+        const y = isIcon ? 0 : tower.y * Config.gridSize;
+        const size = Config.gridSize; // Base size for drawing
 
         this.ctx.save();
 
-        // Shadow
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-        this.ctx.beginPath();
-        this.ctx.ellipse(x + size/2 + 2, y + size - 5, 12, 5, 0, 0, Math.PI * 2);
-        this.ctx.fill();
+        if (!isIcon) {
+            // Shadow
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            this.ctx.beginPath();
+            this.ctx.ellipse(x + size/2 + 2, y + size - 5, 12, 5, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
+        // Distinct colors based on type
+        let primaryColor = Config.THEME.colors.stone;
+        let accentColor = Config.THEME.colors.gold;
+
+        if (tower.type === 'archer') accentColor = Config.THEME.colors.archer;
+        if (tower.type === 'cannon') {
+            primaryColor = '#95a5a6';
+            accentColor = Config.THEME.colors.cannon;
+        }
+        if (tower.type === 'mage') {
+            primaryColor = '#34495e';
+            accentColor = Config.THEME.colors.mage;
+        }
 
         // Tower Body
-        this.ctx.fillStyle = Config.THEME.colors.stone;
+        this.ctx.fillStyle = primaryColor;
         this.ctx.fillRect(x + 8, y + 10, 24, 25);
 
         // Tower Top (the platform)
-        this.ctx.fillStyle = Config.THEME.colors.stone;
+        this.ctx.fillStyle = primaryColor;
         this.ctx.fillRect(x + 5, y + 5, 30, 7);
 
         // Battlements (merlons)
@@ -215,12 +325,28 @@ export class CanvasRenderer {
         this.ctx.fillRect(x + 29, y + 2, 6, 3);
 
         // Decorative line under battlements
-        this.ctx.fillStyle = Config.THEME.colors.gold;
-        this.ctx.fillRect(x + 5, y + 12, 30, 1);
+        this.ctx.fillStyle = accentColor;
+        this.ctx.fillRect(x + 5, y + 12, 30, 2);
 
-        // Window
-        this.ctx.fillStyle = '#2c3e50';
-        this.ctx.fillRect(x + 18, y + 18, 4, 6);
+        // Type specific visual elements
+        if (tower.type === 'mage') {
+            // Glowing orb for mage tower
+            this.ctx.fillStyle = accentColor;
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = accentColor;
+            this.ctx.beginPath();
+            this.ctx.arc(x + 20, y - 2, 6, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.shadowBlur = 0;
+        } else if (tower.type === 'cannon') {
+            // Bulky cannon barrel
+            this.ctx.fillStyle = '#2c3e50';
+            this.ctx.fillRect(x + 15, y + 15, 10, 10);
+        } else {
+            // Archer Window
+            this.ctx.fillStyle = '#2c3e50';
+            this.ctx.fillRect(x + 18, y + 18, 4, 6);
+        }
 
         // Base/Foundation
         this.ctx.fillStyle = Config.THEME.colors.darkStone;

@@ -1,6 +1,7 @@
 import { Config } from './Config.js';
 import { Tower } from '../entities/Tower.js';
 import { WaveManager } from '../managers/WaveManager.js';
+import { TowerManager } from '../managers/TowerManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
@@ -11,6 +12,7 @@ export class Game {
         this.renderer = new CanvasRenderer(canvas);
         this.ui = new GameUI();
         this.waveManager = new WaveManager();
+        this.towerManager = new TowerManager();
         this.particleSystem = new ParticleSystem();
         
         this.state = {
@@ -19,7 +21,8 @@ export class Game {
             projectiles: [],
             money: Config.initialMoney,
             lives: Config.initialLives,
-            gameRunning: false
+            gameRunning: false,
+            towerManager: this.towerManager
         };
 
         this.setupEventListeners();
@@ -30,8 +33,19 @@ export class Game {
             if (!this.state.gameRunning) return;
             
             const rect = this.canvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / Config.gridSize);
-            const y = Math.floor((e.clientY - rect.top) / Config.gridSize);
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Verifica clique no painel lateral
+            const panelX = this.canvas.width - this.ui.panelWidth;
+            if (clickX >= panelX) {
+                this.handlePanelClick(clickY);
+                return;
+            }
+
+            // Clique no grid para posicionar torre
+            const x = Math.floor(clickX / Config.gridSize);
+            const y = Math.floor(clickY / Config.gridSize);
             
             if (this.canPlaceTower(x, y)) {
                 this.placeTower(x, y);
@@ -39,9 +53,27 @@ export class Game {
         });
     }
 
+    handlePanelClick(y) {
+        const itemHeight = 80;
+        const padding = 10;
+        const startY = this.ui.hudHeight + padding;
+
+        const index = Math.floor((y - startY) / (itemHeight + padding));
+
+        if (index >= 0 && index < this.towerManager.availableTowers.length) {
+            const towerType = this.towerManager.availableTowers[index].type;
+            this.towerManager.selectTower(towerType);
+        }
+    }
+
     canPlaceTower(x, y) {
-        if (this.state.money < Config.towerCost) return false;
+        const selectedTower = this.towerManager.getSelectedTower();
+        if (this.state.money < selectedTower.cost) return false;
         
+        // Verifica se clicou fora da área de jogo (painel lateral)
+        if (x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
+        if (y * Config.gridSize < this.ui.hudHeight) return false;
+
         // Verifica se está no caminho
         for (let point of Config.path) {
             if (point.x === x && point.y === y) return false;
@@ -56,8 +88,9 @@ export class Game {
     }
 
     placeTower(x, y) {
-        this.state.towers.push(new Tower(x, y));
-        this.state.money -= Config.towerCost;
+        const selectedTower = this.towerManager.getSelectedTower();
+        this.state.towers.push(new Tower(x, y, selectedTower.type));
+        this.state.money -= selectedTower.cost;
     }
 
     start() {
@@ -95,11 +128,7 @@ export class Game {
             p.update();
 
             if (p.reached) {
-                if (p.target && p.target.health <= 0) {
-                    this.particleSystem.emit(p.x, p.y, Config.THEME.colors.bloodRed, Config.particleCount);
-                } else {
-                    this.particleSystem.emit(p.x, p.y, '#f1c40f', 5);
-                }
+                this.applyDamage(p);
                 this.state.projectiles.splice(i, 1);
             } else {
                 this.renderer.drawProjectile(p);
@@ -132,5 +161,33 @@ export class Game {
         this.waveManager.update(this.state);
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
+
+    applyDamage(projectile) {
+        if (projectile.splashRadius > 0) {
+            // Splash Damage
+            this.state.enemies.forEach(enemy => {
+                const dx = enemy.x - projectile.x;
+                const dy = enemy.y - projectile.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance <= projectile.splashRadius) {
+                    enemy.health -= projectile.damage;
+                    this.particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
+                }
+            });
+            // Visual feedback for splash
+            this.particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.mage, 15);
+        } else if (projectile.target && projectile.target.health > 0) {
+            // Single target damage
+            projectile.target.health -= projectile.damage;
+
+            if (projectile.target.health <= 0) {
+                this.particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount);
+            } else {
+                const color = projectile.type === 'cannon' ? Config.THEME.colors.cannon : '#f1c40f';
+                this.particleSystem.emit(projectile.x, projectile.y, color, 5);
+            }
+        }
     }
 } 

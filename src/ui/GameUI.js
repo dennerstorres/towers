@@ -3,6 +3,7 @@ import { Config } from '../game/core/Config.js';
 export class GameUI {
     constructor() {
         this.hudHeight = 50;
+        this.panelWidth = 100;
     }
 
     /**
@@ -31,5 +32,15 @@ export class GameUI {
                 color: '#ecf0f1'
             }
         ];
+    }
+
+    /**
+     * Retorna os dados para o painel de seleção de torres
+     */
+    getTowerSelectionData(towerManager) {
+        return towerManager.availableTowers.map(tower => ({
+            ...tower,
+            isSelected: tower.type === towerManager.selectedTowerType
+        }));
     }
 }
