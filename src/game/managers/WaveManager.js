@@ -3,11 +3,18 @@ import { Enemy } from '../entities/Enemy.js';
 
 export class WaveManager {
     constructor() {
+        this.reset();
+    }
+
+    reset() {
         this.currentWave = Config.initialWave;
         this.enemiesToSpawn = Config.initialEnemiesPerWave;
         this.enemiesSpawned = 0;
         this.enemiesKilled = 0;
-        this.enemySpawnInterval = null;
+        if (this.enemySpawnInterval) {
+            clearInterval(this.enemySpawnInterval);
+            this.enemySpawnInterval = null;
+        }
     }
 
     startWave(gameState) {
