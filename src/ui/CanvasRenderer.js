@@ -90,6 +90,7 @@ export class CanvasRenderer {
         });
 
         this.drawTowerSelectionPanel(gameState, ui);
+        this.drawControls(gameState, ui);
 
         if (gameState.selectedPlacedTower) {
             this.drawTowerMenu(gameState.selectedPlacedTower, gameState.money, ui);
@@ -97,7 +98,35 @@ export class CanvasRenderer {
 
         if (gameState.isGameOver || gameState.isVictory) {
             this.drawEndGameScreen(gameState, waveManager, ui);
+        } else if (gameState.isPaused) {
+            this.drawPauseOverlay(ui);
         }
+    }
+
+    drawControls(gameState, ui) {
+        const layout = ui.getControlButtonsLayout(this.canvas);
+
+        // Botão de Pausa
+        const pauseLabel = gameState.isPaused ? 'Continuar' : 'Pausar';
+        this.drawButton(layout.pause, Config.THEME.colors.gold, pauseLabel);
+
+        // Botão de Velocidade
+        const speedLabel = `${gameState.gameSpeed}x`;
+        this.drawButton(layout.speed, Config.THEME.colors.gold, speedLabel);
+    }
+
+    drawPauseOverlay(ui) {
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        this.ctx.fillRect(0, ui.hudHeight, this.canvas.width - ui.panelWidth, this.canvas.height - ui.hudHeight);
+
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 40px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText('PAUSADO', (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2);
+
+        this.ctx.font = `18px ${Config.THEME.font}`;
+        this.ctx.fillText('Pressione ESPAÇO para continuar', (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2 + 50);
     }
 
     drawTowerMenu(tower, money, ui) {
