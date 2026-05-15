@@ -13,11 +13,33 @@ export const Config = {
     initialLives: 10,
     initialWave: 1,
     initialEnemiesPerWave: 5,
-    towerCost: 40,
-    towerRange: 150,
-    towerDamage: 18,
-    towerCooldown: 1000,
-    projectileSpeed: 6,
+    TOWERS: {
+        ARCHER: {
+            type: 'archer',
+            cost: 40,
+            range: 150,
+            damage: 15,
+            cooldown: 800,
+            projectileSpeed: 8
+        },
+        CANNON: {
+            type: 'cannon',
+            cost: 80,
+            range: 120,
+            damage: 45,
+            cooldown: 2000,
+            projectileSpeed: 5
+        },
+        MAGE: {
+            type: 'mage',
+            cost: 120,
+            range: 180,
+            damage: 25,
+            cooldown: 1500,
+            projectileSpeed: 4,
+            splashRadius: 60
+        }
+    },
     particleCount: 10,
     enemyHealth: 110,
     enemySpeed: 1.6,
@@ -31,6 +53,10 @@ export const Config = {
             darkStone: '#2c3e50',
             gold: '#f1c40f',
             bloodRed: '#c0392b',
+            archer: '#2ecc71',
+            cannon: '#e67e22',
+            mage: '#9b59b6',
+            mageSplash: 'rgba(155, 89, 182, 0.3)',
             grass: '#27ae60',
             path: '#95a5a6',
             grid: 'rgba(0, 0, 0, 0.05)',

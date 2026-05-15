@@ -35,7 +35,7 @@
 
 ## Fase 2 — Mecânicas Essenciais (dias 7–12)
 
-- [ ] **T07** — Múltiplos tipos de torre com painel de seleção  
+- [x] **T07** — Múltiplos tipos de torre com painel de seleção
   Pelo menos 3 tipos (arqueiro rápido/fraco, canhão lento/forte, mágica com splash). Painel lateral para selecionar qual torre construir antes de clicar no grid. Atualizar `TowerManager.js`, `Tower.js`, `Config.js` e `GameUI.js`.
 
 - [ ] **T08** — Venda e upgrade de torres  
