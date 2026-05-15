@@ -41,7 +41,7 @@
 - [x] **T08** — Venda e upgrade de torres
   Clique em torre existente para abrir menu de contexto: vender (recuperar parte do ouro) ou fazer upgrade (nível 1→2→3 com aumento de stats visível). Modificar `TowerManager.js`, `Tower.js` e `GameUI.js`.
 
-- [ ] **T09** — Visualização de alcance das torres  
+- [x] **T09** — Visualização de alcance das torres
   Ao passar o mouse ou selecionar uma torre, mostrar círculo de alcance semi-transparente. Ao posicionar nova torre, mostrar preview de alcance antes de confirmar. Modificar `CanvasRenderer.js` e `Game.js`.
 
 - [ ] **T10** — Telas de Game Over e vitória  
@@ -98,3 +98,4 @@
 | T05 | Em revisão | #5 | 14/05/2026 |
 | T06 | Em revisão | #6 | 14/05/2026 |
 | T08 | Em revisão | #7 | 15/05/2026 |
+| T09 | Em revisão | #[PR_NUMBER] | 15/05/2026 |
