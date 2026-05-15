@@ -273,6 +273,24 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
+    drawRangeCircle(x, y, range) {
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, range, 0, Math.PI * 2);
+
+        // Fill semi-transparent
+        this.ctx.fillStyle = 'rgba(241, 196, 15, 0.15)';
+        this.ctx.fill();
+
+        // Border
+        this.ctx.strokeStyle = 'rgba(241, 196, 15, 0.5)';
+        this.ctx.lineWidth = 2;
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.stroke();
+
+        this.ctx.restore();
+    }
+
     drawProjectile(projectile) {
         this.ctx.save();
 
