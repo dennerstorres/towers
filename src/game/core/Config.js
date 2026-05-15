@@ -15,6 +15,7 @@ export const Config = {
     SELL_REFUND_PERCENTAGE: 0.7,
     initialWave: 1,
     initialEnemiesPerWave: 5,
+    maxWaves: 10,
     TOWERS: {
         ARCHER: {
             type: 'archer',

@@ -44,7 +44,7 @@
 - [x] **T09** — Visualização de alcance das torres
   Ao passar o mouse ou selecionar uma torre, mostrar círculo de alcance semi-transparente. Ao posicionar nova torre, mostrar preview de alcance antes de confirmar. Modificar `CanvasRenderer.js` e `Game.js`.
 
-- [ ] **T10** — Telas de Game Over e vitória  
+- [x] **T10** — Telas de Game Over e vitória
   Substituir estado silencioso de derrota por tela com score, ondas sobrevividas e botão de reiniciar. Adicionar tela de vitória se atingir onda máxima. Modificar `GameUI.js` e `Game.js`.
 
 - [ ] **T11** — Pausa e controle de velocidade  
