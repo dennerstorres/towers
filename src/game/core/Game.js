@@ -22,13 +22,21 @@ export class Game {
             lives: Config.initialLives,
             gameRunning: false,
             towerManager: this.towerManager,
-            selectedPlacedTower: null
+            selectedPlacedTower: null,
+            mouseX: 0,
+            mouseY: 0
         };
 
         this.setupEventListeners();
     }
 
     setupEventListeners() {
+        this.canvas.addEventListener('mousemove', (e) => {
+            const rect = this.canvas.getBoundingClientRect();
+            this.state.mouseX = e.clientX - rect.left;
+            this.state.mouseY = e.clientY - rect.top;
+        });
+
         this.canvas.addEventListener('click', (e) => {
             if (!this.state.gameRunning) return;
             
@@ -149,6 +157,7 @@ export class Game {
         this.renderer.clear();
         this.renderer.drawGrid();
         this.renderer.drawPath();
+        this.drawRangeVisuals();
         this.renderer.drawUI(this.state, this.waveManager, this.ui);
 
         // Atualiza e desenha torres
@@ -199,6 +208,41 @@ export class Game {
         this.waveManager.update(this.state);
 
         requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
+    }
+
+    drawRangeVisuals() {
+        // 1. Preview de alcance para nova torre sendo posicionada
+        const mouseGridX = Math.floor(this.state.mouseX / Config.gridSize);
+        const mouseGridY = Math.floor(this.state.mouseY / Config.gridSize);
+        const selectedType = this.towerManager.getSelectedTower();
+        const panelX = this.canvas.width - this.ui.panelWidth;
+
+        if (selectedType && this.state.mouseX < panelX && this.state.mouseY > this.ui.hudHeight) {
+            this.renderer.drawRangeCircle(
+                mouseGridX * Config.gridSize + Config.gridSize / 2,
+                mouseGridY * Config.gridSize + Config.gridSize / 2,
+                selectedType.range
+            );
+        }
+
+        // 2. Alcance da torre selecionada (com menu aberto)
+        if (this.state.selectedPlacedTower) {
+            this.renderer.drawRangeCircle(
+                this.state.selectedPlacedTower.x * Config.gridSize + Config.gridSize / 2,
+                this.state.selectedPlacedTower.y * Config.gridSize + Config.gridSize / 2,
+                this.state.selectedPlacedTower.range
+            );
+        }
+
+        // 3. Alcance ao passar o mouse sobre uma torre já posicionada
+        const hoveredTower = this.towerManager.getTowerAt(mouseGridX, mouseGridY);
+        if (hoveredTower && hoveredTower !== this.state.selectedPlacedTower) {
+            this.renderer.drawRangeCircle(
+                hoveredTower.x * Config.gridSize + Config.gridSize / 2,
+                hoveredTower.y * Config.gridSize + Config.gridSize / 2,
+                hoveredTower.range
+            );
+        }
     }
 
     applyDamage(projectile) {
