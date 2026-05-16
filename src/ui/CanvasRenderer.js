@@ -100,6 +100,8 @@ export class CanvasRenderer {
             this.drawEndGameScreen(gameState, waveManager, ui);
         } else if (gameState.isPaused) {
             this.drawPauseOverlay(ui);
+        } else if (waveManager.isWaiting) {
+            this.drawWaveCountdown(waveManager, ui);
         }
     }
 
@@ -127,6 +129,33 @@ export class CanvasRenderer {
 
         this.ctx.font = `18px ${Config.THEME.font}`;
         this.ctx.fillText('Pressione ESPAÇO para continuar', (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2 + 50);
+    }
+
+    drawWaveCountdown(waveManager, ui) {
+        const layout = ui.getWaveCountdownLayout(this.canvas);
+        const seconds = Math.ceil(waveManager.countdown / 60);
+
+        this.ctx.save();
+
+        // Background overlay for the play area only
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        this.ctx.fillRect(0, ui.hudHeight, this.canvas.width - ui.panelWidth, this.canvas.height - ui.hudHeight);
+
+        // Text
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+
+        this.ctx.font = `bold 30px ${Config.THEME.font}`;
+        this.ctx.fillText(`Onda ${waveManager.currentWave} chegando em ${seconds}...`,
+            (this.canvas.width - ui.panelWidth) / 2,
+            this.canvas.height / 2 - 30
+        );
+
+        // Skip Button
+        this.drawButton(layout.button, Config.THEME.colors.gold, layout.button.label);
+
+        this.ctx.restore();
     }
 
     drawTowerMenu(tower, money, ui) {

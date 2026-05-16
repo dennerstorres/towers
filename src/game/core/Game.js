@@ -72,6 +72,16 @@ export class Game {
 
             if (!this.state.gameRunning) return;
 
+            // Verifica clique no botão de Iniciar Agora (countdown)
+            if (this.waveManager.isWaiting) {
+                const countdownLayout = this.ui.getWaveCountdownLayout(this.canvas);
+                if (clickX >= countdownLayout.button.x && clickX <= countdownLayout.button.x + countdownLayout.button.width &&
+                    clickY >= countdownLayout.button.y && clickY <= countdownLayout.button.y + countdownLayout.button.height) {
+                    this.waveManager.skipCountdown();
+                    return;
+                }
+            }
+
             // Verifica clique nos botões de controle
             if (this.handleControlsClick(clickX, clickY)) {
                 return;
@@ -209,9 +219,8 @@ export class Game {
     start() {
         console.log('Game iniciado');
         this.audio.resume();
-        this.audio.playWaveStart();
         this.state.gameRunning = true;
-        this.waveManager.startWave(this.state);
+        this.waveManager.startCountdown();
 
         if (!this.isLoopRunning) {
             this.isLoopRunning = true;

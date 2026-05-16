@@ -13,12 +13,26 @@ export class WaveManager {
         this.enemiesKilled = 0;
         this.spawnTimer = 0;
         this.spawnInterval = 120; // Aproximadamente 2 segundos a 60fps
+        this.isWaiting = false;
+        this.countdown = 0;
     }
 
     startWave(gameState) {
+        this.isWaiting = false;
         this.enemiesSpawned = 0;
         this.enemiesKilled = 0;
         this.spawnTimer = 0;
+    }
+
+    startCountdown() {
+        this.isWaiting = true;
+        this.countdown = Config.waveCountdown * 60; // 5 segundos a 60fps
+    }
+
+    skipCountdown() {
+        if (this.isWaiting) {
+            this.countdown = 0;
+        }
     }
 
     spawnEnemy(gameState) {
@@ -39,6 +53,14 @@ export class WaveManager {
     }
 
     update(gameState) {
+        if (this.isWaiting) {
+            this.countdown--;
+            if (this.countdown <= 0) {
+                this.startWave(gameState);
+            }
+            return;
+        }
+
         // Lógica de spawn baseada em frames
         if (this.enemiesSpawned < this.enemiesToSpawn) {
             this.spawnTimer++;
@@ -53,7 +75,9 @@ export class WaveManager {
         // Verifica fim da onda
         if (this.enemiesKilled >= this.enemiesToSpawn && gameState.enemies.length === 0) {
             this.endWave(gameState);
-            this.startWave(gameState);
+            if (this.currentWave <= Config.maxWaves) {
+                this.startCountdown();
+            }
         }
     }
 }
