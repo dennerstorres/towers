@@ -57,7 +57,7 @@
 
 ## Fase 3 — Experiência & Polimento (dias 13–17)
 
-- [ ] **T13** — Countdown e anúncio de onda  
+- [x] **T13** — Countdown e anúncio de onda
   Tela "Onda 3 chegando em 5..." com contagem regressiva visual e botão "Iniciar agora". Modificar `WaveManager.js` e `GameUI.js`.
 
 - [ ] **T14** — Mapa temático e caminho decorado  
@@ -100,3 +100,4 @@
 | T08 | Em revisão | #7 | 15/05/2026 |
 | T09 | Em revisão | #8 | 15/05/2026 |
 | T11 | Em revisão | #9 | 15/05/2026 |
+| T13 | Em revisão | #14 | 16/05/2026 |
