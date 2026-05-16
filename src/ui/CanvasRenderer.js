@@ -4,9 +4,150 @@ export class CanvasRenderer {
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
+
+        // Canvas offscreen para pré-renderizar o fundo
+        this.bgCanvas = document.createElement('canvas');
+        this.bgCanvas.width = canvas.width;
+        this.bgCanvas.height = canvas.height;
+        this.bgCtx = this.bgCanvas.getContext('2d');
+        this.isBgRendered = false;
+    }
+
+    preRenderBackground() {
+        if (this.isBgRendered) return;
+
+        const ctx = this.bgCtx;
+        const width = this.bgCanvas.width;
+        const height = this.bgCanvas.height;
+
+        // Fundo base (Grama)
+        ctx.fillStyle = Config.THEME.colors.grass;
+        ctx.fillRect(0, 0, width, height);
+
+        // Adiciona variações de grama (manchas mais escuras)
+        ctx.fillStyle = Config.THEME.colors.grassDark;
+        for (let i = 0; i < 100; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = 20 + Math.random() * 40;
+            ctx.globalAlpha = 0.2 + Math.random() * 0.3;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Adiciona manchas de terra
+        ctx.fillStyle = Config.THEME.colors.dirt;
+        for (let i = 0; i < 40; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = 10 + Math.random() * 20;
+            ctx.globalAlpha = 0.1 + Math.random() * 0.2;
+            ctx.beginPath();
+            ctx.ellipse(x, y, size * 2, size, Math.random() * Math.PI, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Pequenas pedras decorativas
+        ctx.fillStyle = Config.THEME.colors.stone;
+        ctx.globalAlpha = 0.4;
+        for (let i = 0; i < 150; i++) {
+            const x = Math.random() * width;
+            const y = Math.random() * height;
+            const size = 1 + Math.random() * 2;
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.globalAlpha = 1.0;
+
+        // Renderiza o caminho no buffer do fundo para evitar flickering
+        this.renderPathToCtx(ctx);
+
+        this.isBgRendered = true;
+    }
+
+    renderPathToCtx(ctx) {
+        const halfGrid = Config.gridSize / 2;
+
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        // 1. Borda do caminho (efeito de profundidade/pedra)
+        ctx.strokeStyle = Config.THEME.colors.pathEdge;
+        ctx.lineWidth = Config.gridSize + 4;
+
+        ctx.beginPath();
+        ctx.moveTo(
+            Config.path[0].x * Config.gridSize + halfGrid,
+            Config.path[0].y * Config.gridSize + halfGrid
+        );
+
+        for (let i = 1; i < Config.path.length; i++) {
+            ctx.lineTo(
+                Config.path[i].x * Config.gridSize + halfGrid,
+                Config.path[i].y * Config.gridSize + halfGrid
+            );
+        }
+        ctx.stroke();
+
+        // 2. Caminho principal
+        ctx.strokeStyle = Config.THEME.colors.path;
+        ctx.lineWidth = Config.gridSize;
+
+        ctx.beginPath();
+        ctx.moveTo(
+            Config.path[0].x * Config.gridSize + halfGrid,
+            Config.path[0].y * Config.gridSize + halfGrid
+        );
+
+        for (let i = 1; i < Config.path.length; i++) {
+            ctx.lineTo(
+                Config.path[i].x * Config.gridSize + halfGrid,
+                Config.path[i].y * Config.gridSize + halfGrid
+            );
+        }
+        ctx.stroke();
+
+        // 3. Detalhes decorativos no caminho (pedregulhos e desgaste)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        for (let i = 0; i < Config.path.length - 1; i++) {
+            const start = Config.path[i];
+            const end = Config.path[i+1];
+
+            const dx = (end.x - start.x);
+            const dy = (end.y - start.y);
+            const steps = Math.max(Math.abs(dx), Math.abs(dy)) * 2;
+
+            for (let s = 0; s <= steps; s++) {
+                const px = (start.x + (dx * s / steps)) * Config.gridSize + halfGrid;
+                const py = (start.y + (dy * s / steps)) * Config.gridSize + halfGrid;
+
+                if (Math.random() > 0.7) {
+                    const offsetX = (Math.random() - 0.5) * (Config.gridSize * 0.6);
+                    const offsetY = (Math.random() - 0.5) * (Config.gridSize * 0.6);
+                    const size = 1 + Math.random() * 3;
+                    ctx.beginPath();
+                    ctx.arc(px + offsetX, py + offsetY, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        ctx.restore();
     }
 
     drawGrid() {
+        if (!this.isBgRendered) {
+            this.preRenderBackground();
+        }
+
+        // Desenha o fundo pré-renderizado
+        this.ctx.drawImage(this.bgCanvas, 0, 0);
+
+        // Grade sutil
         this.ctx.strokeStyle = Config.THEME.colors.grid;
         this.ctx.lineWidth = 1;
         
@@ -24,23 +165,8 @@ export class CanvasRenderer {
     }
 
     drawPath() {
-        this.ctx.strokeStyle = Config.THEME.colors.path;
-        this.ctx.lineWidth = Config.gridSize;
-        
-        this.ctx.beginPath();
-        this.ctx.moveTo(
-            Config.path[0].x * Config.gridSize + Config.gridSize/2,
-            Config.path[0].y * Config.gridSize + Config.gridSize/2
-        );
-        
-        for (let i = 1; i < Config.path.length; i++) {
-            this.ctx.lineTo(
-                Config.path[i].x * Config.gridSize + Config.gridSize/2,
-                Config.path[i].y * Config.gridSize + Config.gridSize/2
-            );
-        }
-        
-        this.ctx.stroke();
+        // O caminho agora é desenhado no preRenderBackground para evitar flickering
+        // e melhorar a performance, já que é estático.
     }
 
     drawUI(gameState, waveManager, ui) {
