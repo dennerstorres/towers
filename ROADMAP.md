@@ -50,7 +50,7 @@
 - [x] **T11** — Pausa e controle de velocidade
   Botão de pausa (tecla Espaço ou botão na UI) e opção de 2× velocidade. Modificar `Game.js` e `GameUI.js`.
 
-- [ ] **T12** — Efeitos sonoros básicos  
+- [x] **T12** — Efeitos sonoros básicos
   Sons de tiro, morte de inimigo, game over e início de onda usando Web Audio API ou arquivos de áudio curtos. Criar `src/audio/AudioManager.js` e integrar nos managers relevantes.
 
 ---
