@@ -62,7 +62,10 @@ export const Config = {
             mage: '#9b59b6',
             mageSplash: 'rgba(155, 89, 182, 0.3)',
             grass: '#27ae60',
+            grassDark: '#229958',
+            dirt: '#8d6e63',
             path: '#95a5a6',
+            pathEdge: '#7f8c8d',
             grid: 'rgba(0, 0, 0, 0.05)',
             text: '#2c3e50'
         },
