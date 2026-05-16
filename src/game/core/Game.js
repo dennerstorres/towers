@@ -5,6 +5,7 @@ import { TowerManager } from '../managers/TowerManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
+import { AudioManager } from '../../audio/AudioManager.js';
 
 export class Game {
     constructor(canvas) {
@@ -14,6 +15,7 @@ export class Game {
         this.waveManager = new WaveManager();
         this.towerManager = new TowerManager();
         this.particleSystem = new ParticleSystem();
+        this.audio = new AudioManager();
         
         this.state = {
             enemies: [],
@@ -206,6 +208,8 @@ export class Game {
 
     start() {
         console.log('Game iniciado');
+        this.audio.resume();
+        this.audio.playWaveStart();
         this.state.gameRunning = true;
         this.waveManager.startWave(this.state);
 
@@ -300,6 +304,7 @@ export class Game {
             const projectile = tower.update(this.state.logicalTime, this.state.enemies);
             if (projectile) {
                 this.state.projectiles.push(projectile);
+                this.audio.playShoot(tower.type);
             }
         }
 
@@ -329,7 +334,11 @@ export class Game {
                 this.state.lives--;
                 return false;
             }
-            return enemy.health > 0;
+            if (enemy.health <= 0) {
+                this.audio.playEnemyDeath();
+                return false;
+            }
+            return true;
         });
         this.waveManager.enemiesKilled += enemiesBefore - this.state.enemies.length;
 
@@ -337,6 +346,7 @@ export class Game {
         if (this.waveManager.currentWave > Config.maxWaves) {
             this.state.isVictory = true;
             this.state.gameRunning = false;
+            this.audio.playVictory();
         }
 
         // Verifica derrota
@@ -344,11 +354,16 @@ export class Game {
             this.state.lives = 0; // Garante que não fique negativo
             this.state.isGameOver = true;
             this.state.gameRunning = false;
+            this.audio.playGameOver();
         }
 
         // Atualiza o gerenciador de ondas se o jogo ainda estiver rodando
         if (this.state.gameRunning) {
+            const waveBefore = this.waveManager.currentWave;
             this.waveManager.update(this.state);
+            if (this.waveManager.currentWave > waveBefore && this.waveManager.currentWave <= Config.maxWaves) {
+                this.audio.playWaveStart();
+            }
         }
     }
 
