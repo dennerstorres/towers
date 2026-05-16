@@ -16,6 +16,7 @@ export const Config = {
     initialWave: 1,
     initialEnemiesPerWave: 5,
     maxWaves: 10,
+    waveCountdown: 5,
     TOWERS: {
         ARCHER: {
             type: 'archer',

@@ -101,6 +101,32 @@ export class GameUI {
     }
 
     /**
+     * Retorna o layout para o anúncio de onda e countdown
+     */
+    getWaveCountdownLayout(canvas) {
+        const width = 300;
+        const height = 150;
+        const buttonWidth = 160;
+        const buttonHeight = 40;
+
+        return {
+            container: {
+                x: (canvas.width - this.panelWidth) / 2 - width / 2,
+                y: canvas.height / 2 - height / 2,
+                width: width,
+                height: height
+            },
+            button: {
+                x: (canvas.width - this.panelWidth) / 2 - buttonWidth / 2,
+                y: canvas.height / 2 + 20,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Iniciar agora'
+            }
+        };
+    }
+
+    /**
      * Retorna o layout para as telas de vitória e derrota
      */
     getEndGameLayout(canvas) {
