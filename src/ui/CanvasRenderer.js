@@ -763,6 +763,26 @@ export class CanvasRenderer {
         this.ctx.fillText(restartButton.label, restartButton.x + restartButton.width / 2, restartButton.y + restartButton.height / 2);
     }
 
+    drawFloatingTexts(texts) {
+        this.ctx.save();
+        this.ctx.textAlign = 'center';
+        this.ctx.font = `bold 16px ${Config.THEME.font}`;
+
+        for (const t of texts) {
+            this.ctx.globalAlpha = t.life;
+            this.ctx.fillStyle = t.color;
+
+            // Sombra para melhor legibilidade
+            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.shadowBlur = 4;
+            this.ctx.shadowOffsetX = 1;
+            this.ctx.shadowOffsetY = 1;
+
+            this.ctx.fillText(t.text, t.x, t.y);
+        }
+        this.ctx.restore();
+    }
+
     clear() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
