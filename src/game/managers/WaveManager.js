@@ -45,11 +45,14 @@ export class WaveManager {
     endWave(gameState) {
         this.currentWave++;
         this.enemiesToSpawn = Config.initialEnemiesPerWave + (this.currentWave - 1) * Config.waveEnemyIncrease;
-        gameState.money += Config.waveMoneyReward + (this.currentWave - 1) * Config.waveMoneyIncrease;
+        const reward = Config.waveMoneyReward + (this.currentWave - 1) * Config.waveMoneyIncrease;
+        gameState.money += reward;
 
         if (this.currentWave % 3 === 0) {
             Enemy.prototype.speed += Config.enemySpeedIncrease;
         }
+
+        return reward;
     }
 
     update(gameState) {
@@ -58,7 +61,7 @@ export class WaveManager {
             if (this.countdown <= 0) {
                 this.startWave(gameState);
             }
-            return;
+            return null;
         }
 
         // Lógica de spawn baseada em frames
@@ -74,10 +77,13 @@ export class WaveManager {
 
         // Verifica fim da onda
         if (this.enemiesKilled >= this.enemiesToSpawn && gameState.enemies.length === 0) {
-            this.endWave(gameState);
+            const reward = this.endWave(gameState);
             if (this.currentWave <= Config.maxWaves) {
                 this.startCountdown();
             }
+            return reward;
         }
+
+        return null;
     }
 }

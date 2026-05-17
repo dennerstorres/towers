@@ -67,7 +67,8 @@ export const Config = {
             path: '#95a5a6',
             pathEdge: '#7f8c8d',
             grid: 'rgba(0, 0, 0, 0.05)',
-            text: '#2c3e50'
+            text: '#2c3e50',
+            damage: '#ffffff'
         },
         font: "'MedievalSharp', cursive, serif"
     }

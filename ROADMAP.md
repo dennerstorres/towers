@@ -63,7 +63,7 @@
 - [x] **T14** — Mapa temático e caminho decorado
   Substituir grid cinza por mapa com textura (grama, terra, pedra). Caminho dos inimigos visualmente mais orgânico. Modificar `CanvasRenderer.js` e `Config.js`.
 
-- [ ] **T15** — Floating text e feedback de dano  
+- [x] **T15** — Floating text e feedback de dano
   Números de dano flutuando ao causar/receber dano. "+50 ouro" ao completar onda. Adicionar sistema de floating text em `CanvasRenderer.js` ou `src/game/effects/FloatingText.js`.
 
 - [ ] **T16** — Responsividade básica e suporte mobile  
@@ -102,3 +102,4 @@
 | T11 | Em revisão | #9 | 15/05/2026 |
 | T13 | Em revisão | #14 | 16/05/2026 |
 | T14 | Em revisão | #15 | 16/05/2026 |
+| T15 | Em revisão | #17 | 17/05/2026 |
