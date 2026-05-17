@@ -5,6 +5,7 @@ import { TowerManager } from '../managers/TowerManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
+import { FloatingText } from '../effects/FloatingText.js';
 import { AudioManager } from '../../audio/AudioManager.js';
 
 export class Game {
@@ -15,6 +16,7 @@ export class Game {
         this.waveManager = new WaveManager();
         this.towerManager = new TowerManager();
         this.particleSystem = new ParticleSystem();
+        this.floatingTexts = new FloatingText();
         this.audio = new AudioManager();
         
         this.state = {
@@ -247,6 +249,7 @@ export class Game {
         this.towerManager.reset();
         this.waveManager.reset();
         this.particleSystem.particles = [];
+        this.floatingTexts.texts = [];
         this.start();
     }
 
@@ -297,6 +300,9 @@ export class Game {
         // Desenha partículas
         this.renderer.drawParticles(this.particleSystem.getParticles());
 
+        // Desenha textos flutuantes
+        this.renderer.drawFloatingTexts(this.floatingTexts.texts);
+
         // Desenha UI por cima de tudo
         this.renderer.drawUI(this.state, this.waveManager, this.ui);
 
@@ -336,11 +342,15 @@ export class Game {
         // Atualiza partículas
         this.particleSystem.update();
 
+        // Atualiza textos flutuantes
+        this.floatingTexts.update();
+
         // Remove inimigos mortos ou que chegaram ao fim
         const enemiesBefore = this.state.enemies.length;
         this.state.enemies = this.state.enemies.filter(enemy => {
             if (enemy.reachedEnd) {
                 this.state.lives--;
+                this.floatingTexts.add(enemy.x, enemy.y, '-1 ❤️', Config.THEME.colors.bloodRed);
                 return false;
             }
             if (enemy.health <= 0) {
@@ -369,7 +379,12 @@ export class Game {
         // Atualiza o gerenciador de ondas se o jogo ainda estiver rodando
         if (this.state.gameRunning) {
             const waveBefore = this.waveManager.currentWave;
-            this.waveManager.update(this.state);
+            const waveResult = this.waveManager.update(this.state);
+
+            if (waveResult && waveResult.type === 'wave_complete') {
+                this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
+            }
+
             if (this.waveManager.currentWave > waveBefore && this.waveManager.currentWave <= Config.maxWaves) {
                 this.audio.playWaveStart();
             }
@@ -421,6 +436,7 @@ export class Game {
 
                 if (distance <= projectile.splashRadius) {
                     enemy.health -= projectile.damage;
+                    this.floatingTexts.add(enemy.x, enemy.y, `-${projectile.damage}`, Config.THEME.colors.bloodRed);
                     this.particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
                 }
             });
@@ -429,6 +445,7 @@ export class Game {
         } else if (projectile.target && projectile.target.health > 0) {
             // Single target damage
             projectile.target.health -= projectile.damage;
+            this.floatingTexts.add(projectile.target.x, projectile.target.y, `-${projectile.damage}`, Config.THEME.colors.bloodRed);
 
             if (projectile.target.health <= 0) {
                 this.particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount);
