@@ -743,13 +743,25 @@ export class CanvasRenderer {
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         const title = gameState.isVictory ? 'VITÓRIA!' : 'GAME OVER';
-        this.ctx.fillText(title, this.canvas.width / 2, modal.y + 60);
+        this.ctx.fillText(title, this.canvas.width / 2, modal.y + 50);
 
         // Stats
-        this.ctx.fillStyle = '#ecf0f1';
+        const stats = ui.getEndGameStats(gameState, waveManager);
         this.ctx.font = `20px ${Config.THEME.font}`;
-        this.ctx.fillText(`Ondas Sobrevividas: ${waveManager.currentWave - 1}`, this.canvas.width / 2, modal.y + 120);
-        this.ctx.fillText(`Inimigos Derrotados: ${waveManager.enemiesKilled}`, this.canvas.width / 2, modal.y + 150);
+
+        stats.forEach((stat, index) => {
+            const y = modal.y + 110 + (index * 35);
+
+            // Label
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.textAlign = 'right';
+            this.ctx.fillText(stat.label, this.canvas.width / 2 - 10, y);
+
+            // Value
+            this.ctx.fillStyle = stat.color || '#ecf0f1';
+            this.ctx.textAlign = 'left';
+            this.ctx.fillText(stat.value, this.canvas.width / 2 + 10, y);
+        });
 
         // Restart Button
         this.ctx.fillStyle = Config.THEME.colors.bloodRed;
