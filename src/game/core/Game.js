@@ -2,6 +2,7 @@ import { Config } from './Config.js';
 import { Tower } from '../entities/Tower.js';
 import { WaveManager } from '../managers/WaveManager.js';
 import { TowerManager } from '../managers/TowerManager.js';
+import { DataManager } from '../managers/DataManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
@@ -15,6 +16,7 @@ export class Game {
         this.ui = new GameUI();
         this.waveManager = new WaveManager();
         this.towerManager = new TowerManager();
+        this.dataManager = new DataManager();
         this.particleSystem = new ParticleSystem();
         this.floatingTexts = new FloatingText();
         this.audio = new AudioManager();
@@ -58,6 +60,11 @@ export class Game {
             x: (clientX - rect.left) * scaleX,
             y: (clientY - rect.top) * scaleY
         };
+    }
+
+    async init() {
+        console.log('Inicializando sistemas de dados...');
+        return true;
     }
 
     setupEventListeners() {
