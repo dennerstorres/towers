@@ -1,109 +1,489 @@
-# 🏰 Towers — Roadmap v1.0
+# Towers — RPG Party Defense Roadmap
 
-> Jogo Tower Defense em JavaScript puro com Canvas API.
-> Objetivo: primeira versão pública jogável, visualmente polida e funcional.
->
-> **Como funciona este roadmap:**
-> - Tarefas são executadas **uma por vez**, em ordem, via Jules (agente de IA)
-> - Quando uma tarefa começa a ser executada, o checkbox é marcado com `[x]`
-> - A tarefa só é considerada concluída após o PR ser aprovado e mergeado
-> - **Nunca iniciar uma nova tarefa com PR anterior ainda aberto**
+## Visão do Projeto
 
----
+Transformar o projeto atual de Tower Defense em um:
+# “RPG Party Defense inspirado em D&D 5e”
 
-## Fase 1 — Fundação Visual & Feedback (dias 1–6)
-
-- [x] **T01** — Design system e tema visual
-  Definir paleta de cores medieval (pedra, ouro, vermelho sangue), tipografia temática e aplicar ao canvas. Substituir fundo `#f0f0f0` e border `#333` por um tema coeso. Atualizar `index.html` e `CanvasRenderer.js`.
-
-- [x] **T02** — Redesign da tela inicial (Start Screen)
-  Substituir o card branco básico por uma tela de título temática com logo, arte de fundo e botão estilizado. Modificar o bloco `#startScreen` no `index.html` e seus estilos.
-
-- [x] **T03** — Redesign do HUD in-game
-  Painel lateral ou barra superior com ícones para ouro, vidas e onda atual. Substituir texto puro por elementos visuais com ícones e contadores estilizados. Modificar `GameUI.js` e `CanvasRenderer.js`.
-
-- [x] **T04** — Sprites e visual das torres
-  Desenhar torres com Canvas 2D API usando formas temáticas (torre de pedra, torre de arqueiro, etc.). Substituir retângulos simples. Modificar `CanvasRenderer.js` e `Tower.js`.
-
-- [x] **T05** — Visual dos inimigos e barra de vida
-  Sprites distintos por tipo de inimigo. Barra de vida mais elegante com cor variando de verde para vermelho conforme HP cai. Modificar `CanvasRenderer.js` e `Enemy.js`.
-
-- [x] **T06** — Efeitos visuais de tiro e impacto
-  Projéteis visíveis no canvas (bola de fogo, flecha, etc.) e partículas ou flash de impacto ao acertar inimigos. Adicionar sistema de partículas leve em `CanvasRenderer.js` ou novo arquivo `src/game/effects/ParticleSystem.js`.
+Onde:
+- Cada “torre” é um personagem
+- Personagens possuem raça, classe, nível e atributos
+- O combate usa adaptações simplificadas de D&D 5e
+- O foco é progressão, builds, party synergy e nostalgia RPG
 
 ---
 
-## Fase 2 — Mecânicas Essenciais (dias 7–12)
+# FASE 1 — Fundação do Novo Core RPG
 
-- [x] **T07** — Múltiplos tipos de torre com painel de seleção
-  Pelo menos 3 tipos (arqueiro rápido/fraco, canhão lento/forte, mágica com splash). Painel lateral para selecionar qual torre construir antes de clicar no grid. Atualizar `TowerManager.js`, `Tower.js`, `Config.js` e `GameUI.js`.
+## Objetivo
+Preparar a arquitetura para suportar:
+- atributos
+- classes
+- raças
+- progressão
+- efeitos
+- builds
 
-- [x] **T08** — Venda e upgrade de torres
-  Clique em torre existente para abrir menu de contexto: vender (recuperar parte do ouro) ou fazer upgrade (nível 1→2→3 com aumento de stats visível). Modificar `TowerManager.js`, `Tower.js` e `GameUI.js`.
+## Tarefas
 
-- [x] **T09** — Visualização de alcance das torres
-  Ao passar o mouse ou selecionar uma torre, mostrar círculo de alcance semi-transparente. Ao posicionar nova torre, mostrar preview de alcance antes de confirmar. Modificar `CanvasRenderer.js` e `Game.js`.
+### Estrutura de Dados
+- [ ] Criar sistema data-driven
+- [ ] Externalizar configs para JSON
+- [ ] Criar:
+  - races.json
+  - classes.json
+  - enemies.json
+  - spells.json
+  - feats.json
+  - items.json
 
-- [x] **T10** — Telas de Game Over e vitória
-  Substituir estado silencioso de derrota por tela com score, ondas sobrevividas e botão de reiniciar. Adicionar tela de vitória se atingir onda máxima. Modificar `GameUI.js` e `Game.js`.
+### Character System
+- [ ] Criar entidade Character
+- [ ] Adicionar:
+  - nome
+  - raça
+  - classe
+  - nível
+  - XP
+  - atributos
+  - traits
 
-- [x] **T11** — Pausa e controle de velocidade
-  Botão de pausa (tecla Espaço ou botão na UI) e opção de 2× velocidade. Modificar `Game.js` e `GameUI.js`.
+### Attributes
+- [ ] Implementar:
+  - STR
+  - DEX
+  - CON
+  - INT
+  - WIS
+  - CHA
 
-- [x] **T12** — Efeitos sonoros básicos
-  Sons de tiro, morte de inimigo, game over e início de onda usando Web Audio API ou arquivos de áudio curtos. Criar `src/audio/AudioManager.js` e integrar nos managers relevantes.
+### D20 Combat
+- [ ] Sistema de hit usando:
+  - d20
+  - attack bonus
+  - armor class (AC)
+- [ ] Critical hit (20 natural)
+- [ ] Critical fail (1 natural)
+
+### Combat Stats
+- [ ] Attack Bonus
+- [ ] Armor Class
+- [ ] Crit Chance
+- [ ] Damage Types
+- [ ] Resistências
+
+### Refatoração Arquitetural
+- [ ] Separar:
+  - GameLoop
+  - CombatSystem
+  - RenderSystem
+  - InputSystem
+  - StateStore
+  - WaveSystem
 
 ---
 
-## Fase 3 — Experiência & Polimento (dias 13–17)
+# FASE 2 — Classes e Raças Base
 
-- [x] **T13** — Countdown e anúncio de onda
-  Tela "Onda 3 chegando em 5..." com contagem regressiva visual e botão "Iniciar agora". Modificar `WaveManager.js` e `GameUI.js`.
+## Objetivo
+Criar as primeiras builds jogáveis.
 
-- [x] **T14** — Mapa temático e caminho decorado
-  Substituir grid cinza por mapa com textura (grama, terra, pedra). Caminho dos inimigos visualmente mais orgânico. Modificar `CanvasRenderer.js` e `Config.js`.
+## Classes Iniciais
 
-- [x] **T15** — Floating text e feedback de dano
-  Números de dano flutuando ao causar/receber dano. "+50 ouro" ao completar onda. Adicionar sistema de floating text em `CanvasRenderer.js` ou `src/game/effects/FloatingText.js`.
+### Fighter
+- [ ] Tank melee
+- [ ] Armor bonus
+- [ ] Taunt
 
-- [x] **T16** — Responsividade básica e suporte mobile
-  Canvas com escala adaptativa para telas menores. Botões e HUD com tamanho mínimo de toque. Modificar `index.html`, `CanvasRenderer.js` e `GameUI.js`.
+### Ranger
+- [ ] Ranged DPS
+- [ ] Crit build
+- [ ] Long range
 
-- [x] **T17** — Highscore com localStorage
-  Salvar melhor pontuação no localStorage. Exibir na tela de Game Over ("Seu recorde: 12 ondas"). Modificar `GameUI.js` e `Game.js`.
+### Wizard
+- [ ] AoE spells
+- [ ] Elemental damage
+- [ ] Spell slots
+
+### Cleric
+- [ ] Healing
+- [ ] Buffs
+- [ ] Holy damage
+
+### Rogue
+- [ ] Burst damage
+- [ ] Backstab
+- [ ] Dodge
+
+### Paladin
+- [ ] Hybrid tank/support
+- [ ] Aura
+- [ ] Smite
 
 ---
 
-## Fase 4 — Deploy & Produção (dias 18–20)
+## Raças Iniciais
 
-- [x] **T18** — Performance e otimização do loop
-  Garantir 60fps estável com muitos inimigos. Revisar `requestAnimationFrame`, evitar redraws desnecessários, limitar objetos ativos. Profiling básico e ajustes no `Game.js` e `CanvasRenderer.js`.
+### Human
+- [ ] All-rounder
 
-- [x] **T19** — SEO, meta tags e PWA manifest
-  Adicionar title, description e `og:image` para compartilhamento. Revisar `manifest.json`. Usar screenshot do jogo como `og:image`. Modificar `index.html` e `assets/icons/manifest.json`.
+### Elf
+- [ ] +DEX
+- [ ] +Range
 
-- [x] **T20** — Deploy público em GitHub Pages ou Vercel
-  Configurar deploy automático via GitHub Actions. Testar em múltiplos browsers (Chrome, Firefox, Safari). Atualizar README com link de play e instruções.
+### Dwarf
+- [ ] +CON
+- [ ] Resistance
+
+### Halfling
+- [ ] Luck
+- [ ] Crit bonus
+
+### Orc
+- [ ] +STR
+- [ ] Rage passive
 
 ---
 
-## Changelog
+# FASE 3 — Sistema de Progressão
 
-| Tarefa | Status | PR | Data |
-|--------|--------|----|------|
-| T01 | Em revisão | #1 | 14/05/2026 |
-| T02 | Em revisão | #2 | 14/05/2026 |
-| T03 | Em revisão | #3 | 14/05/2026 |
-| T04 | Em revisão | #4 | 14/05/2026 |
-| T05 | Em revisão | #5 | 14/05/2026 |
-| T06 | Em revisão | #6 | 14/05/2026 |
-| T08 | Em revisão | #7 | 15/05/2026 |
-| T09 | Em revisão | #8 | 15/05/2026 |
-| T11 | Em revisão | #9 | 15/05/2026 |
-| T13 | Em revisão | #14 | 16/05/2026 |
-| T14 | Em revisão | #15 | 16/05/2026 |
-| T15 | Em revisão | #16 | 17/05/2026 |
-| T17 | Em revisão | #19 | 18/05/2026 |
-| T18 | Em revisão | #PR_NUMBER | 18/05/2026 |
-| T19 | Em revisão | #PR_NUMBER | 18/05/2026 |
-| T20 | Em revisão | #PR_NUMBER | 18/05/2026 |
+## Objetivo
+Criar vínculo entre jogador e personagens.
+
+## XP e Níveis
+- [ ] XP individual
+- [ ] Curva de progressão
+- [ ] Tela de level up
+
+## Escolhas por Nível
+- [ ] Upgrade de atributos
+- [ ] Nova habilidade
+- [ ] Spell unlock
+- [ ] Feats
+
+## Feats Iniciais
+- [ ] Sharpshooter
+- [ ] Lucky
+- [ ] Sentinel
+- [ ] Mobile
+- [ ] War Caster
+
+## Especializações
+- [ ] Subclasses simples
+- [ ] Evoluções únicas
+
+---
+
+# FASE 4 — Sistema de Efeitos
+
+## Objetivo
+Adicionar profundidade estratégica.
+
+## Status Effects
+- [ ] Burn
+- [ ] Freeze
+- [ ] Poison
+- [ ] Bleed
+- [ ] Stun
+- [ ] Slow
+- [ ] Weakness
+- [ ] Armor Break
+
+## Regras
+- [ ] Stack rules
+- [ ] Duration
+- [ ] Tick system
+- [ ] Resistências
+
+---
+
+# FASE 5 — Party System
+
+## Objetivo
+Transformar “torres” em grupo de heróis.
+
+## Party Composition
+- [ ] Slots de party
+- [ ] Sinergias
+- [ ] Aura bonuses
+
+## Positioning
+- [ ] Frontline
+- [ ] Backline
+- [ ] Range priority
+
+## Synergy Examples
+- [ ] Cleric + Paladin
+- [ ] Elf + Ranger
+- [ ] Orc + Fighter
+
+---
+
+# FASE 6 — Targeting Avançado
+
+## Objetivo
+Aumentar profundidade tática.
+
+## Target Modes
+- [ ] First
+- [ ] Last
+- [ ] Strongest
+- [ ] Weakest
+- [ ] Closest
+- [ ] Farthest
+- [ ] Highest HP
+- [ ] Lowest HP
+
+---
+
+# FASE 7 — Sistema de Magias
+
+## Objetivo
+Trazer identidade D&D.
+
+## Spellcasting
+- [ ] Spell slots
+- [ ] Cooldowns
+- [ ] Cast time
+- [ ] AoE indicators
+
+## Spells Iniciais
+- [ ] Fireball
+- [ ] Magic Missile
+- [ ] Heal
+- [ ] Bless
+- [ ] Ice Storm
+- [ ] Lightning Bolt
+
+---
+
+# FASE 8 — Meta Progression
+
+## Objetivo
+Criar replay infinito.
+
+## Progressão Permanente
+- [ ] Talent tree
+- [ ] Unlocks
+- [ ] Research
+- [ ] Persistent upgrades
+
+## Currency
+- [ ] Gold
+- [ ] Arcane shards
+- [ ] Relics
+
+---
+
+# FASE 9 — Tavern System
+
+## Objetivo
+Criar hub entre waves.
+
+## Tavern
+- [ ] Recruit characters
+- [ ] Upgrade gear
+- [ ] Heal party
+- [ ] Change formation
+
+## Camp Features
+- [ ] Shop
+- [ ] Blacksmith
+- [ ] Mage tower
+- [ ] Training grounds
+
+---
+
+# FASE 10 — Loot & Equipamentos
+
+## Objetivo
+Adicionar RPG pesado.
+
+## Equipment
+- [ ] Weapons
+- [ ] Armor
+- [ ] Rings
+- [ ] Amulets
+
+## Rarity
+- [ ] Common
+- [ ] Rare
+- [ ] Epic
+- [ ] Legendary
+
+## Affixes
+- [ ] +Crit
+- [ ] +Spell Power
+- [ ] +Armor
+- [ ] +Attack Speed
+
+---
+
+# FASE 11 — Bosses RPG
+
+## Objetivo
+Criar encounters memoráveis.
+
+## Boss Mechanics
+- [ ] Multiple phases
+- [ ] Resistances
+- [ ] Summons
+- [ ] Area attacks
+- [ ] Enrage
+
+## Legendary Mechanics
+- [ ] Legendary resistance
+- [ ] Special actions
+
+---
+
+# FASE 12 — Sistema de Mapas
+
+## Objetivo
+Expandir variedade do gameplay.
+
+## Maps
+- [ ] Forest
+- [ ] Ice
+- [ ] Lava
+- [ ] Dungeon
+- [ ] Swamp
+
+## Mechanics
+- [ ] Hazards
+- [ ] Split paths
+- [ ] Dynamic terrain
+
+---
+
+# FASE 13 — Visual & Game Feel
+
+## Objetivo
+Dar sensação AAA indie.
+
+## Feedback
+- [ ] Screen shake
+- [ ] Hit stop
+- [ ] Impact flash
+- [ ] Damage numbers
+- [ ] Crit effects
+
+## VFX
+- [ ] Explosions
+- [ ] Magic effects
+- [ ] Light glow
+- [ ] Shadows fake
+
+---
+
+# FASE 14 — Performance
+
+## Objetivo
+Preparar para crescimento.
+
+## Optimization
+- [ ] Object pooling
+- [ ] Spatial partitioning
+- [ ] Render culling
+- [ ] Offscreen canvas
+
+---
+
+# FASE 15 — Save System
+
+## Objetivo
+Persistência real.
+
+## Save Features
+- [ ] Full save
+- [ ] Autosave
+- [ ] Save versioning
+- [ ] Import/export
+
+---
+
+# FASE 16 — Editor de Conteúdo
+
+## Objetivo
+Criar longevidade infinita.
+
+## Editor
+- [ ] Map editor
+- [ ] Wave editor
+- [ ] Enemy editor
+- [ ] Spell editor
+
+---
+
+# FASE 17 — Endgame
+
+## Objetivo
+Replayability.
+
+## Features
+- [ ] Endless mode
+- [ ] Hardcore mode
+- [ ] Roguelite runs
+- [ ] Random modifiers
+- [ ] Ascension levels
+
+---
+
+# FASE 18 — Polimento Final
+
+## Objetivo
+Transformar em produto.
+
+## UX
+- [ ] Settings
+- [ ] Audio menu
+- [ ] Keybinds
+- [ ] Controller support
+- [ ] Localization
+
+## Plataforma
+- [ ] PWA
+- [ ] Steam build
+- [ ] Electron/Tauri
+
+---
+
+# PRIORIDADE REAL
+
+## PRIORIDADE MÁXIMA
+1. Data-driven architecture
+2. Character system
+3. D20 combat
+4. Classes/races
+5. XP progression
+
+## SEGUNDA PRIORIDADE
+6. Effects
+7. Spells
+8. Party synergy
+9. Tavern
+10. Loot
+
+## TERCEIRA PRIORIDADE
+11. Meta progression
+12. Map variety
+13. Editor
+14. Endgame
+
+---
+
+# VISÃO FINAL
+
+O objetivo não é:
+“mais um tower defense”.
+
+O objetivo é:
+# “um RPG estratégico de defesa de território inspirado em D&D”.
+
+Misturando:
+- Tower Defense
+- RPG
+- Party Builder
+- Roguelite
+- Auto Battler
+- D&D nostalgia
