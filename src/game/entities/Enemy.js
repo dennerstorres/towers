@@ -30,14 +30,15 @@ export class Enemy {
             
             const dx = targetX - this.x;
             const dy = targetY - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const distanceSq = dx * dx + dy * dy;
             
-            if (distance < this.speed) {
+            if (distanceSq < this.speed * this.speed) {
                 this.pathIndex++;
                 if (this.pathIndex >= Config.path.length - 1) {
                     this.reachedEnd = true;
                 }
             } else {
+                const distance = Math.sqrt(distanceSq);
                 this.x += (dx / distance) * this.speed;
                 this.y += (dy / distance) * this.speed;
             }

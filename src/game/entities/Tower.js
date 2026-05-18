@@ -58,15 +58,16 @@ export class Tower {
     }
 
     shoot(enemies) {
-        for (let enemy of enemies) {
-            const centerX = this.x * Config.gridSize + Config.gridSize / 2;
-            const centerY = this.y * Config.gridSize + Config.gridSize / 2;
+        const centerX = this.x * Config.gridSize + Config.gridSize / 2;
+        const centerY = this.y * Config.gridSize + Config.gridSize / 2;
+        const rangeSq = this.range * this.range;
 
+        for (let enemy of enemies) {
             const dx = centerX - enemy.x;
             const dy = centerY - enemy.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
+            const distanceSq = dx * dx + dy * dy;
             
-            if (distance < this.range) {
+            if (distanceSq < rangeSq) {
                 const projectile = new Projectile(centerX, centerY, enemy, this.damage);
                 projectile.type = this.type;
                 projectile.speed = this.projectileSpeed;

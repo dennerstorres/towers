@@ -76,7 +76,7 @@
 
 ## Fase 4 — Deploy & Produção (dias 18–20)
 
-- [ ] **T18** — Performance e otimização do loop  
+- [x] **T18** — Performance e otimização do loop
   Garantir 60fps estável com muitos inimigos. Revisar `requestAnimationFrame`, evitar redraws desnecessários, limitar objetos ativos. Profiling básico e ajustes no `Game.js` e `CanvasRenderer.js`.
 
 - [ ] **T19** — SEO, meta tags e PWA manifest  
@@ -104,3 +104,4 @@
 | T14 | Em revisão | #15 | 16/05/2026 |
 | T15 | Em revisão | #16 | 17/05/2026 |
 | T17 | Em revisão | #19 | 18/05/2026 |
+| T18 | Em revisão | #PR_NUMBER | 18/05/2026 |

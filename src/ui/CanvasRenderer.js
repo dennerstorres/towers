@@ -65,7 +65,31 @@ export class CanvasRenderer {
         // Renderiza o caminho no buffer do fundo para evitar flickering
         this.renderPathToCtx(ctx);
 
+        // Renderiza a grade no buffer do fundo
+        this.renderGridToCtx(ctx, width, height);
+
         this.isBgRendered = true;
+    }
+
+    renderGridToCtx(ctx, width, height) {
+        ctx.save();
+        ctx.strokeStyle = Config.THEME.colors.grid;
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i < width; i += Config.gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(i, 0);
+            ctx.lineTo(i, height);
+            ctx.stroke();
+        }
+
+        for (let i = 0; i < height; i += Config.gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, i);
+            ctx.lineTo(width, i);
+            ctx.stroke();
+        }
+        ctx.restore();
     }
 
     renderPathToCtx(ctx) {
@@ -144,24 +168,8 @@ export class CanvasRenderer {
             this.preRenderBackground();
         }
 
-        // Desenha o fundo pré-renderizado
+        // Desenha o fundo pré-renderizado (incluindo a grade e o caminho)
         this.ctx.drawImage(this.bgCanvas, 0, 0);
-
-        // Grade sutil
-        this.ctx.strokeStyle = Config.THEME.colors.grid;
-        this.ctx.lineWidth = 1;
-        
-        for (let i = 0; i < this.canvas.width; i += Config.gridSize) {
-            this.ctx.beginPath();
-            this.ctx.moveTo(i, 0);
-            this.ctx.lineTo(i, this.canvas.height);
-            this.ctx.stroke();
-            
-            this.ctx.beginPath();
-            this.ctx.moveTo(0, i);
-            this.ctx.lineTo(this.canvas.width, i);
-            this.ctx.stroke();
-        }
     }
 
     drawPath() {

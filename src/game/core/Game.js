@@ -315,9 +315,7 @@ export class Game {
         }
 
         // Renderização (sempre ocorre para manter UI responsiva)
-        this.renderer.clear();
         this.renderer.drawGrid();
-        this.renderer.drawPath();
         this.drawRangeVisuals();
 
         // Desenha torres
@@ -469,12 +467,13 @@ export class Game {
     applyDamage(projectile) {
         if (projectile.splashRadius > 0) {
             // Splash Damage
+            const splashRadiusSq = projectile.splashRadius * projectile.splashRadius;
             this.state.enemies.forEach(enemy => {
                 const dx = enemy.x - projectile.x;
                 const dy = enemy.y - projectile.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                const distanceSq = dx * dx + dy * dy;
 
-                if (distance <= projectile.splashRadius) {
+                if (distanceSq <= splashRadiusSq) {
                     enemy.health -= projectile.damage;
                     this.floatingTexts.add(enemy.x, enemy.y, `-${projectile.damage}`, Config.THEME.colors.bloodRed);
                     this.particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
