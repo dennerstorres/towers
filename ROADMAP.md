@@ -79,7 +79,7 @@
 - [x] **T18** — Performance e otimização do loop
   Garantir 60fps estável com muitos inimigos. Revisar `requestAnimationFrame`, evitar redraws desnecessários, limitar objetos ativos. Profiling básico e ajustes no `Game.js` e `CanvasRenderer.js`.
 
-- [ ] **T19** — SEO, meta tags e PWA manifest  
+- [x] **T19** — SEO, meta tags e PWA manifest
   Adicionar title, description e `og:image` para compartilhamento. Revisar `manifest.json`. Usar screenshot do jogo como `og:image`. Modificar `index.html` e `assets/icons/manifest.json`.
 
 - [ ] **T20** — Deploy público em GitHub Pages ou Vercel  
@@ -105,3 +105,4 @@
 | T15 | Em revisão | #16 | 17/05/2026 |
 | T17 | Em revisão | #19 | 18/05/2026 |
 | T18 | Em revisão | #PR_NUMBER | 18/05/2026 |
+| T19 | Em revisão | #PR_NUMBER | 18/05/2026 |
