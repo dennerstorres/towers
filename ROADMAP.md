@@ -27,7 +27,7 @@ Preparar a arquitetura para suportar:
 ## Tarefas
 
 ### Estrutura de Dados
-- [ ] Criar sistema data-driven
+- [x] Criar sistema data-driven
 - [ ] Externalizar configs para JSON
 - [ ] Criar:
   - races.json
@@ -487,3 +487,11 @@ Misturando:
 - Roguelite
 - Auto Battler
 - D&D nostalgia
+
+---
+
+# Changelog
+
+| Task | Status | PR | Date |
+|------|--------|----|------|
+| Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |

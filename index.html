@@ -161,7 +161,19 @@
             
             const game = new Game(canvas);
             
+            let isInitialized = false;
+            game.init().then(() => {
+                console.log('Game inicializado com sucesso.');
+                isInitialized = true;
+            }).catch(err => {
+                console.error('Erro ao inicializar o jogo:', err);
+            });
+
             startButton.addEventListener('click', () => {
+                if (!isInitialized) {
+                    console.warn('Aguardando inicialização do jogo...');
+                    return;
+                }
                 startScreen.style.display = 'none';
                 canvas.style.display = 'block';
                 game.start();
