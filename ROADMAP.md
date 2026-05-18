@@ -69,7 +69,7 @@
 - [x] **T16** — Responsividade básica e suporte mobile
   Canvas com escala adaptativa para telas menores. Botões e HUD com tamanho mínimo de toque. Modificar `index.html`, `CanvasRenderer.js` e `GameUI.js`.
 
-- [ ] **T17** — Highscore com localStorage  
+- [x] **T17** — Highscore com localStorage
   Salvar melhor pontuação no localStorage. Exibir na tela de Game Over ("Seu recorde: 12 ondas"). Modificar `GameUI.js` e `Game.js`.
 
 ---
@@ -103,3 +103,4 @@
 | T13 | Em revisão | #14 | 16/05/2026 |
 | T14 | Em revisão | #15 | 16/05/2026 |
 | T15 | Em revisão | #16 | 17/05/2026 |
+| T17 | Em revisão | #19 | 18/05/2026 |

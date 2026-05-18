@@ -127,6 +127,17 @@ export class GameUI {
     }
 
     /**
+     * Retorna os dados das estatísticas finais para a tela de fim de jogo
+     */
+    getEndGameStats(gameState, waveManager) {
+        return [
+            { label: 'Ondas Sobrevividas:', value: waveManager.currentWave - 1 },
+            { label: 'Inimigos Derrotados:', value: waveManager.enemiesKilled },
+            { label: 'Seu Recorde:', value: `${gameState.highscore} Ondas`, color: Config.THEME.colors.gold }
+        ];
+    }
+
+    /**
      * Retorna o layout para as telas de vitória e derrota
      */
     getEndGameLayout(canvas) {

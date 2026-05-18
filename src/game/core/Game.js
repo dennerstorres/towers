@@ -33,7 +33,8 @@ export class Game {
             mouseY: 0,
             isPaused: false,
             gameSpeed: 1,
-            logicalTime: 0
+            logicalTime: 0,
+            highscore: parseInt(localStorage.getItem('towers_highscore')) || 0
         };
 
         this.lastTime = 0;
@@ -207,6 +208,14 @@ export class Game {
     toggleSpeed() {
         this.state.gameSpeed = this.state.gameSpeed === 1 ? 2 : 1;
         console.log(`Velocidade: ${this.state.gameSpeed}x`);
+    }
+
+    updateHighscore() {
+        const wavesSurvived = this.waveManager.currentWave - 1;
+        if (wavesSurvived > this.state.highscore) {
+            this.state.highscore = wavesSurvived;
+            localStorage.setItem('towers_highscore', wavesSurvived);
+        }
     }
 
     handlePanelClick(y) {
@@ -395,6 +404,7 @@ export class Game {
             this.state.isVictory = true;
             this.state.gameRunning = false;
             this.audio.playVictory();
+            this.updateHighscore();
         }
 
         // Verifica derrota
@@ -403,6 +413,7 @@ export class Game {
             this.state.isGameOver = true;
             this.state.gameRunning = false;
             this.audio.playGameOver();
+            this.updateHighscore();
         }
 
         // Atualiza o gerenciador de ondas se o jogo ainda estiver rodando
