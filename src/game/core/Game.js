@@ -44,6 +44,21 @@ export class Game {
         this.setupEventListeners();
     }
 
+    getMousePos(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        // Calcula a posição relativa ao tamanho real do canvas (resolução interna)
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
     setupEventListeners() {
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
@@ -52,16 +67,22 @@ export class Game {
             }
         });
 
-        this.canvas.addEventListener('mousemove', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            this.state.mouseX = e.clientX - rect.left;
-            this.state.mouseY = e.clientY - rect.top;
-        });
+        const handleMove = (e) => {
+            const pos = this.getMousePos(e);
+            this.state.mouseX = pos.x;
+            this.state.mouseY = pos.y;
+        };
 
-        this.canvas.addEventListener('click', (e) => {
-            const rect = this.canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
+        this.canvas.addEventListener('mousemove', handleMove);
+        this.canvas.addEventListener('touchmove', (e) => {
+            handleMove(e);
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
+
+        const handleClick = (e) => {
+            const pos = this.getMousePos(e);
+            const clickX = pos.x;
+            const clickY = pos.y;
 
             if (this.state.isGameOver || this.state.isVictory) {
                 const layout = this.ui.getEndGameLayout(this.canvas);
@@ -118,7 +139,15 @@ export class Game {
             } else {
                 this.state.selectedPlacedTower = null;
             }
-        });
+        };
+
+        this.canvas.addEventListener('click', handleClick);
+        this.canvas.addEventListener('touchstart', (e) => {
+            // Em mobile, simulamos o move para que o preview de alcance apareça no toque
+            handleMove(e);
+            handleClick(e);
+            if (e.cancelable) e.preventDefault();
+        }, { passive: false });
     }
 
     handleContextMenuClick(clickX, clickY) {
@@ -455,4 +484,4 @@ export class Game {
             }
         }
     }
-} 
+}

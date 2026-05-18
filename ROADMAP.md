@@ -66,7 +66,7 @@
 - [x] **T15** — Floating text e feedback de dano
   Números de dano flutuando ao causar/receber dano. "+50 ouro" ao completar onda. Adicionar sistema de floating text em `CanvasRenderer.js` ou `src/game/effects/FloatingText.js`.
 
-- [ ] **T16** — Responsividade básica e suporte mobile  
+- [x] **T16** — Responsividade básica e suporte mobile
   Canvas com escala adaptativa para telas menores. Botões e HUD com tamanho mínimo de toque. Modificar `index.html`, `CanvasRenderer.js` e `GameUI.js`.
 
 - [ ] **T17** — Highscore com localStorage  

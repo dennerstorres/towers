@@ -2,7 +2,7 @@ import { Config } from '../game/core/Config.js';
 
 export class GameUI {
     constructor() {
-        this.hudHeight = 50;
+        this.hudHeight = 60;
         this.panelWidth = 100;
     }
 
@@ -50,8 +50,8 @@ export class GameUI {
     getTowerMenuLayout(tower) {
         const x = tower.x * Config.gridSize;
         const y = tower.y * Config.gridSize;
-        const buttonWidth = 100;
-        const buttonHeight = 30;
+        const buttonWidth = 110;
+        const buttonHeight = 44;
         const spacing = 5;
 
         // Posiciona o menu acima da torre
@@ -78,21 +78,21 @@ export class GameUI {
      */
     getControlButtonsLayout(canvas) {
         const padding = 10;
-        const buttonWidth = 80;
-        const buttonHeight = 30;
+        const buttonWidth = 90;
+        const buttonHeight = 44;
         const panelX = canvas.width - this.panelWidth;
 
         return {
             pause: {
                 x: panelX - (buttonWidth * 2) - (padding * 2),
-                y: padding,
+                y: (this.hudHeight - buttonHeight) / 2,
                 width: buttonWidth,
                 height: buttonHeight,
                 label: 'Pausar'
             },
             speed: {
                 x: panelX - buttonWidth - padding,
-                y: padding,
+                y: (this.hudHeight - buttonHeight) / 2,
                 width: buttonWidth,
                 height: buttonHeight,
                 label: '1x'
@@ -107,7 +107,7 @@ export class GameUI {
         const width = 300;
         const height = 150;
         const buttonWidth = 160;
-        const buttonHeight = 40;
+        const buttonHeight = 44;
 
         return {
             container: {
