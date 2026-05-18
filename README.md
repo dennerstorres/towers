@@ -1,6 +1,10 @@
 # 🏰 Tower Defense Game
 
+[![Deploy static content to Pages](https://github.com/dennerstorres/towers/actions/workflows/deploy.yml/badge.svg)](https://github.com/dennerstorres/towers/actions/workflows/deploy.yml)
+
 Um jogo de Tower Defense desenvolvido em JavaScript puro, onde você deve defender seu território construindo torres estratégicas para impedir que os inimigos cheguem ao final do caminho. 
+
+### 🎮 [JOGAR AGORA](https://dennerstorres.github.io/towers/)
 Uma tentativa de recriar um jogo em flash que era jogado no navegador mas foi perdido com o tempo.
 
 ## 🎮 Como Jogar
@@ -112,9 +116,14 @@ O objetivo do jogo é sobreviver ao maior número de ondas possível, gerenciand
 
 ## 🛠️ Como Executar
 
+### Online
+Acesse o jogo diretamente pelo seu navegador: [https://dennerstorres.github.io/towers/](https://dennerstorres.github.io/towers/)
+
+### Localmente
 1. Clone o repositório
-2. Abra o arquivo `index.html` em seu navegador
-3. Clique em "Iniciar Jogo" para começar
+2. Recomenda-se o uso de um servidor local (como a extensão Live Server do VS Code ou `python3 -m http.server`) devido ao uso de módulos ES6.
+3. Abra o endereço do servidor no seu navegador.
+4. Clique em "Iniciar Jogo" para começar.
 
 ## 🤝 Contribuindo
 

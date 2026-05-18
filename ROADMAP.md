@@ -82,7 +82,7 @@
 - [x] **T19** — SEO, meta tags e PWA manifest
   Adicionar title, description e `og:image` para compartilhamento. Revisar `manifest.json`. Usar screenshot do jogo como `og:image`. Modificar `index.html` e `assets/icons/manifest.json`.
 
-- [ ] **T20** — Deploy público em GitHub Pages ou Vercel  
+- [x] **T20** — Deploy público em GitHub Pages ou Vercel
   Configurar deploy automático via GitHub Actions. Testar em múltiplos browsers (Chrome, Firefox, Safari). Atualizar README com link de play e instruções.
 
 ---
@@ -106,3 +106,4 @@
 | T17 | Em revisão | #19 | 18/05/2026 |
 | T18 | Em revisão | #PR_NUMBER | 18/05/2026 |
 | T19 | Em revisão | #PR_NUMBER | 18/05/2026 |
+| T20 | Em revisão | #PR_NUMBER | 18/05/2026 |
