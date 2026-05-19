@@ -1,0 +1,8 @@
+{
+  "fireball": { "name": "Fireball" },
+  "magic_missile": { "name": "Magic Missile" },
+  "heal": { "name": "Heal" },
+  "bless": { "name": "Bless" },
+  "ice_storm": { "name": "Ice Storm" },
+  "lightning_bolt": { "name": "Lightning Bolt" }
+}

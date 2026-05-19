@@ -1,0 +1,26 @@
+{
+  "fighter": {
+    "name": "Fighter",
+    "features": ["Tank melee", "Armor bonus", "Taunt"]
+  },
+  "ranger": {
+    "name": "Ranger",
+    "features": ["Ranged DPS", "Crit build", "Long range"]
+  },
+  "wizard": {
+    "name": "Wizard",
+    "features": ["AoE spells", "Elemental damage", "Spell slots"]
+  },
+  "cleric": {
+    "name": "Cleric",
+    "features": ["Healing", "Buffs", "Holy damage"]
+  },
+  "rogue": {
+    "name": "Rogue",
+    "features": ["Burst damage", "Backstab", "Dodge"]
+  },
+  "paladin": {
+    "name": "Paladin",
+    "features": ["Hybrid tank/support", "Aura", "Smite"]
+  }
+}

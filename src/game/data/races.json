@@ -1,0 +1,22 @@
+{
+  "human": {
+    "name": "Human",
+    "traits": ["All-rounder"]
+  },
+  "elf": {
+    "name": "Elf",
+    "traits": ["+DEX", "+Range"]
+  },
+  "dwarf": {
+    "name": "Dwarf",
+    "traits": ["+CON", "Resistance"]
+  },
+  "halfling": {
+    "name": "Halfling",
+    "traits": ["Luck", "Crit bonus"]
+  },
+  "orc": {
+    "name": "Orc",
+    "traits": ["+STR", "Rage passive"]
+  }
+}

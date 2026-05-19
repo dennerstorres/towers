@@ -1,0 +1,7 @@
+{
+  "sharpshooter": { "name": "Sharpshooter" },
+  "lucky": { "name": "Lucky" },
+  "sentinel": { "name": "Sentinel" },
+  "mobile": { "name": "Mobile" },
+  "war_caster": { "name": "War Caster" }
+}
