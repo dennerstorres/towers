@@ -1,0 +1,10 @@
+{
+  "goblin": {
+    "name": "Goblin",
+    "hp": 7,
+    "ac": 15,
+    "speed": 1.6,
+    "xp": 50,
+    "gold": 10
+  }
+}

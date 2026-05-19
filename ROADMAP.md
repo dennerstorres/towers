@@ -29,7 +29,7 @@ Preparar a arquitetura para suportar:
 ### Estrutura de Dados
 - [x] Criar sistema data-driven
 - [x] Externalizar configs para JSON
-- [ ] Criar:
+- [x] Criar:
   - races.json
   - classes.json
   - enemies.json
@@ -495,3 +495,4 @@ Misturando:
 | Task | Status | PR | Date |
 |------|--------|----|------|
 | Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |
+| Criar arquivos de dados RPG | In Review | # | 2026-05-18 |
