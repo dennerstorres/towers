@@ -39,7 +39,7 @@ Preparar a arquitetura para suportar:
 
 ### Character System
 - [x] Criar entidade Character
-- [ ] Adicionar:
+- [x] Adicionar:
   - nome
   - raça
   - classe
@@ -497,3 +497,4 @@ Misturando:
 | Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |
 | Criar arquivos de dados RPG | In Review | # | 2026-05-18 |
 | Criar entidade Character | In Review | # | 2026-05-19 |
+| Adicionar propriedades RPG ao Character | In Review | # | 2026-05-19 |
