@@ -64,6 +64,19 @@ export class Game {
 
     async init() {
         console.log('Inicializando sistemas de dados...');
+
+        // Carrega configurações globais
+        const configData = await this.dataManager.loadJSON('config', 'src/game/data/config.json');
+        if (configData) {
+            Config.load(configData);
+
+            // Atualiza managers que dependem do Config
+            this.waveManager.reset();
+            this.towerManager.reset();
+            this.state.money = Config.initialMoney;
+            this.state.lives = Config.initialLives;
+        }
+
         return true;
     }
 

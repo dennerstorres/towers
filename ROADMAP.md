@@ -28,7 +28,7 @@ Preparar a arquitetura para suportar:
 
 ### Estrutura de Dados
 - [x] Criar sistema data-driven
-- [ ] Externalizar configs para JSON
+- [x] Externalizar configs para JSON
 - [ ] Criar:
   - races.json
   - classes.json
