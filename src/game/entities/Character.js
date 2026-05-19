@@ -31,6 +31,25 @@ export class Character {
     }
 
     /**
+     * Retorna o valor base de um atributo
+     * @param {string} attr - Nome do atributo (str, dex, con, int, wis, cha)
+     * @returns {number}
+     */
+    getAttribute(attr) {
+        return this.attributes[attr.toLowerCase()] || 10;
+    }
+
+    /**
+     * Calcula o modificador de um atributo conforme regra D&D 5e: floor((valor - 10) / 2)
+     * @param {string} attr - Nome do atributo
+     * @returns {number}
+     */
+    getModifier(attr) {
+        const value = this.getAttribute(attr);
+        return Math.floor((value - 10) / 2);
+    }
+
+    /**
      * Atualiza a lógica da entidade
      * @param {number} deltaTime - Tempo desde o último frame
      */

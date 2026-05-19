@@ -49,13 +49,13 @@ Preparar a arquitetura para suportar:
   - traits
 
 ### Attributes
-- [ ] Implementar:
-  - STR
-  - DEX
-  - CON
-  - INT
-  - WIS
-  - CHA
+- [x] Implementar:
+  - [x] STR
+  - [x] DEX
+  - [x] CON
+  - [x] INT
+  - [x] WIS
+  - [x] CHA
 
 ### D20 Combat
 - [ ] Sistema de hit usando:
@@ -498,3 +498,4 @@ Misturando:
 | Criar arquivos de dados RPG | In Review | # | 2026-05-18 |
 | Criar entidade Character | In Review | # | 2026-05-19 |
 | Adicionar propriedades RPG ao Character | In Review | # | 2026-05-19 |
+| Attributes | In Review | # | 2025-05-22 |
