@@ -38,7 +38,7 @@ Preparar a arquitetura para suportar:
   - items.json
 
 ### Character System
-- [ ] Criar entidade Character
+- [x] Criar entidade Character
 - [ ] Adicionar:
   - nome
   - raça
@@ -496,3 +496,4 @@ Misturando:
 |------|--------|----|------|
 | Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |
 | Criar arquivos de dados RPG | In Review | # | 2026-05-18 |
+| Criar entidade Character | In Review | # | 2026-05-19 |
