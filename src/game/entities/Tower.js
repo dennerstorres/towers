@@ -14,6 +14,7 @@ export class Tower {
         this.cooldown = stats.cooldown;
         this.projectileSpeed = stats.projectileSpeed;
         this.splashRadius = stats.splashRadius || 0;
+        this.primaryAbility = stats.primaryAbility || 'dex';
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
@@ -21,6 +22,48 @@ export class Tower {
         this.maxLevel = 3;
 
         this.lastShot = 0;
+
+        // Atributos baseados em D&D 5e para cálculo de bônus
+        this.attributes = {
+            str: 10,
+            dex: 10,
+            con: 10,
+            int: 10,
+            wis: 10,
+            cha: 10
+        };
+
+        // Ajusta atributos iniciais baseados no tipo (para legado/fallback)
+        if (this.type === 'archer') this.attributes.dex = 14;
+        if (this.type === 'mage') this.attributes.int = 14;
+        if (this.type === 'cannon') this.attributes.str = 14;
+    }
+
+    /**
+     * Retorna o valor de um atributo
+     * @param {string} attr
+     * @returns {number}
+     */
+    getAttribute(attr) {
+        return this.attributes[attr.toLowerCase()] || 10;
+    }
+
+    /**
+     * Calcula o modificador de um atributo (D&D 5e)
+     * @param {string} attr
+     * @returns {number}
+     */
+    getModifier(attr) {
+        const value = this.getAttribute(attr);
+        return Math.floor((value - 10) / 2);
+    }
+
+    /**
+     * Calcula o bônus de proficiência baseado no nível
+     * @returns {number}
+     */
+    getProficiencyBonus() {
+        return Math.floor((this.level - 1) / 4) + 2;
     }
 
     upgrade() {
@@ -51,9 +94,9 @@ export class Tower {
      * @returns {number}
      */
     getAttackBonus() {
-        // Por enquanto, bônus fixo baseado no nível
-        // Em tarefas futuras isso pode depender de atributos DEX/INT etc.
-        return this.level * 2;
+        const proficiency = this.getProficiencyBonus();
+        const modifier = this.getModifier(this.primaryAbility);
+        return proficiency + modifier;
     }
 
     update(currentTime, enemies) {
@@ -87,4 +130,4 @@ export class Tower {
         }
         return null;
     }
-} 
+}

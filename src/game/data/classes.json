@@ -1,26 +1,32 @@
 {
   "fighter": {
     "name": "Fighter",
+    "primaryAbility": "str",
     "features": ["Tank melee", "Armor bonus", "Taunt"]
   },
   "ranger": {
     "name": "Ranger",
+    "primaryAbility": "dex",
     "features": ["Ranged DPS", "Crit build", "Long range"]
   },
   "wizard": {
     "name": "Wizard",
+    "primaryAbility": "int",
     "features": ["AoE spells", "Elemental damage", "Spell slots"]
   },
   "cleric": {
     "name": "Cleric",
+    "primaryAbility": "wis",
     "features": ["Healing", "Buffs", "Holy damage"]
   },
   "rogue": {
     "name": "Rogue",
+    "primaryAbility": "dex",
     "features": ["Burst damage", "Backstab", "Dodge"]
   },
   "paladin": {
     "name": "Paladin",
+    "primaryAbility": "str",
     "features": ["Hybrid tank/support", "Aura", "Smite"]
   }
 }

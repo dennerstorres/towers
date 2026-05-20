@@ -14,6 +14,7 @@ export class Character {
         this.class = data.class || 'fighter';
         this.level = data.level || 1;
         this.xp = data.xp || 0;
+        this.primaryAbility = data.primaryAbility || 'str';
 
         // Atributos D&D 5e (padrão 10)
         const defaultAttributes = {
@@ -47,6 +48,24 @@ export class Character {
     getModifier(attr) {
         const value = this.getAttribute(attr);
         return Math.floor((value - 10) / 2);
+    }
+
+    /**
+     * Calcula o bônus de proficiência baseado no nível (D&D 5e inspiration)
+     * @returns {number}
+     */
+    getProficiencyBonus() {
+        return Math.floor((this.level - 1) / 4) + 2;
+    }
+
+    /**
+     * Calcula o bônus de ataque total (Proficiência + Modificador de Atributo)
+     * @returns {number}
+     */
+    getAttackBonus() {
+        const proficiency = this.getProficiencyBonus();
+        const modifier = this.getModifier(this.primaryAbility);
+        return proficiency + modifier;
     }
 
     /**

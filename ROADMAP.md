@@ -66,7 +66,7 @@ Preparar a arquitetura para suportar:
 - [x] Critical fail (1 natural)
 
 ### Combat Stats
-- [ ] Attack Bonus
+- [x] Attack Bonus
 - [ ] Armor Class
 - [ ] Crit Chance
 - [ ] Damage Types
@@ -500,3 +500,4 @@ Misturando:
 | Adicionar propriedades RPG ao Character | In Review | # | 2026-05-19 |
 | Attributes | In Review | # | 2025-05-22 |
 | D20 Combat | In Review | # | 2026-05-24 |
+| Attack Bonus | In Review | # | 2026-05-20 |

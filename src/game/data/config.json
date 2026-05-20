@@ -24,7 +24,8 @@
             "range": 150,
             "damage": 15,
             "cooldown": 800,
-            "projectileSpeed": 8
+            "projectileSpeed": 8,
+            "primaryAbility": "dex"
         },
         "CANNON": {
             "type": "cannon",
@@ -32,7 +33,8 @@
             "range": 120,
             "damage": 45,
             "cooldown": 2000,
-            "projectileSpeed": 5
+            "projectileSpeed": 5,
+            "primaryAbility": "str"
         },
         "MAGE": {
             "type": "mage",
@@ -41,7 +43,8 @@
             "damage": 25,
             "cooldown": 1500,
             "projectileSpeed": 4,
-            "splashRadius": 60
+            "splashRadius": 60,
+            "primaryAbility": "int"
         }
     },
     "particleCount": 10,
