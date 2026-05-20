@@ -11,6 +11,7 @@ export class Tower {
 
         this.range = stats.range;
         this.damage = stats.damage;
+        this.damageType = stats.damageType || 'piercing';
         this.cooldown = stats.cooldown;
         this.projectileSpeed = stats.projectileSpeed;
         this.splashRadius = stats.splashRadius || 0;
@@ -138,7 +139,7 @@ export class Tower {
             const distanceSq = dx * dx + dy * dy;
             
             if (distanceSq < rangeSq) {
-                const projectile = new Projectile(centerX, centerY, enemy, this.damage, this);
+                const projectile = new Projectile(centerX, centerY, enemy, this.damage, this, this.damageType);
                 projectile.type = this.type;
                 projectile.speed = this.projectileSpeed;
                 projectile.splashRadius = this.splashRadius;

@@ -491,6 +491,8 @@ export class Game {
     }
 
     applyDamage(projectile) {
+        const damageType = projectile.damageType || 'piercing';
+
         if (projectile.splashRadius > 0) {
             // Splash Damage (Mage) - Consideramos que magia de área sempre atinge,
             // mas futuramente podemos adicionar Saving Throws
@@ -501,6 +503,7 @@ export class Game {
                 const distanceSq = dx * dx + dy * dy;
 
                 if (distanceSq <= splashRadiusSq) {
+                    // TODO: Implementar resistências baseadas em damageType
                     enemy.health -= projectile.damage;
                     this.floatingTexts.add(enemy.x, enemy.y, `-${projectile.damage}`, Config.THEME.colors.bloodRed);
                     this.particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
@@ -513,6 +516,7 @@ export class Game {
             const attackResult = CombatSystem.calculateHit(projectile.attacker || {}, projectile.target);
 
             if (attackResult.hit) {
+                // TODO: Implementar resistências baseadas em damageType
                 let damage = projectile.damage;
                 let color = Config.THEME.colors.bloodRed;
                 let text = `-${damage}`;

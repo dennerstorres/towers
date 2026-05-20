@@ -69,7 +69,7 @@ Preparar a arquitetura para suportar:
 - [x] Attack Bonus
 - [x] Armor Class
 - [x] Crit Chance
-- [ ] Damage Types
+- [x] Damage Types
 - [ ] Resistências
 
 ### Refatoração Arquitetural
@@ -503,3 +503,4 @@ Misturando:
 | Attack Bonus | In Review | # | 2026-05-20 |
 | Armor Class | In Review | # | 2026-05-20 |
 | Crit Chance | In Review | # | 2025-02-14 |
+| Damage Types | In Review | # | 2026-05-20 |
