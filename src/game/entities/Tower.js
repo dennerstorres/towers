@@ -99,6 +99,14 @@ export class Tower {
         return proficiency + modifier;
     }
 
+    /**
+     * Calcula a Classe de Armadura (AC) baseado em D&D 5e (10 + Modificador de DEX)
+     * @returns {number}
+     */
+    getArmorClass() {
+        return 10 + this.getModifier('dex');
+    }
+
     update(currentTime, enemies) {
         if (currentTime - this.lastShot > this.cooldown) {
             const projectile = this.shoot(enemies);

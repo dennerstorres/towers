@@ -33,6 +33,14 @@ export class Enemy {
         this.maxHealth = this.health;
     }
 
+    /**
+     * Retorna a Classe de Armadura (AC) do inimigo
+     * @returns {number}
+     */
+    getArmorClass() {
+        return this.ac;
+    }
+
     update() {
         if (this.pathIndex < Config.path.length - 1) {
             const targetX = Config.path[this.pathIndex + 1].x * Config.gridSize + Config.gridSize/2;

@@ -16,7 +16,13 @@ export const CombatSystem = {
     calculateHit(attacker, target) {
         const roll = this.rollD20();
         const attackBonus = (typeof attacker.getAttackBonus === 'function') ? attacker.getAttackBonus() : 0;
-        const targetAC = target.ac || 10;
+
+        let targetAC = 10;
+        if (typeof target.getArmorClass === 'function') {
+            targetAC = target.getArmorClass() || 10;
+        } else if (target.ac !== undefined) {
+            targetAC = target.ac || 10;
+        }
 
         // Regra de 20 natural (Acerto Crítico)
         if (roll === 20) {

@@ -69,6 +69,14 @@ export class Character {
     }
 
     /**
+     * Calcula a Classe de Armadura (AC) baseado em D&D 5e (10 + Modificador de DEX)
+     * @returns {number}
+     */
+    getArmorClass() {
+        return 10 + this.getModifier('dex');
+    }
+
+    /**
      * Atualiza a lógica da entidade
      * @param {number} deltaTime - Tempo desde o último frame
      */

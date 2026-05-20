@@ -67,7 +67,7 @@ Preparar a arquitetura para suportar:
 
 ### Combat Stats
 - [x] Attack Bonus
-- [ ] Armor Class
+- [x] Armor Class
 - [ ] Crit Chance
 - [ ] Damage Types
 - [ ] Resistências
@@ -501,3 +501,4 @@ Misturando:
 | Attributes | In Review | # | 2025-05-22 |
 | D20 Combat | In Review | # | 2026-05-24 |
 | Attack Bonus | In Review | # | 2026-05-20 |
+| Armor Class | In Review | # | 2026-05-20 |
