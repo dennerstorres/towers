@@ -160,6 +160,7 @@
             const startScreen = document.getElementById('startScreen');
             
             const game = new Game(canvas);
+            window.game = game; // Expondo globalmente para depuração e testes
             
             let isInitialized = false;
             game.init().then(() => {

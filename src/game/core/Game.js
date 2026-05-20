@@ -491,7 +491,7 @@ export class Game {
     }
 
     applyDamage(projectile) {
-        const damageType = projectile.damageType || 'piercing';
+        const currentDamageType = projectile.damageType || 'piercing';
 
         if (projectile.splashRadius > 0) {
             // Splash Damage (Mage) - Consideramos que magia de área sempre atinge,
@@ -503,9 +503,15 @@ export class Game {
                 const distanceSq = dx * dx + dy * dy;
 
                 if (distanceSq <= splashRadiusSq) {
-                    // TODO: Implementar resistências baseadas em damageType
-                    enemy.health -= projectile.damage;
-                    this.floatingTexts.add(enemy.x, enemy.y, `-${projectile.damage}`, Config.THEME.colors.bloodRed);
+                    let finalDamage = projectile.damage;
+
+                    // Checks for resistance (D&D 5e: half damage)
+                    if (typeof enemy.hasResistance === 'function' && enemy.hasResistance(currentDamageType)) {
+                        finalDamage = Math.floor(finalDamage / 2);
+                    }
+
+                    enemy.health -= finalDamage;
+                    this.floatingTexts.add(enemy.x, enemy.y, `-${finalDamage}`, Config.THEME.colors.bloodRed);
                     this.particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
                 }
             });
@@ -516,16 +522,20 @@ export class Game {
             const attackResult = CombatSystem.calculateHit(projectile.attacker || {}, projectile.target);
 
             if (attackResult.hit) {
-                // TODO: Implementar resistências baseadas em damageType
                 let damage = projectile.damage;
                 let color = Config.THEME.colors.bloodRed;
-                let text = `-${damage}`;
 
                 if (attackResult.crit) {
                     damage *= 2;
-                    text = `CRIT! -${damage}`;
                     color = Config.THEME.colors.gold;
                 }
+
+                // Checks for resistance (D&D 5e: half damage)
+                if (typeof projectile.target.hasResistance === 'function' && projectile.target.hasResistance(currentDamageType)) {
+                    damage = Math.floor(damage / 2);
+                }
+
+                let text = attackResult.crit ? `CRIT! -${damage}` : `-${damage}`;
 
                 projectile.target.health -= damage;
                 this.floatingTexts.add(projectile.target.x, projectile.target.y, text, color);

@@ -11,12 +11,14 @@ export class Enemy {
         this.speed = Config.enemySpeed;
         this.health = Config.enemyHealth;
         this.ac = 10; // Default Armor Class
+        this.resistances = []; // Default resistances
 
         // Apply data from enemies.json if available
         if (data) {
             this.health = data.hp || this.health;
             this.ac = data.ac || this.ac;
             this.speed = data.speed || this.speed;
+            this.resistances = data.resistances || [];
         } else {
             // Fallback for types without explicit data
             if (type === 'orc') {
@@ -34,11 +36,20 @@ export class Enemy {
     }
 
     /**
-     * Retorna a Classe de Armadura (AC) do inimigo
+     * Returns the enemy's Armor Class (AC)
      * @returns {number}
      */
     getArmorClass() {
         return this.ac;
+    }
+
+    /**
+     * Checks if the enemy has resistance to a specific damage type
+     * @param {string} damageType
+     * @returns {boolean}
+     */
+    hasResistance(damageType) {
+        return this.resistances.includes(damageType);
     }
 
     update() {
