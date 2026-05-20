@@ -15,6 +15,7 @@ export class Tower {
         this.projectileSpeed = stats.projectileSpeed;
         this.splashRadius = stats.splashRadius || 0;
         this.primaryAbility = stats.primaryAbility || 'dex';
+        this.critThreshold = stats.critThreshold || 20;
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
@@ -105,6 +106,14 @@ export class Tower {
      */
     getArmorClass() {
         return 10 + this.getModifier('dex');
+    }
+
+    /**
+     * Retorna o valor necessário no d20 para um acerto crítico
+     * @returns {number}
+     */
+    getCritThreshold() {
+        return this.critThreshold;
     }
 
     update(currentTime, enemies) {

@@ -41,7 +41,7 @@ export class WaveManager {
 
         let enemyData = null;
         if (dataManager) {
-            const allEnemies = dataManager.getJSON('enemies');
+            const allEnemies = dataManager.get('enemies');
             if (allEnemies && allEnemies[randomType]) {
                 enemyData = allEnemies[randomType];
             }

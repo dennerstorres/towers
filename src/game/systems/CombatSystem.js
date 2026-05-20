@@ -24,8 +24,9 @@ export const CombatSystem = {
             targetAC = target.ac || 10;
         }
 
-        // Regra de 20 natural (Acerto Crítico)
-        if (roll === 20) {
+        // Regra de acerto crítico (usando threshold do atacante)
+        const critThreshold = (typeof attacker.getCritThreshold === 'function') ? attacker.getCritThreshold() : 20;
+        if (roll >= critThreshold) {
             return { hit: true, crit: true, fail: false, roll };
         }
 

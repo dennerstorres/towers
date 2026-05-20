@@ -25,7 +25,8 @@
             "damage": 15,
             "cooldown": 800,
             "projectileSpeed": 8,
-            "primaryAbility": "dex"
+            "primaryAbility": "dex",
+            "critThreshold": 20
         },
         "CANNON": {
             "type": "cannon",
@@ -34,7 +35,8 @@
             "damage": 45,
             "cooldown": 2000,
             "projectileSpeed": 5,
-            "primaryAbility": "str"
+            "primaryAbility": "str",
+            "critThreshold": 20
         },
         "MAGE": {
             "type": "mage",
@@ -44,7 +46,8 @@
             "cooldown": 1500,
             "projectileSpeed": 4,
             "splashRadius": 60,
-            "primaryAbility": "int"
+            "primaryAbility": "int",
+            "critThreshold": 20
         }
     },
     "particleCount": 10,

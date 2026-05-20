@@ -29,6 +29,17 @@ export class Character {
 
         // Características e habilidades passivas
         this.traits = data.traits || [];
+
+        // Chance de acerto crítico (valor no d20 necessário para crítico)
+        this.critThreshold = data.critThreshold || 20;
+    }
+
+    /**
+     * Retorna o valor necessário no d20 para um acerto crítico
+     * @returns {number}
+     */
+    getCritThreshold() {
+        return this.critThreshold;
     }
 
     /**
