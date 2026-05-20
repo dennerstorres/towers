@@ -1,11 +1,12 @@
 import { Config } from '../core/Config.js';
 
 export class Projectile {
-    constructor(x, y, target, damage) {
+    constructor(x, y, target, damage, attacker = null) {
         this.x = x;
         this.y = y;
         this.target = target;
         this.damage = damage;
+        this.attacker = attacker;
         this.speed = 5;
         this.radius = 4;
         this.reached = false;

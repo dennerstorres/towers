@@ -58,12 +58,12 @@ Preparar a arquitetura para suportar:
   - [x] CHA
 
 ### D20 Combat
-- [ ] Sistema de hit usando:
+- [x] Sistema de hit usando:
   - d20
   - attack bonus
   - armor class (AC)
-- [ ] Critical hit (20 natural)
-- [ ] Critical fail (1 natural)
+- [x] Critical hit (20 natural)
+- [x] Critical fail (1 natural)
 
 ### Combat Stats
 - [ ] Attack Bonus
@@ -499,3 +499,4 @@ Misturando:
 | Criar entidade Character | In Review | # | 2026-05-19 |
 | Adicionar propriedades RPG ao Character | In Review | # | 2026-05-19 |
 | Attributes | In Review | # | 2025-05-22 |
+| D20 Combat | In Review | # | 2026-05-24 |

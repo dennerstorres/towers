@@ -1,7 +1,7 @@
 import { Config } from '../core/Config.js';
 
 export class Enemy {
-    constructor(type = 'goblin') {
+    constructor(type = 'goblin', data = null) {
         this.type = type;
         this.pathIndex = 0;
         this.x = Config.path[0].x * Config.gridSize + Config.gridSize/2;
@@ -10,14 +10,24 @@ export class Enemy {
         // Base stats
         this.speed = Config.enemySpeed;
         this.health = Config.enemyHealth;
+        this.ac = 10; // Default Armor Class
 
-        // Apply type multipliers or stats
-        if (type === 'orc') {
-            this.health *= 2;
-            this.speed *= 0.7;
-        } else if (type === 'scout') {
-            this.health *= 0.5;
-            this.speed *= 1.5;
+        // Apply data from enemies.json if available
+        if (data) {
+            this.health = data.hp || this.health;
+            this.ac = data.ac || this.ac;
+            this.speed = data.speed || this.speed;
+        } else {
+            // Fallback for types without explicit data
+            if (type === 'orc') {
+                this.health *= 2;
+                this.speed *= 0.7;
+                this.ac = 13;
+            } else if (type === 'scout') {
+                this.health *= 0.5;
+                this.speed *= 1.5;
+                this.ac = 12;
+            }
         }
 
         this.maxHealth = this.health;

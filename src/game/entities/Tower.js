@@ -46,6 +46,16 @@ export class Tower {
         return Math.floor(this.totalInvested * Config.SELL_REFUND_PERCENTAGE);
     }
 
+    /**
+     * Retorna o bônus de ataque da torre baseado em D&D 5e
+     * @returns {number}
+     */
+    getAttackBonus() {
+        // Por enquanto, bônus fixo baseado no nível
+        // Em tarefas futuras isso pode depender de atributos DEX/INT etc.
+        return this.level * 2;
+    }
+
     update(currentTime, enemies) {
         if (currentTime - this.lastShot > this.cooldown) {
             const projectile = this.shoot(enemies);
@@ -68,7 +78,7 @@ export class Tower {
             const distanceSq = dx * dx + dy * dy;
             
             if (distanceSq < rangeSq) {
-                const projectile = new Projectile(centerX, centerY, enemy, this.damage);
+                const projectile = new Projectile(centerX, centerY, enemy, this.damage, this);
                 projectile.type = this.type;
                 projectile.speed = this.projectileSpeed;
                 projectile.splashRadius = this.splashRadius;

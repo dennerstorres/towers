@@ -1,5 +1,6 @@
 import { Config } from './Config.js';
 import { Tower } from '../entities/Tower.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
 import { WaveManager } from '../managers/WaveManager.js';
 import { TowerManager } from '../managers/TowerManager.js';
 import { DataManager } from '../managers/DataManager.js';
@@ -69,6 +70,11 @@ export class Game {
         const configData = await this.dataManager.loadJSON('config', 'src/game/data/config.json');
         if (configData) {
             Config.load(configData);
+
+            // Carrega dados de inimigos para o DataManager
+            await this.dataManager.loadJSON('enemies', 'src/game/data/enemies.json');
+            await this.dataManager.loadJSON('classes', 'src/game/data/classes.json');
+            await this.dataManager.loadJSON('races', 'src/game/data/races.json');
 
             // Atualiza managers que dependem do Config
             this.waveManager.reset();
@@ -437,7 +443,7 @@ export class Game {
         // Atualiza o gerenciador de ondas se o jogo ainda estiver rodando
         if (this.state.gameRunning) {
             const waveBefore = this.waveManager.currentWave;
-            const waveResult = this.waveManager.update(this.state);
+            const waveResult = this.waveManager.update(this.state, this.dataManager);
 
             if (waveResult && waveResult.type === 'wave_complete') {
                 this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
@@ -486,7 +492,8 @@ export class Game {
 
     applyDamage(projectile) {
         if (projectile.splashRadius > 0) {
-            // Splash Damage
+            // Splash Damage (Mage) - Consideramos que magia de área sempre atinge,
+            // mas futuramente podemos adicionar Saving Throws
             const splashRadiusSq = projectile.splashRadius * projectile.splashRadius;
             this.state.enemies.forEach(enemy => {
                 const dx = enemy.x - projectile.x;
@@ -502,15 +509,34 @@ export class Game {
             // Visual feedback for splash
             this.particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.mage, 15);
         } else if (projectile.target && projectile.target.health > 0) {
-            // Single target damage
-            projectile.target.health -= projectile.damage;
-            this.floatingTexts.add(projectile.target.x, projectile.target.y, `-${projectile.damage}`, Config.THEME.colors.bloodRed);
+            // Single target damage com sistema D20
+            const attackResult = CombatSystem.calculateHit(projectile.attacker || {}, projectile.target);
 
-            if (projectile.target.health <= 0) {
-                this.particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount);
+            if (attackResult.hit) {
+                let damage = projectile.damage;
+                let color = Config.THEME.colors.bloodRed;
+                let text = `-${damage}`;
+
+                if (attackResult.crit) {
+                    damage *= 2;
+                    text = `CRIT! -${damage}`;
+                    color = Config.THEME.colors.gold;
+                }
+
+                projectile.target.health -= damage;
+                this.floatingTexts.add(projectile.target.x, projectile.target.y, text, color);
+
+                if (projectile.target.health <= 0) {
+                    this.particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount);
+                } else {
+                    const particleColor = projectile.type === 'cannon' ? Config.THEME.colors.cannon : '#f1c40f';
+                    this.particleSystem.emit(projectile.x, projectile.y, particleColor, 5);
+                }
             } else {
-                const color = projectile.type === 'cannon' ? Config.THEME.colors.cannon : '#f1c40f';
-                this.particleSystem.emit(projectile.x, projectile.y, color, 5);
+                // Errou o ataque
+                const missText = attackResult.fail ? 'FALHA!' : 'ERROU';
+                this.floatingTexts.add(projectile.target.x, projectile.target.y, missText, '#95a5a6');
+                this.particleSystem.emit(projectile.x, projectile.y, '#95a5a6', 3);
             }
         }
     }

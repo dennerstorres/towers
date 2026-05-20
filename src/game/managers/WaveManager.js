@@ -35,10 +35,19 @@ export class WaveManager {
         }
     }
 
-    spawnEnemy(gameState) {
+    spawnEnemy(gameState, dataManager = null) {
         const types = ['goblin', 'goblin', 'orc', 'scout'];
         const randomType = types[Math.floor(Math.random() * types.length)];
-        gameState.enemies.push(new Enemy(randomType));
+
+        let enemyData = null;
+        if (dataManager) {
+            const allEnemies = dataManager.getJSON('enemies');
+            if (allEnemies && allEnemies[randomType]) {
+                enemyData = allEnemies[randomType];
+            }
+        }
+
+        gameState.enemies.push(new Enemy(randomType, enemyData));
         this.enemiesSpawned++;
     }
 
@@ -55,7 +64,7 @@ export class WaveManager {
         return reward;
     }
 
-    update(gameState) {
+    update(gameState, dataManager = null) {
         if (this.isWaiting) {
             this.countdown--;
             if (this.countdown <= 0) {
@@ -69,7 +78,7 @@ export class WaveManager {
             this.spawnTimer++;
             if (this.spawnTimer >= this.spawnInterval) {
                 if (gameState.enemies.length < 10) {
-                    this.spawnEnemy(gameState);
+                    this.spawnEnemy(gameState, dataManager);
                     this.spawnTimer = 0;
                 }
             }
