@@ -2,7 +2,8 @@
   "fighter": {
     "name": "Fighter",
     "primaryAbility": "str",
-    "features": ["Tank melee", "Armor bonus", "Taunt"]
+    "features": ["Tank melee", "Armor bonus", "Taunt"],
+    "tauntDuration": 60
   },
   "ranger": {
     "name": "Ranger",

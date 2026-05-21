@@ -33,6 +33,7 @@ export class Enemy {
         }
 
         this.maxHealth = this.health;
+        this.tauntTimer = 0;
     }
 
     /**
@@ -53,6 +54,11 @@ export class Enemy {
     }
 
     update() {
+        if (this.tauntTimer > 0) {
+            this.tauntTimer--;
+            return;
+        }
+
         if (this.pathIndex < Config.path.length - 1) {
             const targetX = Config.path[this.pathIndex + 1].x * Config.gridSize + Config.gridSize/2;
             const targetY = Config.path[this.pathIndex + 1].y * Config.gridSize + Config.gridSize/2;

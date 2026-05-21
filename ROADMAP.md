@@ -93,7 +93,7 @@ Criar as primeiras builds jogáveis.
 ### Fighter
 - [x] Tank melee
 - [x] Armor bonus
-- [ ] Taunt
+- [x] Taunt
 
 ### Ranger
 - [ ] Ranged DPS
@@ -508,3 +508,4 @@ Misturando:
 | Separar Sistemas de Core | In Review | # | 2026-05-21 |
 | Tank melee | In Review | # | 2026-05-21 |
 | Armor bonus | In Progress | # | 2026-05-22 |
+| Taunt | In Review | # | 2026-05-21 |

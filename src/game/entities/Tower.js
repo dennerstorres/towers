@@ -18,6 +18,7 @@ export class Tower {
         this.primaryAbility = stats.primaryAbility || 'dex';
         this.critThreshold = stats.critThreshold || 20;
         this.armorBonus = stats.armorBonus || 0;
+        this.tauntDuration = stats.tauntDuration || 0;
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
@@ -145,6 +146,7 @@ export class Tower {
                 projectile.type = this.type;
                 projectile.speed = this.projectileSpeed;
                 projectile.splashRadius = this.splashRadius;
+                projectile.tauntDuration = this.tauntDuration;
                 return projectile;
             }
         }

@@ -66,6 +66,7 @@
             "primaryAbility": "str",
             "critThreshold": 20,
             "armorBonus": 2,
+            "tauntDuration": 60,
             "attributes": { "str": 16, "dex": 12, "con": 14 }
         }
     },

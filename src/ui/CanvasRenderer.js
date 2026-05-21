@@ -744,6 +744,14 @@ export class CanvasRenderer {
         this.ctx.lineWidth = 0.5;
         this.ctx.strokeRect(barX, barY, barWidth, barHeight);
 
+        // Taunt Indicator
+        if (enemy.tauntTimer > 0) {
+            this.ctx.fillStyle = Config.THEME.colors.gold;
+            this.ctx.font = `bold 20px ${Config.THEME.font}`;
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('!', enemy.x, enemy.y - size / 2 - 15);
+        }
+
         this.ctx.restore();
     }
 

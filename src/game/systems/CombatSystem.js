@@ -99,6 +99,12 @@ export const CombatSystem = {
                 projectile.target.health -= damage;
                 floatingTexts.add(projectile.target.x, projectile.target.y, text, color);
 
+                // Taunt logic for entities with tauntDuration
+                if (projectile.tauntDuration > 0 && typeof projectile.target.tauntTimer !== 'undefined') {
+                    projectile.target.tauntTimer = projectile.tauntDuration;
+                    floatingTexts.add(projectile.target.x, projectile.target.y - 15, 'TAUNTED!', '#f1c40f');
+                }
+
                 if (projectile.target.health <= 0) {
                     particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount);
                 } else {
