@@ -92,7 +92,7 @@ Criar as primeiras builds jogáveis.
 
 ### Fighter
 - [x] Tank melee
-- [ ] Armor bonus
+- [x] Armor bonus
 - [ ] Taunt
 
 ### Ranger
@@ -507,3 +507,4 @@ Misturando:
 | Resistências | In Review | # | 2026-05-20 |
 | Separar Sistemas de Core | In Review | # | 2026-05-21 |
 | Tank melee | In Review | # | 2026-05-21 |
+| Armor bonus | In Progress | # | 2026-05-22 |

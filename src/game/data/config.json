@@ -65,6 +65,7 @@
             "projectileSpeed": 20,
             "primaryAbility": "str",
             "critThreshold": 20,
+            "armorBonus": 2,
             "attributes": { "str": 16, "dex": 12, "con": 14 }
         }
     },

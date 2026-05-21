@@ -17,6 +17,7 @@ export class Tower {
         this.splashRadius = stats.splashRadius || 0;
         this.primaryAbility = stats.primaryAbility || 'dex';
         this.critThreshold = stats.critThreshold || 20;
+        this.armorBonus = stats.armorBonus || 0;
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
@@ -103,11 +104,11 @@ export class Tower {
     }
 
     /**
-     * Calcula a Classe de Armadura (AC) baseado em D&D 5e (10 + Modificador de DEX)
+     * Calcula a Classe de Armadura (AC) baseado em D&D 5e (10 + Modificador de DEX + Bônus de Armadura)
      * @returns {number}
      */
     getArmorClass() {
-        return 10 + this.getModifier('dex');
+        return 10 + this.getModifier('dex') + this.armorBonus;
     }
 
     /**
