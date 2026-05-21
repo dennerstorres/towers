@@ -91,7 +91,7 @@ Criar as primeiras builds jogáveis.
 ## Classes Iniciais
 
 ### Fighter
-- [ ] Tank melee
+- [x] Tank melee
 - [ ] Armor bonus
 - [ ] Taunt
 
@@ -506,3 +506,4 @@ Misturando:
 | Damage Types | In Review | # | 2026-05-20 |
 | Resistências | In Review | # | 2026-05-20 |
 | Separar Sistemas de Core | In Review | # | 2026-05-21 |
+| Tank melee | In Review | # | 2026-05-21 |

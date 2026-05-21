@@ -27,7 +27,8 @@
             "cooldown": 800,
             "projectileSpeed": 8,
             "primaryAbility": "dex",
-            "critThreshold": 20
+            "critThreshold": 20,
+            "attributes": { "dex": 14 }
         },
         "CANNON": {
             "type": "cannon",
@@ -38,7 +39,8 @@
             "cooldown": 2000,
             "projectileSpeed": 5,
             "primaryAbility": "str",
-            "critThreshold": 20
+            "critThreshold": 20,
+            "attributes": { "str": 14 }
         },
         "MAGE": {
             "type": "mage",
@@ -50,7 +52,20 @@
             "projectileSpeed": 4,
             "splashRadius": 60,
             "primaryAbility": "int",
-            "critThreshold": 20
+            "critThreshold": 20,
+            "attributes": { "int": 14 }
+        },
+        "FIGHTER": {
+            "type": "fighter",
+            "cost": 60,
+            "range": 60,
+            "damage": 20,
+            "damageType": "slashing",
+            "cooldown": 1000,
+            "projectileSpeed": 20,
+            "primaryAbility": "str",
+            "critThreshold": 20,
+            "attributes": { "str": 16, "dex": 12, "con": 14 }
         }
     },
     "particleCount": 10,
@@ -69,6 +84,7 @@
             "archer": "#2ecc71",
             "cannon": "#e67e22",
             "mage": "#9b59b6",
+            "fighter": "#5dade2",
             "mageSplash": "rgba(155, 89, 182, 0.3)",
             "grass": "#27ae60",
             "grassDark": "#229958",

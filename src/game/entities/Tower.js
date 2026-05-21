@@ -26,7 +26,7 @@ export class Tower {
         this.lastShot = 0;
 
         // Atributos baseados em D&D 5e para cálculo de bônus
-        this.attributes = {
+        const defaultAttributes = {
             str: 10,
             dex: 10,
             con: 10,
@@ -35,10 +35,11 @@ export class Tower {
             cha: 10
         };
 
-        // Ajusta atributos iniciais baseados no tipo (para legado/fallback)
-        if (this.type === 'archer') this.attributes.dex = 14;
-        if (this.type === 'mage') this.attributes.int = 14;
-        if (this.type === 'cannon') this.attributes.str = 14;
+        // Inicializa atributos com os valores da configuração se disponíveis
+        this.attributes = {
+            ...defaultAttributes,
+            ...(stats.attributes || {})
+        };
     }
 
     /**

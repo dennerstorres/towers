@@ -563,6 +563,10 @@ export class CanvasRenderer {
             primaryColor = '#34495e';
             accentColor = Config.THEME.colors.mage;
         }
+        if (tower.type === 'fighter') {
+            primaryColor = '#5d6d7e';
+            accentColor = Config.THEME.colors.fighter;
+        }
 
         // Tower Body
         this.ctx.fillStyle = primaryColor;
@@ -596,6 +600,19 @@ export class CanvasRenderer {
             // Bulky cannon barrel
             this.ctx.fillStyle = '#2c3e50';
             this.ctx.fillRect(x + 15, y + 15, 10, 10);
+        } else if (tower.type === 'fighter') {
+            // Fighter Shield
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + 15, y + 15);
+            this.ctx.lineTo(x + 25, y + 15);
+            this.ctx.lineTo(x + 25, y + 23);
+            this.ctx.quadraticCurveTo(x + 20, y + 28, x + 15, y + 23);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#2c3e50';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
         } else {
             // Archer Window
             this.ctx.fillStyle = '#2c3e50';
