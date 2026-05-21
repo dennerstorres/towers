@@ -96,7 +96,7 @@ Criar as primeiras builds jogáveis.
 - [x] Taunt
 
 ### Ranger
-- [ ] Ranged DPS
+- [x] Ranged DPS
 - [ ] Crit build
 - [ ] Long range
 
@@ -509,3 +509,4 @@ Misturando:
 | Tank melee | In Review | # | 2026-05-21 |
 | Armor bonus | In Progress | # | 2026-05-22 |
 | Taunt | In Review | # | 2026-05-21 |
+| Ranged DPS | In Review | # | 2026-05-21 |

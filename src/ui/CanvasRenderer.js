@@ -567,6 +567,10 @@ export class CanvasRenderer {
             primaryColor = '#5d6d7e';
             accentColor = Config.THEME.colors.fighter;
         }
+        if (tower.type === 'ranger') {
+            primaryColor = '#1e8449';
+            accentColor = Config.THEME.colors.ranger;
+        }
 
         // Tower Body
         this.ctx.fillStyle = primaryColor;
@@ -612,6 +616,17 @@ export class CanvasRenderer {
             this.ctx.fill();
             this.ctx.strokeStyle = '#2c3e50';
             this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+        } else if (tower.type === 'ranger') {
+            // Ranger Leaf-like banner
+            this.ctx.fillStyle = accentColor;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + 20, y + 15);
+            this.ctx.quadraticCurveTo(x + 30, y + 15, x + 30, y + 25);
+            this.ctx.quadraticCurveTo(x + 20, y + 35, x + 10, y + 25);
+            this.ctx.quadraticCurveTo(x + 10, y + 15, x + 20, y + 15);
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#0e6251';
             this.ctx.stroke();
         } else {
             // Archer Window

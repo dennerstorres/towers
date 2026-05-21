@@ -68,6 +68,18 @@
             "armorBonus": 2,
             "tauntDuration": 60,
             "attributes": { "str": 16, "dex": 12, "con": 14 }
+        },
+        "RANGER": {
+            "type": "ranger",
+            "cost": 75,
+            "range": 200,
+            "damage": 25,
+            "damageType": "piercing",
+            "cooldown": 1000,
+            "projectileSpeed": 10,
+            "primaryAbility": "dex",
+            "critThreshold": 19,
+            "attributes": { "dex": 16, "wis": 14 }
         }
     },
     "particleCount": 10,
@@ -87,6 +99,7 @@
             "cannon": "#e67e22",
             "mage": "#9b59b6",
             "fighter": "#5dade2",
+            "ranger": "#27ae60",
             "mageSplash": "rgba(155, 89, 182, 0.3)",
             "grass": "#27ae60",
             "grassDark": "#229958",
