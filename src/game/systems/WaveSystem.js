@@ -1,7 +1,7 @@
 import { Config } from '../core/Config.js';
 import { Enemy } from '../entities/Enemy.js';
 
-export class WaveManager {
+export class WaveSystem {
     constructor() {
         this.reset();
     }

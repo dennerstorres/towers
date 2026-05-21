@@ -1,0 +1,47 @@
+import { Config } from './Config.js';
+
+export class StateStore {
+    constructor() {
+        this.state = this.getInitialState();
+    }
+
+    getInitialState() {
+        return {
+            enemies: [],
+            projectiles: [],
+            money: Config.initialMoney,
+            lives: Config.initialLives,
+            gameRunning: false,
+            isGameOver: false,
+            isVictory: false,
+            towerManager: null, // Will be set by Game
+            selectedPlacedTower: null,
+            mouseX: 0,
+            mouseY: 0,
+            isPaused: false,
+            gameSpeed: 1,
+            logicalTime: 0,
+            highscore: parseInt(localStorage.getItem('towers_highscore')) || 0
+        };
+    }
+
+    reset() {
+        const initialState = this.getInitialState();
+        // Preserve some properties like highscore and towerManager reference
+        const towerManager = this.state.towerManager;
+        const highscore = this.state.highscore;
+
+        this.state = {
+            ...initialState,
+            towerManager,
+            highscore
+        };
+    }
+
+    updateHighscore(wavesSurvived) {
+        if (wavesSurvived > this.state.highscore) {
+            this.state.highscore = wavesSurvived;
+            localStorage.setItem('towers_highscore', wavesSurvived);
+        }
+    }
+}

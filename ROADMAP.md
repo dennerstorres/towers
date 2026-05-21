@@ -73,7 +73,7 @@ Preparar a arquitetura para suportar:
 - [x] Resistências
 
 ### Refatoração Arquitetural
-- [ ] Separar:
+- [x] Separar:
   - GameLoop
   - CombatSystem
   - RenderSystem
@@ -505,3 +505,4 @@ Misturando:
 | Crit Chance | In Review | # | 2025-02-14 |
 | Damage Types | In Review | # | 2026-05-20 |
 | Resistências | In Review | # | 2026-05-20 |
+| Separar Sistemas de Core | In Review | # | 2026-05-21 |
