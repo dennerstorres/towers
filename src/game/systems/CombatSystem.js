@@ -54,7 +54,7 @@ export const CombatSystem = {
         const currentDamageType = projectile.damageType || 'piercing';
 
         if (projectile.splashRadius > 0) {
-            // Splash Damage (Mage)
+            // AoE Spell (Wizard)
             const splashRadiusSq = projectile.splashRadius * projectile.splashRadius;
             gameState.enemies.forEach(enemy => {
                 const dx = enemy.x - projectile.x;
@@ -75,7 +75,7 @@ export const CombatSystem = {
                 }
             });
             // Visual feedback for splash
-            particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.mage, 15);
+            particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.wizard, 15);
         } else if (projectile.target && projectile.target.health > 0) {
             // Single target damage com sistema D20
             const attackResult = this.calculateHit(projectile.attacker || {}, projectile.target);

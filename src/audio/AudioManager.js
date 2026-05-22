@@ -49,7 +49,7 @@ export class AudioManager {
                 // Som de canhão: grave e barulhento
                 this.createOscillator('square', 100, 0.3, 0.8);
                 break;
-            case 'mage':
+            case 'wizard':
                 // Som mágico: frequência deslizando
                 if (!this.ctx) return;
                 const osc = this.ctx.createOscillator();

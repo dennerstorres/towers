@@ -101,7 +101,7 @@ Criar as primeiras builds jogáveis.
 - [x] Long range
 
 ### Wizard
-- [ ] AoE spells
+- [x] AoE spells
 - [ ] Elemental damage
 - [ ] Spell slots
 
@@ -512,3 +512,4 @@ Misturando:
 | Ranged DPS | In Review | # | 2026-05-21 |
 | Crit build | In Review | # | 2026-05-22 |
 | Long range | In Progress | # | 2026-05-22 |
+| AoE spells | In Review | # | 2026-05-22 |

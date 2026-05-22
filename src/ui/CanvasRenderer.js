@@ -498,8 +498,8 @@ export class CanvasRenderer {
             color = '#34495e';
             radius = 6;
             glow = false;
-        } else if (projectile.type === 'mage') {
-            color = Config.THEME.colors.mage;
+        } else if (projectile.type === 'wizard') {
+            color = Config.THEME.colors.wizard;
             radius = 5;
         }
 
@@ -559,9 +559,9 @@ export class CanvasRenderer {
             primaryColor = '#95a5a6';
             accentColor = Config.THEME.colors.cannon;
         }
-        if (tower.type === 'mage') {
+        if (tower.type === 'wizard') {
             primaryColor = '#34495e';
-            accentColor = Config.THEME.colors.mage;
+            accentColor = Config.THEME.colors.wizard;
         }
         if (tower.type === 'fighter') {
             primaryColor = '#5d6d7e';
@@ -591,8 +591,8 @@ export class CanvasRenderer {
         this.ctx.fillRect(x + 5, y + 12, 30, 2);
 
         // Type specific visual elements
-        if (tower.type === 'mage') {
-            // Glowing orb for mage tower
+        if (tower.type === 'wizard') {
+            // Glowing orb for wizard tower
             this.ctx.fillStyle = accentColor;
             this.ctx.shadowBlur = 10;
             this.ctx.shadowColor = accentColor;

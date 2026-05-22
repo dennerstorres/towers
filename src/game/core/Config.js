@@ -34,8 +34,8 @@ export const Config = {
             cooldown: 2000,
             projectileSpeed: 5
         },
-        MAGE: {
-            type: 'mage',
+        WIZARD: {
+            type: 'wizard',
             cost: 120,
             range: 180,
             damage: 25,
@@ -59,8 +59,8 @@ export const Config = {
             bloodRed: '#c0392b',
             archer: '#2ecc71',
             cannon: '#e67e22',
-            mage: '#9b59b6',
-            mageSplash: 'rgba(155, 89, 182, 0.3)',
+            wizard: '#9b59b6',
+            wizardSplash: 'rgba(155, 89, 182, 0.3)',
             grass: '#27ae60',
             grassDark: '#229958',
             dirt: '#8d6e63',
