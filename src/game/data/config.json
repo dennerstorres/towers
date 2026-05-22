@@ -79,6 +79,7 @@
             "projectileSpeed": 10,
             "primaryAbility": "dex",
             "critThreshold": 19,
+            "critThresholdDecreasePerLevel": 1,
             "attributes": { "dex": 16, "wis": 14 }
         }
     },

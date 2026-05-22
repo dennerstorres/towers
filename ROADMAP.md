@@ -97,7 +97,7 @@ Criar as primeiras builds jogáveis.
 
 ### Ranger
 - [x] Ranged DPS
-- [ ] Crit build
+- [x] Crit build
 - [ ] Long range
 
 ### Wizard
@@ -510,3 +510,4 @@ Misturando:
 | Armor bonus | In Progress | # | 2026-05-22 |
 | Taunt | In Review | # | 2026-05-21 |
 | Ranged DPS | In Review | # | 2026-05-21 |
+| Crit build | In Review | # | 2026-05-22 |
