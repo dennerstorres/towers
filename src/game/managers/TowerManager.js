@@ -1,5 +1,4 @@
 import { Config } from '../core/Config.js';
-
 import { Tower } from '../entities/Tower.js';
 
 export class TowerManager {
@@ -13,8 +12,8 @@ export class TowerManager {
         this.placedTowers = [];
     }
 
-    addTower(x, y, type) {
-        const tower = new Tower(x, y, type);
+    addTower(x, y, type, race = 'human', raceData = null) {
+        const tower = new Tower(x, y, type, race, raceData);
         this.placedTowers.push(tower);
         return tower;
     }

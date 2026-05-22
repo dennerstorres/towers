@@ -571,6 +571,18 @@ export class CanvasRenderer {
             primaryColor = '#1e8449';
             accentColor = Config.THEME.colors.ranger;
         }
+        if (tower.type === 'cleric') {
+            primaryColor = '#ecf0f1';
+            accentColor = Config.THEME.colors.cleric;
+        }
+        if (tower.type === 'rogue') {
+            primaryColor = '#2c3e50';
+            accentColor = Config.THEME.colors.rogue;
+        }
+        if (tower.type === 'paladin') {
+            primaryColor = '#f39c12';
+            accentColor = Config.THEME.colors.paladin;
+        }
 
         // Tower Body
         this.ctx.fillStyle = primaryColor;
@@ -628,6 +640,29 @@ export class CanvasRenderer {
             this.ctx.fill();
             this.ctx.strokeStyle = '#0e6251';
             this.ctx.stroke();
+        } else if (tower.type === 'cleric') {
+            // Cleric Holy Cross
+            this.ctx.fillStyle = accentColor;
+            this.ctx.fillRect(x + 18, y + 14, 4, 12);
+            this.ctx.fillRect(x + 14, y + 18, 12, 4);
+        } else if (tower.type === 'rogue') {
+            // Rogue Dagger
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.beginPath();
+            this.ctx.moveTo(x + 20, y + 14);
+            this.ctx.lineTo(x + 23, y + 24);
+            this.ctx.lineTo(x + 20, y + 28);
+            this.ctx.lineTo(x + 17, y + 24);
+            this.ctx.closePath();
+            this.ctx.fill();
+            this.ctx.fillStyle = '#7f8c8d';
+            this.ctx.fillRect(x + 16, y + 24, 8, 2);
+        } else if (tower.type === 'paladin') {
+            // Paladin Hammer
+            this.ctx.fillStyle = '#7f8c8d';
+            this.ctx.fillRect(x + 18, y + 20, 4, 10);
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.fillRect(x + 14, y + 14, 12, 6);
         } else {
             // Archer Window
             this.ctx.fillStyle = '#2c3e50';
@@ -637,6 +672,24 @@ export class CanvasRenderer {
         // Base/Foundation
         this.ctx.fillStyle = Config.THEME.colors.darkStone;
         this.ctx.fillRect(x + 6, y + 35, 28, 3);
+
+        // Aura indicator for Paladin
+        if (!isIcon && tower.type === 'paladin') {
+            this.ctx.save();
+            this.ctx.beginPath();
+            this.ctx.arc(x + 20, y + 20, tower.auraRange, 0, Math.PI * 2);
+            this.ctx.strokeStyle = 'rgba(241, 196, 15, 0.2)';
+            this.ctx.setLineDash([5, 5]);
+            this.ctx.stroke();
+            this.ctx.restore();
+        }
+
+        // Paladin Aura visual on ally
+        if (!isIcon && tower.hasPaladinAura) {
+            this.ctx.strokeStyle = Config.THEME.colors.gold;
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(x + 5, y + 5, 30, 30);
+        }
 
         // Level Indicators
         if (!isIcon) {

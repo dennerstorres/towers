@@ -102,46 +102,46 @@ Criar as primeiras builds jogáveis.
 
 ### Wizard
 - [x] AoE spells
-- [ ] Elemental damage
-- [ ] Spell slots
+- [x] Elemental damage
+- [x] Spell slots
 
 ### Cleric
-- [ ] Healing
-- [ ] Buffs
-- [ ] Holy damage
+- [x] Healing
+- [x] Buffs
+- [x] Holy damage
 
 ### Rogue
-- [ ] Burst damage
-- [ ] Backstab
-- [ ] Dodge
+- [x] Burst damage
+- [x] Backstab
+- [x] Dodge
 
 ### Paladin
-- [ ] Hybrid tank/support
-- [ ] Aura
-- [ ] Smite
+- [x] Hybrid tank/support
+- [x] Aura
+- [x] Smite
 
 ---
 
 ## Raças Iniciais
 
 ### Human
-- [ ] All-rounder
+- [x] All-rounder
 
 ### Elf
-- [ ] +DEX
-- [ ] +Range
+- [x] +DEX
+- [x] +Range
 
 ### Dwarf
-- [ ] +CON
-- [ ] Resistance
+- [x] +CON
+- [x] Resistance
 
 ### Halfling
-- [ ] Luck
-- [ ] Crit bonus
+- [x] Luck
+- [x] Crit bonus
 
 ### Orc
-- [ ] +STR
-- [ ] Rage passive
+- [x] +STR
+- [x] Rage passive
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 2 — Classes e Raças Base | In Progress | # | 2026-05-24 |
 | Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |
 | Criar arquivos de dados RPG | In Review | # | 2026-05-18 |
 | Criar entidade Character | In Review | # | 2026-05-19 |

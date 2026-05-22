@@ -232,7 +232,14 @@ export class Game {
 
     placeTower(x, y) {
         const selectedTower = this.towerManager.getSelectedTower();
-        this.towerManager.addTower(x, y, selectedTower.type);
+
+        // Randomly assign a race for variety (FASE 2 requirement)
+        const races = this.dataManager.get('races');
+        const raceKeys = Object.keys(races || { 'human': {} });
+        const randomRaceKey = raceKeys[Math.floor(Math.random() * raceKeys.length)];
+        const raceData = races ? races[randomRaceKey] : null;
+
+        this.towerManager.addTower(x, y, selectedTower.type, randomRaceKey, raceData);
         this.state.money -= selectedTower.cost;
     }
 
@@ -267,9 +274,19 @@ export class Game {
 
         this.state.logicalTime += timeStep;
 
+        // Reset Paladin Aura effects before recalculating
+        for (let tower of this.towerManager.placedTowers) {
+            tower.hasPaladinAura = false;
+        }
+
         // Atualiza torres
         for (let tower of this.towerManager.placedTowers) {
-            const projectile = tower.update(this.state.logicalTime, this.state.enemies);
+            const projectile = tower.update(
+                this.state.logicalTime,
+                this.state.enemies,
+                this.towerManager.placedTowers,
+                this.state
+            );
             if (projectile) {
                 this.state.projectiles.push(projectile);
                 this.audio.playShoot(tower.type);

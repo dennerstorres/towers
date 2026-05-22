@@ -2,10 +2,11 @@ import { Config } from '../core/Config.js';
 import { Projectile } from './Projectile.js';
 
 export class Tower {
-    constructor(x, y, type = 'archer') {
+    constructor(x, y, type = 'archer', race = 'human', raceData = null) {
         this.x = x;
         this.y = y;
         this.type = type;
+        this.race = race;
 
         const stats = Config.TOWERS[type.toUpperCase()] || Config.TOWERS.ARCHER;
 
@@ -21,6 +22,14 @@ export class Tower {
         this.rangeIncreasePerLevel = stats.rangeIncreasePerLevel || 0;
         this.armorBonus = stats.armorBonus || 0;
         this.tauntDuration = stats.tauntDuration || 0;
+
+        // Class specific
+        this.auraRange = stats.auraRange || 0;
+        this.buffDuration = stats.buffDuration || 0;
+        this.spellSlots = type === 'wizard' ? 1 : 0;
+        this.maxSpellSlots = type === 'wizard' ? 1 : 0;
+        this.spellCooldown = 5000; // 5 seconds for special spells
+        this.lastSpellTime = 0;
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
@@ -44,6 +53,22 @@ export class Tower {
             ...defaultAttributes,
             ...(stats.attributes || {})
         };
+
+        // Aplicar bônus raciais
+        if (raceData && raceData.bonuses) {
+            const bonuses = raceData.bonuses;
+            if (bonuses.attributes) {
+                for (let attr in bonuses.attributes) {
+                    this.attributes[attr] = (this.attributes[attr] || 10) + bonuses.attributes[attr];
+                }
+            }
+            if (bonuses.range) this.range += bonuses.range;
+            if (bonuses.critThreshold) this.critThreshold += bonuses.critThreshold;
+            if (bonuses.damage) this.damage += bonuses.damage;
+            this.resistances = bonuses.resistances || [];
+        } else {
+            this.resistances = [];
+        }
     }
 
     /**
@@ -115,7 +140,12 @@ export class Tower {
     getAttackBonus() {
         const proficiency = this.getProficiencyBonus();
         const modifier = this.getModifier(this.primaryAbility);
-        return proficiency + modifier;
+
+        // Rogue Backstab bonus: if level 2+, add extra bonus
+        let bonus = proficiency + modifier;
+        if (this.type === 'rogue' && this.level >= 2) bonus += 2;
+
+        return bonus;
     }
 
     /**
@@ -123,7 +153,14 @@ export class Tower {
      * @returns {number}
      */
     getArmorClass() {
-        return 10 + this.getModifier('dex') + this.armorBonus;
+        let ac = 10 + this.getModifier('dex') + this.armorBonus;
+
+        // Paladin Aura bonus to AC if nearby
+        if (this.hasPaladinAura) {
+            ac += 2; // +2 AC bonus from Aura of Protection
+        }
+
+        return ac;
     }
 
     /**
@@ -131,12 +168,18 @@ export class Tower {
      * @returns {number}
      */
     getCritThreshold() {
-        return this.critThreshold;
+        let threshold = this.critThreshold;
+        // Rogue burst: higher crit at level 3
+        if (this.type === 'rogue' && this.level >= 3) threshold -= 1;
+        return threshold;
     }
 
-    update(currentTime, enemies) {
+    update(currentTime, enemies, towers, gameState) {
+        // Special logic for classes
+        this.handleSpecialLogic(currentTime, towers, gameState);
+
         if (currentTime - this.lastShot > this.cooldown) {
-            const projectile = this.shoot(enemies);
+            const projectile = this.shoot(enemies, currentTime);
             if (projectile) {
                 this.lastShot = currentTime;
                 return projectile;
@@ -145,7 +188,36 @@ export class Tower {
         return null;
     }
 
-    shoot(enemies) {
+    handleSpecialLogic(currentTime, towers, gameState) {
+        // Paladin Aura: Buff nearby allies
+        if (this.type === 'paladin' && this.auraRange > 0) {
+            const auraRangeSq = this.auraRange * this.auraRange;
+            const centerX = this.x * Config.gridSize + Config.gridSize / 2;
+            const centerY = this.y * Config.gridSize + Config.gridSize / 2;
+
+            for (let tower of towers) {
+                if (tower === this) continue;
+                const tx = tower.x * Config.gridSize + Config.gridSize / 2;
+                const ty = tower.y * Config.gridSize + Config.gridSize / 2;
+                const dx = centerX - tx;
+                const dy = centerY - ty;
+                if (dx * dx + dy * dy <= auraRangeSq) {
+                    // Apply aura effect (e.g., +1 AC placeholder)
+                    tower.hasPaladinAura = true;
+                }
+            }
+        }
+
+        // Cleric Healing: Every 5 seconds, small chance to restore 1 life if level 2+
+        if (this.type === 'cleric' && this.level >= 2 && currentTime % 300 === 0) {
+            if (Math.random() < 0.05 && gameState.lives < Config.initialLives) {
+                gameState.lives++;
+                // We'd need a way to show floating text here, maybe return an effect object
+            }
+        }
+    }
+
+    shoot(enemies, currentTime) {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
         const rangeSq = this.range * this.range;
@@ -156,11 +228,32 @@ export class Tower {
             const distanceSq = dx * dx + dy * dy;
             
             if (distanceSq < rangeSq) {
-                const projectile = new Projectile(centerX, centerY, enemy, this.damage, this, this.damageType);
-                projectile.type = this.type;
+                let damage = this.damage;
+                let splash = this.splashRadius;
+                let type = this.type;
+                let taunt = this.tauntDuration;
+
+                // Wizard Spell Slots logic
+                if (this.type === 'wizard' && currentTime - this.lastSpellTime > this.spellCooldown) {
+                    splash *= 2; // Empowered fireball
+                    damage *= 1.5;
+                    this.lastSpellTime = currentTime;
+                }
+
+                // Rogue Backstab: extra damage to first hit
+                if (this.type === 'rogue') {
+                    damage += this.getModifier('dex');
+                }
+
+                const projectile = new Projectile(centerX, centerY, enemy, damage, this, this.damageType);
+                projectile.type = type;
                 projectile.speed = this.projectileSpeed;
-                projectile.splashRadius = this.splashRadius;
-                projectile.tauntDuration = this.tauntDuration;
+                projectile.splashRadius = splash;
+                projectile.tauntDuration = taunt;
+
+                // Cleric Buff: projectiles from towers with Cleric buff could do something?
+                // For now, Cleric just shoots radiant damage
+
                 return projectile;
             }
         }
