@@ -1,14 +1,24 @@
 import { Config } from '../core/Config.js';
 import { Projectile } from './Projectile.js';
+import { Character } from './Character.js';
 
-export class Tower {
+export class Tower extends Character {
     constructor(x, y, type = 'archer', race = 'human', raceData = null) {
-        this.x = x;
-        this.y = y;
-        this.type = type;
-        this.race = race;
-
         const stats = Config.TOWERS[type.toUpperCase()] || Config.TOWERS.ARCHER;
+
+        super(x, y, {
+            name: type.charAt(0).toUpperCase() + type.slice(1),
+            race: race,
+            class: type,
+            level: 1,
+            xp: 0,
+            primaryAbility: stats.primaryAbility || 'dex',
+            attributes: stats.attributes || {},
+            traits: [],
+            critThreshold: stats.critThreshold || 20
+        });
+
+        this.type = type;
 
         this.range = stats.range;
         this.damage = stats.damage;
@@ -16,8 +26,6 @@ export class Tower {
         this.cooldown = stats.cooldown;
         this.projectileSpeed = stats.projectileSpeed;
         this.splashRadius = stats.splashRadius || 0;
-        this.primaryAbility = stats.primaryAbility || 'dex';
-        this.critThreshold = stats.critThreshold || 20;
         this.critThresholdDecreasePerLevel = stats.critThresholdDecreasePerLevel || 0;
         this.rangeIncreasePerLevel = stats.rangeIncreasePerLevel || 0;
         this.armorBonus = stats.armorBonus || 0;
@@ -33,26 +41,11 @@ export class Tower {
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
-        this.level = 1;
-        this.maxLevel = 3;
+        this.maxLevel = 10; // Increased max level for RPG progression
 
         this.lastShot = 0;
-
-        // Atributos baseados em D&D 5e para cálculo de bônus
-        const defaultAttributes = {
-            str: 10,
-            dex: 10,
-            con: 10,
-            int: 10,
-            wis: 10,
-            cha: 10
-        };
-
-        // Inicializa atributos com os valores da configuração se disponíveis
-        this.attributes = {
-            ...defaultAttributes,
-            ...(stats.attributes || {})
-        };
+        this.pendingLevelUps = 0;
+        this.requiredXp = this.calculateRequiredXp();
 
         // Aplicar bônus raciais
         if (raceData && raceData.bonuses) {
@@ -72,49 +65,48 @@ export class Tower {
     }
 
     /**
-     * Retorna o valor de um atributo
-     * @param {string} attr
-     * @returns {number}
+     * Adiciona XP ao herói e verifica level up
+     * @param {number} amount
      */
-    getAttribute(attr) {
-        return this.attributes[attr.toLowerCase()] || 10;
+    addXp(amount) {
+        if (this.level >= this.maxLevel) return;
+
+        this.xp += amount;
+        while (this.xp >= this.requiredXp && this.level < this.maxLevel) {
+            this.xp -= this.requiredXp;
+            this.level++;
+            this.pendingLevelUps++;
+            this.requiredXp = this.calculateRequiredXp();
+            this.upgrade(); // Aplica melhorias base de nível
+        }
+
+        if (this.level >= this.maxLevel) {
+            this.xp = 0;
+        }
     }
 
     /**
-     * Calcula o modificador de um atributo (D&D 5e)
-     * @param {string} attr
+     * Calcula XP necessário para o próximo nível
      * @returns {number}
      */
-    getModifier(attr) {
-        const value = this.getAttribute(attr);
-        return Math.floor((value - 10) / 2);
+    calculateRequiredXp() {
+        if (this.level >= this.maxLevel) return Infinity;
+        return this.level * 100;
     }
 
     /**
-     * Calcula o bônus de proficiência baseado no nível
-     * @returns {number}
+     * Reseta habilidades temporárias (ex: Lucky) no início de uma onda
      */
-    getProficiencyBonus() {
-        return Math.floor((this.level - 1) / 4) + 2;
+    resetForNewWave() {
+        if (this.traits.includes('lucky')) {
+            this.luckyUsedThisWave = false;
+        }
     }
 
     upgrade() {
-        if (this.level >= this.maxLevel) return false;
-
-        const upgradeCost = this.getUpgradeCost();
-        this.totalInvested += upgradeCost;
-        this.level++;
-
-        // Melhora de stats: +50% dano por nível
-        this.damage = Math.floor(this.damage * 1.5);
-
-        // Data-driven unique progression: Range
-        if (this.rangeIncreasePerLevel > 0) {
-            this.range += this.rangeIncreasePerLevel;
-        } else {
-            // Padrão: +10% alcance por nível
-            this.range = Math.floor(this.range * 1.1);
-        }
+        // Melhora de stats base ao subir de nível via XP
+        this.damage = Math.floor(this.damage * 1.3);
+        this.range = Math.floor(this.range * 1.05);
 
         // Data-driven unique progression: Crit build
         if (this.critThresholdDecreasePerLevel > 0) {
@@ -249,6 +241,13 @@ export class Tower {
                 projectile.type = type;
                 projectile.speed = this.projectileSpeed;
                 projectile.splashRadius = splash;
+
+                // Sentinel Feat
+                if (this.traits.includes('sentinel')) {
+                    taunt += 30;
+                    projectile.slowEffect = 0.2; // 20% slow
+                }
+
                 projectile.tauntDuration = taunt;
 
                 // Cleric Buff: projectiles from towers with Cleric buff could do something?

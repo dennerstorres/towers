@@ -57,6 +57,7 @@ export class Game {
             await this.dataManager.loadJSON('enemies', 'src/game/data/enemies.json');
             await this.dataManager.loadJSON('classes', 'src/game/data/classes.json');
             await this.dataManager.loadJSON('races', 'src/game/data/races.json');
+            await this.dataManager.loadJSON('feats', 'src/game/data/feats.json');
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
@@ -92,6 +93,27 @@ export class Game {
         }
 
         if (!this.state.gameRunning) return;
+
+        // Verifica clique no modal de Level Up
+        if (this.state.levelUpTower) {
+            const layout = this.ui.getLevelUpModalLayout(this.canvas);
+            for (let i = 0; i < layout.options.length; i++) {
+                const opt = layout.options[i];
+                if (clickX >= opt.x && clickX <= opt.x + opt.width &&
+                    clickY >= opt.y && clickY <= opt.y + opt.height) {
+
+                    this.applyLevelUpSelection(this.state.levelUpTower, i);
+                    this.state.levelUpTower.pendingLevelUps--;
+
+                    if (this.state.levelUpTower.pendingLevelUps <= 0) {
+                        this.state.levelUpTower = null;
+                        this.state.isPaused = false;
+                    }
+                    return;
+                }
+            }
+            return; // Bloqueia outros cliques enquanto o modal está aberto
+        }
 
         // Verifica clique no botão de Iniciar Agora (countdown)
         if (this.waveSystem.isWaiting) {
@@ -130,6 +152,12 @@ export class Game {
 
         const existingTower = this.towerManager.getTowerAt(x, y);
         if (existingTower) {
+            if (existingTower.pendingLevelUps > 0) {
+                console.log('Opening Level Up Modal for', existingTower.name);
+                this.state.levelUpTower = existingTower;
+                this.state.isPaused = true;
+                return;
+            }
             this.state.selectedPlacedTower = existingTower;
         } else if (this.canPlaceTower(x, y)) {
             this.placeTower(x, y);
@@ -141,17 +169,6 @@ export class Game {
 
     handleContextMenuClick(clickX, clickY) {
         const layout = this.ui.getTowerMenuLayout(this.state.selectedPlacedTower);
-
-        // Verifica Upgrade
-        if (clickX >= layout.upgrade.x && clickX <= layout.upgrade.x + layout.upgrade.width &&
-            clickY >= layout.upgrade.y && clickY <= layout.upgrade.y + layout.upgrade.height) {
-
-            const cost = this.state.selectedPlacedTower.getUpgradeCost();
-            if (this.state.money >= cost && this.state.selectedPlacedTower.upgrade()) {
-                this.state.money -= cost;
-            }
-            return true;
-        }
 
         // Verifica Venda
         if (clickX >= layout.sell.x && clickX <= layout.sell.x + layout.sell.width &&
@@ -187,8 +204,53 @@ export class Game {
         return false;
     }
 
+    applyLevelUpSelection(tower, index) {
+        if (index === 0) {
+            // Atributo: +2 no Atributo Primário
+            const attr = tower.primaryAbility;
+            tower.attributes[attr] += 2;
+            this.floatingTexts.add(tower.x * Config.gridSize + 20, tower.y * Config.gridSize, `+2 ${attr.toUpperCase()}`, Config.THEME.colors.gold);
+        } else if (index === 1) {
+            // Feat: Escolha um Talento Aleatório (Data-driven)
+            const allFeats = this.dataManager.get('feats');
+            const featKeys = Object.keys(allFeats || {});
+
+            if (featKeys.length > 0) {
+                // Evita duplicatas se possível
+                const availableFeats = featKeys.filter(f => !tower.traits.includes(f));
+                const randomFeatKey = availableFeats.length > 0 ?
+                    availableFeats[Math.floor(Math.random() * availableFeats.length)] :
+                    featKeys[Math.floor(Math.random() * featKeys.length)];
+
+                const featData = allFeats[randomFeatKey];
+                tower.traits.push(randomFeatKey);
+
+                // Aplica bônus do feat (Data-driven)
+                if (featData.bonuses) {
+                    const b = featData.bonuses;
+                    if (b.range) tower.range += b.range;
+                    if (b.damage) tower.damage += b.damage;
+                    if (b.cooldownMultiplier) tower.cooldown *= b.cooldownMultiplier;
+                    if (b.spellCooldownMultiplier) tower.spellCooldown *= b.spellCooldownMultiplier;
+                    if (b.damageMultiplier) tower.damage = Math.floor(tower.damage * b.damageMultiplier);
+                }
+
+                this.floatingTexts.add(tower.x * Config.gridSize + 20, tower.y * Config.gridSize, (featData.name || randomFeatKey).toUpperCase() + '!', Config.THEME.colors.gold);
+            }
+        } else if (index === 2) {
+            // Especialização: Bônus massivo em Dano ou Alcance
+            if (Math.random() > 0.5) {
+                tower.damage = Math.floor(tower.damage * 1.5);
+                this.floatingTexts.add(tower.x * Config.gridSize + 20, tower.y * Config.gridSize, '+50% DANO', Config.THEME.colors.gold);
+            } else {
+                tower.range += 60;
+                this.floatingTexts.add(tower.x * Config.gridSize + 20, tower.y * Config.gridSize, '+60 ALCANCE', Config.THEME.colors.gold);
+            }
+        }
+    }
+
     togglePause() {
-        if (this.state.isGameOver || this.state.isVictory) return;
+        if (this.state.isGameOver || this.state.isVictory || this.state.levelUpTower) return;
         this.state.isPaused = !this.state.isPaused;
         console.log(this.state.isPaused ? 'Jogo Pausado' : 'Jogo Retomado');
     }
@@ -325,6 +387,10 @@ export class Game {
             }
             if (enemy.health <= 0) {
                 this.audio.playEnemyDeath();
+                // Award XP to the tower that killed the enemy
+                if (enemy.lastHitBy && typeof enemy.lastHitBy.addXp === 'function') {
+                    enemy.lastHitBy.addXp(enemy.xp || 10);
+                }
                 return false;
             }
             return true;

@@ -38,7 +38,24 @@ export const CombatSystem = {
         }
 
         const total = roll + attackBonus;
-        const hit = total >= targetAC;
+        let hit = total >= targetAC;
+
+        // Lucky Feat
+        if (!hit && attacker.traits && attacker.traits.includes('lucky') && !attacker.luckyUsedThisWave) {
+            attacker.luckyUsedThisWave = true;
+            const secondRoll = this.rollD20();
+            const secondTotal = secondRoll + attackBonus;
+            const secondHit = secondTotal >= targetAC;
+
+            return {
+                hit: secondHit,
+                crit: secondRoll >= critThreshold,
+                fail: secondRoll === 1,
+                roll: secondRoll,
+                total: secondTotal,
+                isLucky: true
+            };
+        }
 
         return { hit, crit: false, fail: false, roll, total };
     },
@@ -70,6 +87,7 @@ export const CombatSystem = {
                     }
 
                     enemy.health -= finalDamage;
+                    enemy.lastHitBy = projectile.attacker;
                     floatingTexts.add(enemy.x, enemy.y, `-${finalDamage}`, Config.THEME.colors.bloodRed);
                     particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
                 }
@@ -95,14 +113,22 @@ export const CombatSystem = {
                 }
 
                 let text = attackResult.crit ? `CRIT! -${damage}` : `-${damage}`;
+                if (attackResult.isLucky) text = `LUCKY! ${text}`;
 
                 projectile.target.health -= damage;
+                projectile.target.lastHitBy = projectile.attacker;
                 floatingTexts.add(projectile.target.x, projectile.target.y, text, color);
 
                 // Taunt logic for entities with tauntDuration
                 if (projectile.tauntDuration > 0 && typeof projectile.target.tauntTimer !== 'undefined') {
                     projectile.target.tauntTimer = projectile.tauntDuration;
                     floatingTexts.add(projectile.target.x, projectile.target.y - 15, 'TAUNTED!', '#f1c40f');
+                }
+
+                // Slow logic for Sentinel feat
+                if (projectile.slowEffect > 0) {
+                    projectile.target.speed *= (1 - projectile.slowEffect);
+                    // Add visual feedback? For now just apply the speed reduction
                 }
 
                 if (projectile.target.health <= 0) {

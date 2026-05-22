@@ -41,6 +41,13 @@ export class RenderSystem {
 
         // Draw UI overlay
         this.renderer.drawUI(gameState, waveSystem, this.ui);
+
+        // Draw Level Up Modal if needed
+        if (gameState.levelUpTower) {
+            // No RenderSystem, não temos acesso direto ao dataManager,
+            // mas podemos passar via gameState se necessário ou deixar o CanvasRenderer buscar se ele tivesse referência.
+            this.renderer.drawLevelUpModal(gameState.levelUpTower, this.ui);
+        }
     }
 
     /**

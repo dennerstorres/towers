@@ -294,21 +294,12 @@ export class CanvasRenderer {
 
     drawTowerMenu(tower, money, ui) {
         const layout = ui.getTowerMenuLayout(tower);
-        const upgradeCost = tower.getUpgradeCost();
         const sellValue = tower.getSellValue();
 
         this.ctx.save();
         this.ctx.font = `bold 12px ${Config.THEME.font}`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-
-        // Draw Upgrade Button
-        if (tower.level < tower.maxLevel) {
-            const canAfford = money >= upgradeCost;
-            this.drawButton(layout.upgrade, canAfford ? Config.THEME.colors.gold : Config.THEME.colors.bloodRed, `${layout.upgrade.label} (${upgradeCost}G)`);
-        } else {
-            this.drawButton(layout.upgrade, Config.THEME.colors.stone, 'Nível Máximo', true);
-        }
 
         // Draw Sell Button
         this.drawButton(layout.sell, Config.THEME.colors.bloodRed, `${layout.sell.label} (${sellValue}G)`);
@@ -693,14 +684,32 @@ export class CanvasRenderer {
 
         // Level Indicators
         if (!isIcon) {
-            for (let i = 0; i < tower.level; i++) {
+            const dots = Math.min(tower.level, 5);
+            for (let i = 0; i < dots; i++) {
                 this.ctx.fillStyle = Config.THEME.colors.gold;
                 this.ctx.beginPath();
-                this.ctx.arc(x + 10 + i * 10, y + 32, 3, 0, Math.PI * 2);
+                this.ctx.arc(x + 10 + i * 5, y + 32, 2, 0, Math.PI * 2);
                 this.ctx.fill();
-                this.ctx.strokeStyle = '#000';
-                this.ctx.lineWidth = 0.5;
-                this.ctx.stroke();
+            }
+            if (tower.level > 5) {
+                this.ctx.fillStyle = Config.THEME.colors.gold;
+                this.ctx.font = 'bold 10px Arial';
+                this.ctx.fillText(`+${tower.level - 5}`, x + 30, y + 35);
+            }
+
+            // Pending Level Up Indicator
+            if (tower.pendingLevelUps > 0) {
+                this.ctx.save();
+                const bounce = Math.sin(Date.now() / 200) * 5;
+                this.ctx.fillStyle = Config.THEME.colors.gold;
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = Config.THEME.colors.gold;
+
+                // Draw a gold star or exclamation mark
+                this.ctx.font = 'bold 20px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('!', x + size / 2, y - 10 + bounce);
+                this.ctx.restore();
             }
         }
 
@@ -894,6 +903,55 @@ export class CanvasRenderer {
             this.ctx.fillText(t.text, t.x, t.y);
         }
         this.ctx.restore();
+    }
+
+    /**
+     * Desenha o modal de Level Up
+     */
+    drawLevelUpModal(tower, ui, dataManager = null) {
+        if (!tower) return;
+
+        const layout = ui.getLevelUpModalLayout(this.canvas);
+        const { modal, options } = layout;
+
+        // Overlay escuro
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Modal container
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 4;
+        this.ctx.fillRect(modal.x, modal.y, modal.width, modal.height);
+        this.ctx.strokeRect(modal.x, modal.y, modal.width, modal.height);
+
+        // Título
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = 'bold 28px ' + Config.THEME.font;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(`LEVEL UP: ${tower.name.toUpperCase()}`, modal.x + modal.width / 2, modal.y + 40);
+
+        this.ctx.font = '16px ' + Config.THEME.font;
+        this.ctx.fillStyle = '#ecf0f1';
+        this.ctx.fillText(`Escolha uma melhoria para o Nível ${tower.level}`, modal.x + modal.width / 2, modal.y + 65);
+
+        // Opções dinâmicas baseadas na torre (Data-driven)
+        let optionLabels = [
+            `+2 ${tower.primaryAbility.toUpperCase()} (Aumenta Acerto e Dano)`,
+            `Novo Talento Aleatório (Ex: Sharpshooter, Lucky)`,
+            `Especialização (Bônus massivo em Dano ou Alcance)`
+        ];
+
+        // Se houver DataManager, poderíamos buscar labels mais específicas se necessário
+        if (dataManager) {
+            // Futuramente: extrair labels do feats.json ou locale.json
+        }
+
+        options.forEach((opt, index) => {
+            this.drawButton(opt, Config.THEME.colors.gold, optionLabels[index]);
+        });
+
+        this.ctx.textAlign = 'start'; // Reset alignment
     }
 
     clear() {

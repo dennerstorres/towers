@@ -52,17 +52,9 @@ export class GameUI {
         const y = tower.y * Config.gridSize;
         const buttonWidth = 110;
         const buttonHeight = 44;
-        const spacing = 5;
 
-        // Posiciona o menu acima da torre
+        // Posiciona o menu acima da torre (apenas Venda, pois Upgrade agora é via XP)
         return {
-            upgrade: {
-                x: x + Config.gridSize / 2 - buttonWidth / 2,
-                y: y - buttonHeight * 2 - spacing,
-                width: buttonWidth,
-                height: buttonHeight,
-                label: 'Upgrade'
-            },
             sell: {
                 x: x + Config.gridSize / 2 - buttonWidth / 2,
                 y: y - buttonHeight,
@@ -135,6 +127,47 @@ export class GameUI {
             { label: 'Inimigos Derrotados:', value: waveManager.enemiesKilled },
             { label: 'Seu Recorde:', value: `${gameState.highscore} Ondas`, color: Config.THEME.colors.gold }
         ];
+    }
+
+    /**
+     * Retorna o layout para o modal de Level Up
+     */
+    getLevelUpModalLayout(canvas) {
+        const width = 500;
+        const height = 350;
+        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
+        const y = canvas.height / 2 - height / 2;
+
+        const buttonWidth = 400;
+        const buttonHeight = 60;
+        const spacing = 20;
+
+        return {
+            modal: { x, y, width, height },
+            options: [
+                {
+                    x: x + (width - buttonWidth) / 2,
+                    y: y + 80,
+                    width: buttonWidth,
+                    height: buttonHeight,
+                    type: 'attribute'
+                },
+                {
+                    x: x + (width - buttonWidth) / 2,
+                    y: y + 80 + buttonHeight + spacing,
+                    width: buttonWidth,
+                    height: buttonHeight,
+                    type: 'feat'
+                },
+                {
+                    x: x + (width - buttonWidth) / 2,
+                    y: y + 80 + (buttonHeight + spacing) * 2,
+                    width: buttonWidth,
+                    height: buttonHeight,
+                    type: 'stat'
+                }
+            ]
+        };
     }
 
     /**

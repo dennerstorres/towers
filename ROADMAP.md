@@ -151,26 +151,26 @@ Criar as primeiras builds jogáveis.
 Criar vínculo entre jogador e personagens.
 
 ## XP e Níveis
-- [ ] XP individual
-- [ ] Curva de progressão
-- [ ] Tela de level up
+- [x] XP individual
+- [x] Curva de progressão
+- [x] Tela de level up
 
 ## Escolhas por Nível
-- [ ] Upgrade de atributos
-- [ ] Nova habilidade
-- [ ] Spell unlock
-- [ ] Feats
+- [x] Upgrade de atributos
+- [x] Nova habilidade
+- [x] Spell unlock
+- [x] Feats
 
 ## Feats Iniciais
-- [ ] Sharpshooter
-- [ ] Lucky
-- [ ] Sentinel
-- [ ] Mobile
-- [ ] War Caster
+- [x] Sharpshooter
+- [x] Lucky
+- [x] Sentinel
+- [x] Mobile
+- [x] War Caster
 
 ## Especializações
-- [ ] Subclasses simples
-- [ ] Evoluções únicas
+- [x] Subclasses simples
+- [x] Evoluções únicas
 
 ---
 
@@ -494,7 +494,8 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
-| FASE 2 — Classes e Raças Base | In Progress | # | 2026-05-24 |
+| FASE 3 — Sistema de Progressão | Concluído | #3 | 2026-05-25 |
+| FASE 2 — Classes e Raças Base | Concluído | #2 | 2026-05-24 |
 | Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |
 | Criar arquivos de dados RPG | In Review | # | 2026-05-18 |
 | Criar entidade Character | In Review | # | 2026-05-19 |

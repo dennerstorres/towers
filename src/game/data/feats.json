@@ -1,7 +1,40 @@
 {
-  "sharpshooter": { "name": "Sharpshooter" },
-  "lucky": { "name": "Lucky" },
-  "sentinel": { "name": "Sentinel" },
-  "mobile": { "name": "Mobile" },
-  "war_caster": { "name": "War Caster" }
+  "sharpshooter": {
+    "name": "Sharpshooter",
+    "description": "+40 Range, +10 Damage",
+    "bonuses": {
+      "range": 40,
+      "damage": 10
+    }
+  },
+  "lucky": {
+    "name": "Lucky",
+    "description": "Re-rolls failed hits (once per wave per hero)",
+    "bonuses": {
+      "luckyTrait": true
+    }
+  },
+  "sentinel": {
+    "name": "Sentinel",
+    "description": "+30 Taunt Duration, slows enemies by 20%",
+    "bonuses": {
+      "tauntBonus": 30,
+      "slowEffect": 0.2
+    }
+  },
+  "mobile": {
+    "name": "Mobile",
+    "description": "-25% Attack Cooldown",
+    "bonuses": {
+      "cooldownMultiplier": 0.75
+    }
+  },
+  "war_caster": {
+    "name": "War Caster",
+    "description": "+50% Spell regeneration or +25% Magic Damage",
+    "bonuses": {
+      "spellCooldownMultiplier": 0.5,
+      "damageMultiplier": 1.25
+    }
+  }
 }

@@ -18,8 +18,10 @@ export class Enemy {
             this.health = data.hp || this.health;
             this.ac = data.ac || this.ac;
             this.speed = data.speed || this.speed;
+            this.xp = data.xp || 10;
             this.resistances = data.resistances || [];
         } else {
+            this.xp = 10;
             // Fallback for types without explicit data
             if (type === 'orc') {
                 this.health *= 2;

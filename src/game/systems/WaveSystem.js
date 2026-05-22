@@ -18,6 +18,15 @@ export class WaveSystem {
     }
 
     startWave(gameState) {
+        // Reset per-wave traits
+        if (gameState && gameState.towerManager) {
+            for (let tower of gameState.towerManager.placedTowers) {
+                if (typeof tower.resetForNewWave === 'function') {
+                    tower.resetForNewWave();
+                }
+            }
+        }
+
         this.isWaiting = false;
         this.enemiesSpawned = 0;
         this.enemiesKilled = 0;
