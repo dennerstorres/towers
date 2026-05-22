@@ -98,7 +98,7 @@ Criar as primeiras builds jogáveis.
 ### Ranger
 - [x] Ranged DPS
 - [x] Crit build
-- [ ] Long range
+- [x] Long range
 
 ### Wizard
 - [ ] AoE spells
@@ -511,3 +511,4 @@ Misturando:
 | Taunt | In Review | # | 2026-05-21 |
 | Ranged DPS | In Review | # | 2026-05-21 |
 | Crit build | In Review | # | 2026-05-22 |
+| Long range | In Progress | # | 2026-05-22 |

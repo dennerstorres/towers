@@ -18,6 +18,7 @@ export class Tower {
         this.primaryAbility = stats.primaryAbility || 'dex';
         this.critThreshold = stats.critThreshold || 20;
         this.critThresholdDecreasePerLevel = stats.critThresholdDecreasePerLevel || 0;
+        this.rangeIncreasePerLevel = stats.rangeIncreasePerLevel || 0;
         this.armorBonus = stats.armorBonus || 0;
         this.tauntDuration = stats.tauntDuration || 0;
 
@@ -79,9 +80,16 @@ export class Tower {
         this.totalInvested += upgradeCost;
         this.level++;
 
-        // Melhora de stats: +50% dano, +10% alcance por nível
+        // Melhora de stats: +50% dano por nível
         this.damage = Math.floor(this.damage * 1.5);
-        this.range = Math.floor(this.range * 1.1);
+
+        // Data-driven unique progression: Range
+        if (this.rangeIncreasePerLevel > 0) {
+            this.range += this.rangeIncreasePerLevel;
+        } else {
+            // Padrão: +10% alcance por nível
+            this.range = Math.floor(this.range * 1.1);
+        }
 
         // Data-driven unique progression: Crit build
         if (this.critThresholdDecreasePerLevel > 0) {

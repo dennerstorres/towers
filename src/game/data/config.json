@@ -72,7 +72,7 @@
         "RANGER": {
             "type": "ranger",
             "cost": 75,
-            "range": 200,
+            "range": 250,
             "damage": 25,
             "damageType": "piercing",
             "cooldown": 1000,
@@ -80,6 +80,7 @@
             "primaryAbility": "dex",
             "critThreshold": 19,
             "critThresholdDecreasePerLevel": 1,
+            "rangeIncreasePerLevel": 25,
             "attributes": { "dex": 16, "wis": 14 }
         }
     },
