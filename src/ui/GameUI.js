@@ -57,12 +57,35 @@ export class GameUI {
         const y = tower.y * Config.gridSize;
         const buttonWidth = 110;
         const buttonHeight = 44;
+        const spacing = 5;
 
-        // Posiciona o menu acima da torre (apenas Venda, pois Upgrade agora é via XP)
+        // Verifica se há espaço acima (considerando o HUD)
+        const totalHeight = (buttonHeight * 2) + spacing;
+        const canFitAbove = (y - totalHeight) > this.hudHeight;
+
+        let targetY, sellY;
+
+        if (canFitAbove) {
+            // Posiciona acima
+            targetY = y - totalHeight;
+            sellY = y - buttonHeight;
+        } else {
+            // Posiciona abaixo da torre
+            sellY = y + Config.gridSize + spacing;
+            targetY = sellY + buttonHeight;
+        }
+
         return {
+            target: {
+                x: x + Config.gridSize / 2 - buttonWidth / 2,
+                y: targetY,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Alvo: '
+            },
             sell: {
                 x: x + Config.gridSize / 2 - buttonWidth / 2,
-                y: y - buttonHeight,
+                y: sellY,
                 width: buttonWidth,
                 height: buttonHeight,
                 label: 'Vender'

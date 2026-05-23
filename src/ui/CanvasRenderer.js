@@ -301,6 +301,10 @@ export class CanvasRenderer {
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
 
+        // Draw Target Mode Button
+        const targetLabel = tower.targetMode.toUpperCase();
+        this.drawButton(layout.target, Config.THEME.colors.gold, `ALVO: ${targetLabel}`);
+
         // Draw Sell Button
         this.drawButton(layout.sell, Config.THEME.colors.bloodRed, `${layout.sell.label} (${sellValue}G)`);
 

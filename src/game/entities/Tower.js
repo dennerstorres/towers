@@ -47,6 +47,10 @@ export class Tower extends Character {
         this.pendingLevelUps = 0;
         this.requiredXp = this.calculateRequiredXp();
 
+        // Modos de Alvo (FASE 6)
+        this.targetMode = 'first';
+        this.targetModes = ['first', 'last', 'strongest', 'weakest', 'closest', 'farthest', 'highest_hp', 'lowest_hp'];
+
         // Sinergias e Posicionamento (FASE 5)
         this.synergyBonuses = { ac: 0, range: 0, damage: 0 };
         this.positioningBonuses = { ac: 0, damage: 0 };
@@ -252,6 +256,92 @@ export class Tower extends Character {
         return threshold;
     }
 
+    /**
+     * Seleciona um alvo baseado no targetMode atual (Busca Linear O(N))
+     * @param {Array} enemies
+     * @returns {Object|null}
+     */
+    getTarget(enemies) {
+        const centerX = this.x * Config.gridSize + Config.gridSize / 2;
+        const centerY = this.y * Config.gridSize + Config.gridSize / 2;
+        const currentRange = this.getRange();
+        const rangeSq = currentRange * currentRange;
+
+        let bestTarget = null;
+        let bestValue = null;
+
+        for (const enemy of enemies) {
+            const dx = centerX - enemy.x;
+            const dy = centerY - enemy.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq > rangeSq) continue;
+
+            let currentValue;
+            switch (this.targetMode) {
+                case 'first':
+                case 'last':
+                    // Valor de progresso = (index * fator) + (distância percorrida no segmento)
+                    const nextPoint = Config.path[enemy.pathIndex + 1];
+                    let distToNext = 0;
+                    if (nextPoint) {
+                        const nextX = nextPoint.x * Config.gridSize + Config.gridSize / 2;
+                        const nextY = nextPoint.y * Config.gridSize + Config.gridSize / 2;
+                        distToNext = Math.sqrt((enemy.x - nextX) ** 2 + (enemy.y - nextY) ** 2);
+                    }
+                    currentValue = (enemy.pathIndex * 1000) + (1000 - distToNext);
+                    break;
+
+                case 'strongest':
+                case 'weakest':
+                    currentValue = enemy.maxHealth;
+                    break;
+
+                case 'highest_hp':
+                case 'lowest_hp':
+                    currentValue = enemy.health;
+                    break;
+
+                case 'closest':
+                case 'farthest':
+                    currentValue = distSq;
+                    break;
+
+                default:
+                    currentValue = 0;
+            }
+
+            if (!bestTarget) {
+                bestTarget = enemy;
+                bestValue = currentValue;
+                continue;
+            }
+
+            let isBetter = false;
+            switch (this.targetMode) {
+                case 'first':
+                case 'strongest':
+                case 'highest_hp':
+                case 'farthest':
+                    isBetter = currentValue > bestValue;
+                    break;
+                case 'last':
+                case 'weakest':
+                case 'lowest_hp':
+                case 'closest':
+                    isBetter = currentValue < bestValue;
+                    break;
+            }
+
+            if (isBetter) {
+                bestTarget = enemy;
+                bestValue = currentValue;
+            }
+        }
+
+        return bestTarget;
+    }
+
     update(currentTime, enemies, towers, gameState) {
         // Special logic for classes
         this.handleSpecialLogic(currentTime, towers, gameState);
@@ -298,57 +388,51 @@ export class Tower extends Character {
     shoot(enemies, currentTime) {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
-        const currentRange = this.getRange();
-        const rangeSq = currentRange * currentRange;
 
-        for (let enemy of enemies) {
-            const dx = centerX - enemy.x;
-            const dy = centerY - enemy.y;
-            const distanceSq = dx * dx + dy * dy;
-            
-            if (distanceSq < rangeSq) {
-                let damage = this.getDamage();
-                let splash = this.splashRadius;
-                let type = this.type;
-                let taunt = this.tauntDuration;
+        const enemy = this.getTarget(enemies);
 
-                // Frontline taunt bonus (Data-driven)
-                const tankRoles = Config.ROLES ? Config.ROLES.tanks : [];
-                const frontlineBonus = Config.POSITIONING_BONUSES?.frontline?.tanks;
-                if (this.positioning === 'frontline' && tankRoles.includes(this.type) && frontlineBonus?.tauntMultiplier) {
-                    taunt = Math.floor(taunt * frontlineBonus.tauntMultiplier);
-                }
+        if (enemy) {
+            let damage = this.getDamage();
+            let splash = this.splashRadius;
+            let type = this.type;
+            let taunt = this.tauntDuration;
 
-                // Wizard Spell Slots logic
-                if (this.type === 'wizard' && currentTime - this.lastSpellTime > this.spellCooldown) {
-                    splash *= 2; // Empowered fireball
-                    damage *= 1.5;
-                    this.lastSpellTime = currentTime;
-                }
-
-                // Rogue Backstab: extra damage to first hit
-                if (this.type === 'rogue') {
-                    damage += this.getModifier('dex');
-                }
-
-                const projectile = new Projectile(centerX, centerY, enemy, damage, this, this.damageType);
-                projectile.type = type;
-                projectile.speed = this.projectileSpeed;
-                projectile.splashRadius = splash;
-
-                // Sentinel Feat
-                if (this.traits.includes('sentinel')) {
-                    taunt += 30;
-                    projectile.slowEffect = 0.2; // 20% slow
-                }
-
-                projectile.tauntDuration = taunt;
-
-                // Cleric Buff: projectiles from towers with Cleric buff could do something?
-                // For now, Cleric just shoots radiant damage
-
-                return projectile;
+            // Frontline taunt bonus (Data-driven)
+            const tankRoles = Config.ROLES ? Config.ROLES.tanks : [];
+            const frontlineBonus = Config.POSITIONING_BONUSES?.frontline?.tanks;
+            if (this.positioning === 'frontline' && tankRoles.includes(this.type) && frontlineBonus?.tauntMultiplier) {
+                taunt = Math.floor(taunt * frontlineBonus.tauntMultiplier);
             }
+
+            // Wizard Spell Slots logic
+            if (this.type === 'wizard' && currentTime - this.lastSpellTime > this.spellCooldown) {
+                splash *= 2; // Empowered fireball
+                damage *= 1.5;
+                this.lastSpellTime = currentTime;
+            }
+
+            // Rogue Backstab: extra damage to first hit
+            if (this.type === 'rogue') {
+                damage += this.getModifier('dex');
+            }
+
+            const projectile = new Projectile(centerX, centerY, enemy, damage, this, this.damageType);
+            projectile.type = type;
+            projectile.speed = this.projectileSpeed;
+            projectile.splashRadius = splash;
+
+            // Sentinel Feat
+            if (this.traits.includes('sentinel')) {
+                taunt += 30;
+                projectile.slowEffect = 0.2; // 20% slow
+            }
+
+            projectile.tauntDuration = taunt;
+
+            // Cleric Buff: projectiles from towers with Cleric buff could do something?
+            // For now, Cleric just shoots radiant damage
+
+            return projectile;
         }
         return null;
     }
