@@ -2,7 +2,7 @@
   "fighter": {
     "name": "Fighter",
     "primaryAbility": "str",
-    "features": ["Tank melee", "Armor bonus", "Taunt"],
+    "features": ["Tank melee", "Armor bonus", "Taunt", "Armor Break"],
     "tauntDuration": 60
   },
   "ranger": {
@@ -13,17 +13,17 @@
   "wizard": {
     "name": "Wizard",
     "primaryAbility": "int",
-    "features": ["AoE spells", "Elemental damage", "Spell slots"]
+    "features": ["AoE spells", "Elemental damage (Burn)", "Spell slots"]
   },
   "cleric": {
     "name": "Cleric",
     "primaryAbility": "wis",
-    "features": ["Healing", "Buffs", "Holy damage"]
+    "features": ["Healing", "Buffs", "Holy damage (Weakness)"]
   },
   "rogue": {
     "name": "Rogue",
     "primaryAbility": "dex",
-    "features": ["Burst damage", "Backstab", "Dodge"]
+    "features": ["Burst damage", "Backstab", "Dodge", "Status Effects (Poison/Bleed)"]
   },
   "paladin": {
     "name": "Paladin",

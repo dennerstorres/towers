@@ -58,6 +58,7 @@ export class Game {
             await this.dataManager.loadJSON('classes', 'src/game/data/classes.json');
             await this.dataManager.loadJSON('races', 'src/game/data/races.json');
             await this.dataManager.loadJSON('feats', 'src/game/data/feats.json');
+            await this.dataManager.loadJSON('effects', 'src/game/data/effects.json');
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
@@ -361,7 +362,7 @@ export class Game {
             p.update();
 
             if (p.reached) {
-                CombatSystem.applyDamage(p, this.state, this.floatingTexts, this.particleSystem);
+                CombatSystem.applyDamage(p, this.state, this.floatingTexts, this.particleSystem, this.dataManager);
                 this.state.projectiles.splice(i, 1);
             }
         }

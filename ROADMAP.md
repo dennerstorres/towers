@@ -180,20 +180,20 @@ Criar vínculo entre jogador e personagens.
 Adicionar profundidade estratégica.
 
 ## Status Effects
-- [ ] Burn
-- [ ] Freeze
-- [ ] Poison
-- [ ] Bleed
-- [ ] Stun
-- [ ] Slow
-- [ ] Weakness
-- [ ] Armor Break
+- [x] Burn
+- [x] Freeze
+- [x] Poison
+- [x] Bleed
+- [x] Stun
+- [x] Slow
+- [x] Weakness
+- [x] Armor Break
 
 ## Regras
-- [ ] Stack rules
-- [ ] Duration
-- [ ] Tick system
-- [ ] Resistências
+- [x] Stack rules
+- [x] Duration
+- [x] Tick system
+- [x] Resistances
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 4 — Sistema de Efeitos | Concluído | #4 | 2026-05-26 |
 | FASE 3 — Sistema de Progressão | Concluído | #3 | 2026-05-25 |
 | FASE 2 — Classes e Raças Base | Concluído | #2 | 2026-05-24 |
 | Criar sistema data-driven | Em revisão | #23 | 2026-05-18 |

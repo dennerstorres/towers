@@ -36,6 +36,33 @@ export class Enemy {
 
         this.maxHealth = this.health;
         this.tauntTimer = 0;
+        this.activeEffects = new Map(); // Effect name -> effect object
+    }
+
+    /**
+     * Applies a status effect to the enemy
+     * @param {string} effectKey - Key from effects.json
+     * @param {Object} effectData - Properties of the effect
+     * @param {Object} attacker - Attacker who applied the effect
+     */
+    applyEffect(effectKey, effectData, attacker = null) {
+        if (!effectData) return;
+
+        // If effect already exists, refresh duration and attacker
+        if (this.activeEffects.has(effectKey)) {
+            const existing = this.activeEffects.get(effectKey);
+            existing.timer = effectData.duration;
+            if (attacker) existing.attacker = attacker;
+            return;
+        }
+
+        // Add new effect
+        this.activeEffects.set(effectKey, {
+            ...effectData,
+            timer: effectData.duration,
+            nextTick: effectData.tickInterval || 0,
+            attacker: attacker
+        });
     }
 
     /**
@@ -43,7 +70,16 @@ export class Enemy {
      * @returns {number}
      */
     getArmorClass() {
-        return this.ac;
+        let currentAC = this.ac;
+
+        // Armor Break effect
+        for (const [key, effect] of this.activeEffects) {
+            if (effect.acReduction) {
+                currentAC -= effect.acReduction;
+            }
+        }
+
+        return Math.max(0, currentAC);
     }
 
     /**
@@ -56,9 +92,40 @@ export class Enemy {
     }
 
     update() {
+        // Update status effects
+        for (const [key, effect] of this.activeEffects) {
+            effect.timer--;
+
+            // Handle periodic damage (DOTs)
+            if (effect.tickInterval) {
+                effect.nextTick--;
+                if (effect.nextTick <= 0) {
+                    let tickDamage = effect.damage;
+                    if (effect.damageType && this.hasResistance(effect.damageType)) {
+                        tickDamage = Math.floor(tickDamage / 2);
+                    }
+                    this.health -= tickDamage;
+                    if (effect.attacker) this.lastHitBy = effect.attacker;
+                    effect.nextTick = effect.tickInterval;
+                }
+            }
+
+            if (effect.timer <= 0) {
+                this.activeEffects.delete(key);
+            }
+        }
+
         if (this.tauntTimer > 0) {
             this.tauntTimer--;
             return;
+        }
+
+        // Apply movement modifiers from effects
+        let currentSpeed = this.speed;
+        for (const [key, effect] of this.activeEffects) {
+            if (typeof effect.speedMultiplier !== 'undefined') {
+                currentSpeed *= effect.speedMultiplier;
+            }
         }
 
         if (this.pathIndex < Config.path.length - 1) {
@@ -69,16 +136,16 @@ export class Enemy {
             const dy = targetY - this.y;
             const distanceSq = dx * dx + dy * dy;
             
-            if (distanceSq < this.speed * this.speed) {
+            if (distanceSq < currentSpeed * currentSpeed) {
                 this.pathIndex++;
                 if (this.pathIndex >= Config.path.length - 1) {
                     this.reachedEnd = true;
                 }
             } else {
                 const distance = Math.sqrt(distanceSq);
-                this.x += (dx / distance) * this.speed;
-                this.y += (dy / distance) * this.speed;
+                this.x += (dx / distance) * currentSpeed;
+                this.y += (dy / distance) * currentSpeed;
             }
         }
     }
-} 
+}

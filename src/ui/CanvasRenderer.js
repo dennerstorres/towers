@@ -821,6 +821,41 @@ export class CanvasRenderer {
         this.ctx.lineWidth = 0.5;
         this.ctx.strokeRect(barX, barY, barWidth, barHeight);
 
+        // Status Effects Indicators
+        if (enemy.activeEffects && enemy.activeEffects.size > 0) {
+            let effectIndex = 0;
+            const effectIconSize = 10;
+            const startX = enemy.x - (enemy.activeEffects.size * effectIconSize) / 2;
+            const effectY = enemy.y + size / 2 + 5;
+
+            for (const [key, effect] of enemy.activeEffects) {
+                this.ctx.fillStyle = effect.color || '#fff';
+                this.ctx.beginPath();
+                this.ctx.arc(startX + effectIndex * effectIconSize + effectIconSize / 2, effectY, effectIconSize / 3, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                // Small glow/border for the effect icon
+                this.ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+
+                effectIndex++;
+            }
+
+            // Optional: apply a subtle tint to the enemy based on prominent effects
+            if (enemy.activeEffects.has('burn')) {
+                this.ctx.fillStyle = 'rgba(230, 126, 34, 0.2)';
+                this.ctx.beginPath();
+                this.ctx.roundRect(x + 5, y + 5, size - 10, size - 10, 5);
+                this.ctx.fill();
+            } else if (enemy.activeEffects.has('freeze') || enemy.activeEffects.has('slow')) {
+                this.ctx.fillStyle = 'rgba(52, 152, 219, 0.2)';
+                this.ctx.beginPath();
+                this.ctx.roundRect(x + 5, y + 5, size - 10, size - 10, 5);
+                this.ctx.fill();
+            }
+        }
+
         // Taunt Indicator
         if (enemy.tauntTimer > 0) {
             this.ctx.fillStyle = Config.THEME.colors.gold;

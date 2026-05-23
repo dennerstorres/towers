@@ -1,0 +1,64 @@
+{
+  "burn": {
+    "name": "Burn",
+    "duration": 180,
+    "tickInterval": 60,
+    "damage": 5,
+    "damageType": "fire",
+    "color": "#e67e22",
+    "type": "dot"
+  },
+  "freeze": {
+    "name": "Freeze",
+    "duration": 120,
+    "speedMultiplier": 0,
+    "color": "#3498db",
+    "type": "stun"
+  },
+  "poison": {
+    "name": "Poison",
+    "duration": 300,
+    "tickInterval": 60,
+    "damage": 3,
+    "damageType": "poison",
+    "color": "#2ecc71",
+    "type": "dot"
+  },
+  "bleed": {
+    "name": "Bleed",
+    "duration": 240,
+    "tickInterval": 60,
+    "damage": 4,
+    "damageType": "slashing",
+    "color": "#c0392b",
+    "type": "dot"
+  },
+  "stun": {
+    "name": "Stun",
+    "duration": 90,
+    "speedMultiplier": 0,
+    "color": "#f1c40f",
+    "type": "stun"
+  },
+  "slow": {
+    "name": "Slow",
+    "duration": 180,
+    "speedMultiplier": 0.5,
+    "color": "#95a5a6",
+    "type": "debuff"
+  },
+  "weakness": {
+    "name": "Weakness",
+    "duration": 240,
+    "damageTakenMultiplier": 1.5,
+    "color": "#9b59b6",
+    "type": "debuff"
+  },
+  "armor_break": {
+    "name": "Armor Break",
+    "duration": 240,
+    "acReduction": 5,
+    "color": "#7f8c8d",
+    "type": "debuff"
+  }
+}

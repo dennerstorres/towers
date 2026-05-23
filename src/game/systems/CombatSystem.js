@@ -66,9 +66,11 @@ export const CombatSystem = {
      * @param {Object} gameState - Estado atual do jogo
      * @param {Object} floatingTexts - Sistema de textos flutuantes
      * @param {Object} particleSystem - Sistema de partículas
+     * @param {Object} dataManager - Gerenciador de dados para efeitos
      */
-    applyDamage(projectile, gameState, floatingTexts, particleSystem) {
+    applyDamage(projectile, gameState, floatingTexts, particleSystem, dataManager) {
         const currentDamageType = projectile.damageType || 'piercing';
+        const effects = dataManager ? dataManager.get('effects') : null;
 
         if (projectile.splashRadius > 0) {
             // AoE Spell (Wizard)
@@ -81,6 +83,13 @@ export const CombatSystem = {
                 if (distanceSq <= splashRadiusSq) {
                     let finalDamage = projectile.damage;
 
+                    // Weakness effect
+                    for (const [key, effect] of enemy.activeEffects) {
+                        if (effect.damageTakenMultiplier) {
+                            finalDamage = Math.floor(finalDamage * effect.damageTakenMultiplier);
+                        }
+                    }
+
                     // Checks for resistance (D&D 5e: half damage)
                     if (typeof enemy.hasResistance === 'function' && enemy.hasResistance(currentDamageType)) {
                         finalDamage = Math.floor(finalDamage / 2);
@@ -90,6 +99,13 @@ export const CombatSystem = {
                     enemy.lastHitBy = projectile.attacker;
                     floatingTexts.add(enemy.x, enemy.y, `-${finalDamage}`, Config.THEME.colors.bloodRed);
                     particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
+
+                    // Chance to apply status effects from splash
+                    if (effects) {
+                        if (currentDamageType === 'fire' && Math.random() < 0.3) {
+                            enemy.applyEffect('burn', effects.burn, projectile.attacker);
+                        }
+                    }
                 }
             });
             // Visual feedback for splash
@@ -105,6 +121,13 @@ export const CombatSystem = {
                 if (attackResult.crit) {
                     damage *= 2;
                     color = Config.THEME.colors.gold;
+                }
+
+                // Weakness effect
+                for (const [key, effect] of projectile.target.activeEffects) {
+                    if (effect.damageTakenMultiplier) {
+                        damage = Math.floor(damage * effect.damageTakenMultiplier);
+                    }
                 }
 
                 // Checks for resistance (D&D 5e: half damage)
@@ -125,10 +148,32 @@ export const CombatSystem = {
                     floatingTexts.add(projectile.target.x, projectile.target.y - 15, 'TAUNTED!', '#f1c40f');
                 }
 
+                // Status Effects Logic
+                if (effects) {
+                    if (currentDamageType === 'fire' && Math.random() < 0.2) {
+                        projectile.target.applyEffect('burn', effects.burn, projectile.attacker);
+                    }
+                    if (currentDamageType === 'radiant' && Math.random() < 0.1) {
+                        projectile.target.applyEffect('weakness', effects.weakness, projectile.attacker);
+                    }
+                    if (projectile.attacker && projectile.attacker.type === 'rogue') {
+                        if (Math.random() < 0.3) projectile.target.applyEffect('poison', effects.poison, projectile.attacker);
+                        if (Math.random() < 0.2) projectile.target.applyEffect('bleed', effects.bleed, projectile.attacker);
+                    }
+                    if (projectile.attacker && projectile.attacker.type === 'cannon') {
+                        if (Math.random() < 0.2) projectile.target.applyEffect('stun', effects.stun, projectile.attacker);
+                    }
+                    if (projectile.attacker && (projectile.attacker.type === 'archer' || projectile.attacker.type === 'ranger') && Math.random() < 0.15) {
+                        projectile.target.applyEffect('slow', effects.slow, projectile.attacker);
+                    }
+                    if (projectile.attacker && projectile.attacker.type === 'fighter' && Math.random() < 0.25) {
+                        projectile.target.applyEffect('armor_break', effects.armor_break, projectile.attacker);
+                    }
+                }
+
                 // Slow logic for Sentinel feat
-                if (projectile.slowEffect > 0) {
-                    projectile.target.speed *= (1 - projectile.slowEffect);
-                    // Add visual feedback? For now just apply the speed reduction
+                if (projectile.slowEffect > 0 && effects) {
+                    projectile.target.applyEffect('slow', effects.slow, projectile.attacker);
                 }
 
                 if (projectile.target.health <= 0) {
