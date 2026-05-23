@@ -179,8 +179,8 @@ export class CanvasRenderer {
 
     drawUI(gameState, waveManager, ui) {
         const hudHeight = ui.hudHeight;
-        const padding = 20;
-        const itemWidth = 160;
+        const padding = 15;
+        const itemWidth = 95;
 
         // HUD Background
         this.ctx.fillStyle = Config.THEME.colors.darkStone;
@@ -456,6 +456,18 @@ export class CanvasRenderer {
                 this.ctx.arc(eX + size*0.65, eY + size/3, size/8, 0, Math.PI*2);
                 this.ctx.fill();
                 break;
+            case 'party':
+                // Draw simple user group icon
+                const pX = x;
+                const pY = y - size/2;
+                this.ctx.beginPath();
+                // Head
+                this.ctx.arc(pX + size/2, pY + size/3, size/4, 0, Math.PI * 2);
+                // Body
+                this.ctx.moveTo(pX + size/4, pY + size);
+                this.ctx.quadraticCurveTo(pX + size/2, pY + size/2, pX + size*0.75, pY + size);
+                this.ctx.fill();
+                break;
         }
         this.ctx.restore();
     }
@@ -593,6 +605,17 @@ export class CanvasRenderer {
         this.ctx.fillStyle = accentColor;
         this.ctx.fillRect(x + 5, y + 12, 30, 2);
 
+        // Synergy Glow
+        if (!isIcon && tower.activeSynergies && tower.activeSynergies.length > 0) {
+            this.ctx.save();
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = Config.THEME.colors.gold;
+            this.ctx.strokeStyle = Config.THEME.colors.gold;
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(x + 5, y + 5, 30, 30);
+            this.ctx.restore();
+        }
+
         // Type specific visual elements
         if (tower.type === 'wizard') {
             // Glowing orb for wizard tower
@@ -680,6 +703,21 @@ export class CanvasRenderer {
             this.ctx.strokeStyle = Config.THEME.colors.gold;
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(x + 5, y + 5, 30, 30);
+        }
+
+        // Positioning Indicators (FASE 5)
+        if (!isIcon) {
+            this.ctx.save();
+            this.ctx.font = '10px Arial';
+            this.ctx.textAlign = 'center';
+            if (tower.positioning === 'frontline') {
+                this.ctx.fillStyle = '#e74c3c'; // Red for Frontline
+                this.ctx.fillText('🛡️', x + size - 5, y + size - 5);
+            } else {
+                this.ctx.fillStyle = '#3498db'; // Blue for Backline
+                this.ctx.fillText('🎯', x + size - 5, y + size - 5);
+            }
+            this.ctx.restore();
         }
 
         // Level Indicators

@@ -5,6 +5,7 @@ import { CombatSystem } from '../systems/CombatSystem.js';
 import { InputSystem } from '../systems/InputSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { WaveSystem } from '../systems/WaveSystem.js';
+import { PartySystem } from '../systems/PartySystem.js';
 import { TowerManager } from '../managers/TowerManager.js';
 import { DataManager } from '../managers/DataManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
@@ -19,6 +20,7 @@ export class Game {
         this.renderer = new CanvasRenderer(canvas);
         this.ui = new GameUI();
         this.waveSystem = new WaveSystem();
+        this.partySystem = new PartySystem();
         this.towerManager = new TowerManager();
         this.dataManager = new DataManager();
         this.particleSystem = new ParticleSystem();
@@ -277,6 +279,9 @@ export class Game {
     canPlaceTower(x, y) {
         const selectedTower = this.towerManager.getSelectedTower();
         if (this.state.money < selectedTower.cost) return false;
+
+        // Limite de Party Slots
+        if (this.towerManager.placedTowers.length >= Config.maxPartySlots) return false;
         
         // Verifica se clicou fora da área de jogo (painel lateral)
         if (x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
@@ -336,6 +341,11 @@ export class Game {
         if (!this.state.gameRunning || this.state.isPaused || this.state.isGameOver || this.state.isVictory) return;
 
         this.state.logicalTime += timeStep;
+
+        // Atualiza Sinergias a cada 30 frames ou quando a composição muda
+        if (this.state.logicalTime % 30 === 0) {
+            this.partySystem.update(this.towerManager.placedTowers);
+        }
 
         // Reset Paladin Aura effects before recalculating
         for (let tower of this.towerManager.placedTowers) {

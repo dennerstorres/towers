@@ -203,19 +203,19 @@ Adicionar profundidade estratégica.
 Transformar “torres” em grupo de heróis.
 
 ## Party Composition
-- [ ] Slots de party
-- [ ] Sinergias
-- [ ] Aura bonuses
+- [x] Slots de party
+- [x] Sinergias
+- [x] Aura bonuses
 
 ## Positioning
-- [ ] Frontline
-- [ ] Backline
-- [ ] Range priority
+- [x] Frontline
+- [x] Backline
+- [x] Range priority
 
 ## Synergy Examples
-- [ ] Cleric + Paladin
-- [ ] Elf + Ranger
-- [ ] Orc + Fighter
+- [x] Cleric + Paladin
+- [x] Elf + Ranger
+- [x] Orc + Fighter
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 5 — Party System | Concluído | #5 | 2026-05-27 |
 | FASE 4 — Sistema de Efeitos | Concluído | #4 | 2026-05-26 |
 | FASE 3 — Sistema de Progressão | Concluído | #3 | 2026-05-25 |
 | FASE 2 — Classes e Raças Base | Concluído | #2 | 2026-05-24 |

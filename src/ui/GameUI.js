@@ -30,6 +30,11 @@ export class GameUI {
                 icon: 'enemy',
                 value: `${waveManager.enemiesToSpawn - waveManager.enemiesKilled}/${waveManager.enemiesToSpawn}`,
                 color: '#ecf0f1'
+            },
+            {
+                icon: 'party',
+                value: `${gameState.towerManager.placedTowers.length}/${Config.maxPartySlots}`,
+                color: '#3498db'
             }
         ];
     }

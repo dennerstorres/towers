@@ -16,6 +16,39 @@
     "initialWave": 1,
     "initialEnemiesPerWave": 5,
     "maxWaves": 10,
+    "maxPartySlots": 6,
+    "SYNERGIES": [
+        {
+            "name": "Divine Bond",
+            "requirement": { "classes": ["cleric", "paladin"] },
+            "bonuses": { "ac": 1 },
+            "affects": { "classes": ["cleric", "paladin"] }
+        },
+        {
+            "name": "Elven Precision",
+            "requirement": { "races": ["elf"], "classes": ["ranger"] },
+            "bonuses": { "range": 20 },
+            "affects": { "races": ["elf"], "classes": ["ranger"] }
+        },
+        {
+            "name": "Brute Force",
+            "requirement": { "races": ["orc"], "classes": ["fighter"] },
+            "bonuses": { "damage": 2 },
+            "affects": { "races": ["orc"], "classes": ["fighter"] }
+        }
+    ],
+    "ROLES": {
+        "tanks": ["fighter", "paladin", "rogue"],
+        "ranged": ["ranger", "wizard", "archer", "rogue"]
+    },
+    "POSITIONING_BONUSES": {
+        "frontline": {
+            "tanks": { "ac": 1, "tauntMultiplier": 1.1 }
+        },
+        "backline": {
+            "ranged": { "damageMultiplier": 1.1 }
+        }
+    },
     "waveCountdown": 5,
     "TOWERS": {
         "ARCHER": {

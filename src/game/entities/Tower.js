@@ -47,6 +47,14 @@ export class Tower extends Character {
         this.pendingLevelUps = 0;
         this.requiredXp = this.calculateRequiredXp();
 
+        // Sinergias e Posicionamento (FASE 5)
+        this.synergyBonuses = { ac: 0, range: 0, damage: 0 };
+        this.positioningBonuses = { ac: 0, damage: 0 };
+        this.activeSynergies = [];
+
+        // Inicializa posicionamento no constructor (FASE 5)
+        this.calculatePositioning(Config.path);
+
         // Aplicar bônus raciais
         if (raceData && raceData.bonuses) {
             const bonuses = raceData.bonuses;
@@ -126,6 +134,74 @@ export class Tower extends Character {
     }
 
     /**
+     * Calcula o posicionamento baseado na proximidade com o caminho
+     * @param {Array} path
+     */
+    calculatePositioning(path) {
+        const centerX = this.x * Config.gridSize + Config.gridSize / 2;
+        const centerY = this.y * Config.gridSize + Config.gridSize / 2;
+        const threshold = Config.gridSize * 1.5;
+        const thresholdSq = threshold * threshold;
+
+        let isFrontline = false;
+
+        // Verifica se está perto de qualquer segmento do caminho
+        for (let i = 0; i < path.length - 1; i++) {
+            const p1 = path[i];
+            const p2 = path[i+1];
+
+            // Distância de um ponto a um segmento de reta
+            const distSq = this.distToSegmentSquared(
+                centerX, centerY,
+                p1.x * Config.gridSize + Config.gridSize / 2,
+                p1.y * Config.gridSize + Config.gridSize / 2,
+                p2.x * Config.gridSize + Config.gridSize / 2,
+                p2.y * Config.gridSize + Config.gridSize / 2
+            );
+
+            if (distSq <= thresholdSq) {
+                isFrontline = true;
+                break;
+            }
+        }
+
+        this.positioning = isFrontline ? 'frontline' : 'backline';
+    }
+
+    distToSegmentSquared(px, py, x1, y1, x2, y2) {
+        const l2 = (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
+        if (l2 === 0) return (px - x1) * (px - x1) + (py - y1) * (py - y1);
+        let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        const dx = px - (x1 + t * (x2 - x1));
+        const dy = py - (y1 + t * (y2 - y1));
+        return dx * dx + dy * dy;
+    }
+
+    /**
+     * Retorna o alcance atual dinâmico
+     */
+    getRange() {
+        return this.range + (this.synergyBonuses.range || 0);
+    }
+
+    /**
+     * Retorna o dano atual dinâmico
+     */
+    getDamage() {
+        let totalDamage = this.damage + (this.synergyBonuses.damage || 0);
+
+        // Positioning bonus for ranged in backline (Data-driven)
+        const rangedRoles = Config.ROLES ? Config.ROLES.ranged : [];
+        const backlineBonus = Config.POSITIONING_BONUSES?.backline?.ranged;
+        if (this.positioning === 'backline' && rangedRoles.includes(this.type) && backlineBonus?.damageMultiplier) {
+            totalDamage = Math.floor(totalDamage * backlineBonus.damageMultiplier);
+        }
+
+        return totalDamage;
+    }
+
+    /**
      * Retorna o bônus de ataque da torre baseado em D&D 5e
      * @returns {number}
      */
@@ -133,7 +209,7 @@ export class Tower extends Character {
         const proficiency = this.getProficiencyBonus();
         const modifier = this.getModifier(this.primaryAbility);
 
-        // Rogue Backstab bonus: if level 2+, add extra bonus
+        // Rogue Backstab bonus: if level 2+
         let bonus = proficiency + modifier;
         if (this.type === 'rogue' && this.level >= 2) bonus += 2;
 
@@ -141,15 +217,25 @@ export class Tower extends Character {
     }
 
     /**
-     * Calcula a Classe de Armadura (AC) baseado em D&D 5e (10 + Modificador de DEX + Bônus de Armadura)
+     * Calcula a Classe de Armadura (AC) baseado em D&D 5e
      * @returns {number}
      */
     getArmorClass() {
         let ac = 10 + this.getModifier('dex') + this.armorBonus;
 
-        // Paladin Aura bonus to AC if nearby
+        // Synergy Bonus
+        ac += (this.synergyBonuses.ac || 0);
+
+        // Positioning bonus for tanks in frontline (Data-driven)
+        const tankRoles = Config.ROLES ? Config.ROLES.tanks : [];
+        const frontlineBonus = Config.POSITIONING_BONUSES?.frontline?.tanks;
+        if (this.positioning === 'frontline' && tankRoles.includes(this.type) && frontlineBonus?.ac) {
+            ac += frontlineBonus.ac;
+        }
+
+        // Paladin Aura bonus
         if (this.hasPaladinAura) {
-            ac += 2; // +2 AC bonus from Aura of Protection
+            ac += 2;
         }
 
         return ac;
@@ -212,7 +298,8 @@ export class Tower extends Character {
     shoot(enemies, currentTime) {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
-        const rangeSq = this.range * this.range;
+        const currentRange = this.getRange();
+        const rangeSq = currentRange * currentRange;
 
         for (let enemy of enemies) {
             const dx = centerX - enemy.x;
@@ -220,10 +307,17 @@ export class Tower extends Character {
             const distanceSq = dx * dx + dy * dy;
             
             if (distanceSq < rangeSq) {
-                let damage = this.damage;
+                let damage = this.getDamage();
                 let splash = this.splashRadius;
                 let type = this.type;
                 let taunt = this.tauntDuration;
+
+                // Frontline taunt bonus (Data-driven)
+                const tankRoles = Config.ROLES ? Config.ROLES.tanks : [];
+                const frontlineBonus = Config.POSITIONING_BONUSES?.frontline?.tanks;
+                if (this.positioning === 'frontline' && tankRoles.includes(this.type) && frontlineBonus?.tauntMultiplier) {
+                    taunt = Math.floor(taunt * frontlineBonus.tauntMultiplier);
+                }
 
                 // Wizard Spell Slots logic
                 if (this.type === 'wizard' && currentTime - this.lastSpellTime > this.spellCooldown) {
