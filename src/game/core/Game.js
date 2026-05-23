@@ -171,13 +171,26 @@ export class Game {
     }
 
     handleContextMenuClick(clickX, clickY) {
-        const layout = this.ui.getTowerMenuLayout(this.state.selectedPlacedTower);
+        const tower = this.state.selectedPlacedTower;
+        const layout = this.ui.getTowerMenuLayout(tower);
+
+        // Verifica Clique no Alvo (Target Mode)
+        if (clickX >= layout.target.x && clickX <= layout.target.x + layout.target.width &&
+            clickY >= layout.target.y && clickY <= layout.target.y + layout.target.height) {
+
+            const currentIndex = tower.targetModes.indexOf(tower.targetMode);
+            const nextIndex = (currentIndex + 1) % tower.targetModes.length;
+            tower.targetMode = tower.targetModes[nextIndex];
+
+            this.floatingTexts.add(tower.x * Config.gridSize + 20, tower.y * Config.gridSize - 10, tower.targetMode.toUpperCase().replace('_', ' '), Config.THEME.colors.gold);
+            return true;
+        }
 
         // Verifica Venda
         if (clickX >= layout.sell.x && clickX <= layout.sell.x + layout.sell.width &&
             clickY >= layout.sell.y && clickY <= layout.sell.y + layout.sell.height) {
 
-            const value = this.state.selectedPlacedTower.getSellValue();
+            const value = tower.getSellValue();
             this.state.money += value;
             this.towerManager.removeTower(this.state.selectedPlacedTower);
             this.state.selectedPlacedTower = null;

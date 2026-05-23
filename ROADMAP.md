@@ -225,14 +225,14 @@ Transformar “torres” em grupo de heróis.
 Aumentar profundidade tática.
 
 ## Target Modes
-- [ ] First
-- [ ] Last
-- [ ] Strongest
-- [ ] Weakest
-- [ ] Closest
-- [ ] Farthest
-- [ ] Highest HP
-- [ ] Lowest HP
+- [x] First
+- [x] Last
+- [x] Strongest
+- [x] Weakest
+- [x] Closest
+- [x] Farthest
+- [x] Highest HP
+- [x] Lowest HP
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 6 — Targeting Avançado | Concluído | # | 2026-05-28 |
 | FASE 5 — Party System | Concluído | #5 | 2026-05-27 |
 | FASE 4 — Sistema de Efeitos | Concluído | #4 | 2026-05-26 |
 | FASE 3 — Sistema de Progressão | Concluído | #3 | 2026-05-25 |
