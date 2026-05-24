@@ -76,7 +76,12 @@ export class Character {
     getAttackBonus() {
         const proficiency = this.getProficiencyBonus();
         const modifier = this.getModifier(this.primaryAbility);
-        return proficiency + modifier;
+        let total = proficiency + modifier;
+
+        // Buff: Blessed
+        if (this.traits.includes('blessed')) total += 2;
+
+        return total;
     }
 
     /**

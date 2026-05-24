@@ -1,8 +1,62 @@
 {
-  "fireball": { "name": "Fireball" },
-  "magic_missile": { "name": "Magic Missile" },
-  "heal": { "name": "Heal" },
-  "bless": { "name": "Bless" },
-  "ice_storm": { "name": "Ice Storm" },
-  "lightning_bolt": { "name": "Lightning Bolt" }
+  "fireball": {
+    "name": "Fireball",
+    "damage": 40,
+    "radius": 80,
+    "cooldown": 6000,
+    "castTime": 1500,
+    "type": "aoe",
+    "damageType": "fire",
+    "effect": "burn",
+    "color": "#e67e22"
+  },
+  "magic_missile": {
+    "name": "Magic Missile",
+    "damage": 15,
+    "projectiles": 3,
+    "cooldown": 4000,
+    "castTime": 800,
+    "type": "multi",
+    "damageType": "force",
+    "color": "#9b59b6"
+  },
+  "heal": {
+    "name": "Heal",
+    "value": 1,
+    "cooldown": 10000,
+    "castTime": 2000,
+    "type": "heal",
+    "color": "#2ecc71"
+  },
+  "bless": {
+    "name": "Bless",
+    "radius": 120,
+    "duration": 5000,
+    "cooldown": 8000,
+    "castTime": 1000,
+    "type": "buff",
+    "attribute": "attackBonus",
+    "value": 2,
+    "color": "#f1c40f"
+  },
+  "ice_storm": {
+    "name": "Ice Storm",
+    "damage": 20,
+    "radius": 70,
+    "cooldown": 7000,
+    "castTime": 1200,
+    "type": "aoe",
+    "damageType": "cold",
+    "effect": "slow",
+    "color": "#3498db"
+  },
+  "lightning_bolt": {
+    "name": "Lightning Bolt",
+    "damage": 60,
+    "cooldown": 9000,
+    "castTime": 1000,
+    "type": "single",
+    "damageType": "lightning",
+    "color": "#f1c40f"
+  }
 }

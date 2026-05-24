@@ -753,9 +753,36 @@ export class CanvasRenderer {
                 this.ctx.fillText('!', x + size / 2, y - 10 + bounce);
                 this.ctx.restore();
             }
+
+            // Cast Bar (FASE 7)
+            if (tower.isCasting) {
+                this.drawCastBar(tower, x, y);
+            }
         }
 
         this.ctx.restore();
+    }
+
+    /**
+     * Draws a casting progress bar above the tower
+     */
+    drawCastBar(tower, x, y) {
+        const barWidth = Config.gridSize;
+        const barHeight = 6;
+        const barX = x;
+        const barY = y - 15;
+
+        const progress = 1 - (tower.castTimer / tower.initialCastTime);
+
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        this.ctx.fillRect(barX, barY, barWidth, barHeight);
+
+        this.ctx.fillStyle = Config.THEME.colors.wizard || '#9b59b6';
+        this.ctx.fillRect(barX, barY, barWidth * Math.max(0, Math.min(1, progress)), barHeight);
+
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(barX, barY, barWidth, barHeight);
     }
 
     drawEnemy(enemy) {

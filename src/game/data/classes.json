@@ -3,31 +3,37 @@
     "name": "Fighter",
     "primaryAbility": "str",
     "features": ["Tank melee", "Armor bonus", "Taunt", "Armor Break"],
-    "tauntDuration": 60
+    "tauntDuration": 60,
+    "spells": []
   },
   "ranger": {
     "name": "Ranger",
     "primaryAbility": "dex",
-    "features": ["Ranged DPS", "Crit build", "Long range"]
+    "features": ["Ranged DPS", "Crit build", "Long range"],
+    "spells": []
   },
   "wizard": {
     "name": "Wizard",
     "primaryAbility": "int",
-    "features": ["AoE spells", "Elemental damage (Burn)", "Spell slots"]
+    "features": ["AoE spells", "Elemental damage (Burn)", "Spell slots"],
+    "spells": ["fireball", "magic_missile", "ice_storm"]
   },
   "cleric": {
     "name": "Cleric",
     "primaryAbility": "wis",
-    "features": ["Healing", "Buffs", "Holy damage (Weakness)"]
+    "features": ["Healing", "Buffs", "Holy damage (Weakness)"],
+    "spells": ["heal", "bless"]
   },
   "rogue": {
     "name": "Rogue",
     "primaryAbility": "dex",
-    "features": ["Burst damage", "Backstab", "Dodge", "Status Effects (Poison/Bleed)"]
+    "features": ["Burst damage", "Backstab", "Dodge", "Status Effects (Poison/Bleed)"],
+    "spells": []
   },
   "paladin": {
     "name": "Paladin",
     "primaryAbility": "str",
-    "features": ["Hybrid tank/support", "Aura", "Smite"]
+    "features": ["Hybrid tank/support", "Aura", "Smite"],
+    "spells": ["bless"]
   }
 }
