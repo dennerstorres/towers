@@ -2,6 +2,7 @@ import { Config } from './Config.js';
 import { StateStore } from './StateStore.js';
 import { GameLoop } from './GameLoop.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
+import { SpellSystem } from '../systems/SpellSystem.js';
 import { InputSystem } from '../systems/InputSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { WaveSystem } from '../systems/WaveSystem.js';
@@ -367,15 +368,27 @@ export class Game {
 
         // Atualiza torres
         for (let tower of this.towerManager.placedTowers) {
-            const projectile = tower.update(
+            const result = tower.update(
                 this.state.logicalTime,
+                timeStep,
                 this.state.enemies,
                 this.towerManager.placedTowers,
                 this.state
             );
-            if (projectile) {
-                this.state.projectiles.push(projectile);
-                this.audio.playShoot(tower.type);
+            if (result) {
+                if (result.type === 'spell_cast') {
+                    SpellSystem.execute(
+                        result.spell,
+                        result.tower,
+                        this.state,
+                        this.floatingTexts,
+                        this.particleSystem,
+                        this.dataManager
+                    );
+                } else {
+                    this.state.projectiles.push(result);
+                    this.audio.playShoot(tower.type);
+                }
             }
         }
 

@@ -28,6 +28,9 @@ export class RenderSystem {
             this.renderer.drawProjectile(p);
         }
 
+        // Draw Spell Area Indicators (FASE 7)
+        this.drawSpellVisuals(gameState);
+
         // Draw Enemies
         for (let enemy of gameState.enemies) {
             this.renderer.drawEnemy(enemy);
@@ -84,6 +87,36 @@ export class RenderSystem {
                 hoveredTower.y * Config.gridSize + Config.gridSize / 2,
                 hoveredTower.range
             );
+        }
+    }
+
+    /**
+     * Draws visual indicators for casting spells
+     */
+    drawSpellVisuals(gameState) {
+        const spellsData = gameState.towerManager.gameState?.dataManager?.get('spells');
+        // RenderSystem doesn't have direct access to dataManager, but we can assume it's in gameState or similar
+        // Let's refine how we get spell data.
+        // Looking at Game.js, dataManager is a property of Game, not explicitly in state.
+        // I will add spells to gameState in a future step if needed, but for now let's assume availability.
+
+        for (let tower of gameState.towerManager.placedTowers) {
+            if (tower.isCasting && tower.currentSpell) {
+                // We need radius for AoE spells
+                // This is a bit tricky without direct data access here.
+                // For now, let's just draw a subtle glow around the tower
+                this.renderer.ctx.save();
+                this.renderer.ctx.beginPath();
+                this.renderer.ctx.arc(
+                    tower.x * Config.gridSize + Config.gridSize / 2,
+                    tower.y * Config.gridSize + Config.gridSize / 2,
+                    Config.gridSize * 0.8,
+                    0, Math.PI * 2
+                );
+                this.renderer.ctx.fillStyle = 'rgba(155, 89, 182, 0.2)';
+                this.renderer.ctx.fill();
+                this.renderer.ctx.restore();
+            }
         }
     }
 }

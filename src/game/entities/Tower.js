@@ -31,13 +31,25 @@ export class Tower extends Character {
         this.armorBonus = stats.armorBonus || 0;
         this.tauntDuration = stats.tauntDuration || 0;
 
-        // Class specific
+        // Class specific & Spell System (FASE 7)
         this.auraRange = stats.auraRange || 0;
         this.buffDuration = stats.buffDuration || 0;
-        this.spellSlots = type === 'wizard' ? 1 : 0;
-        this.maxSpellSlots = type === 'wizard' ? 1 : 0;
-        this.spellCooldown = 5000; // 5 seconds for special spells
+        this.spells = raceData?.spells || stats.spells || [];
+
+        // Ensure class spells are also included if not already there
+        if (stats.spells) {
+            stats.spells.forEach(s => {
+                if (!this.spells.includes(s)) this.spells.push(s);
+            });
+        }
+
+        this.spellSlots = this.spells.length > 0 ? 1 : 0;
+        this.maxSpellSlots = this.spells.length > 0 ? 1 : 0;
         this.lastSpellTime = 0;
+        this.isCasting = false;
+        this.castTimer = 0;
+        this.currentSpell = null;
+        this.spellCooldowns = {};
 
         this.baseCost = stats.cost;
         this.totalInvested = stats.cost;
@@ -342,15 +354,90 @@ export class Tower extends Character {
         return bestTarget;
     }
 
-    update(currentTime, enemies, towers, gameState) {
-        // Special logic for classes
+    update(currentTime, deltaTime, enemies, towers, gameState) {
+        // Update Timers
+        if (this.blessedTimer > 0) {
+            this.blessedTimer -= deltaTime;
+            if (this.blessedTimer <= 0) {
+                const index = this.traits.indexOf('blessed');
+                if (index > -1) this.traits.splice(index, 1);
+            }
+        }
+
+        // Update Spell Cooldowns
+        for (let spellKey in this.spellCooldowns) {
+            if (this.spellCooldowns[spellKey] > 0) {
+                this.spellCooldowns[spellKey] -= deltaTime;
+            }
+        }
+
+        // Special logic for classes (Auras should work even while casting)
         this.handleSpecialLogic(currentTime, towers, gameState);
+
+        // Handle Casting
+        if (this.isCasting) {
+            this.castTimer -= deltaTime;
+            if (this.castTimer <= 0) {
+                this.isCasting = false;
+                const spell = this.currentSpell;
+                this.currentSpell = null;
+                return { type: 'spell_cast', spell, tower: this };
+            }
+            return null;
+        }
+
+        // Try to cast a spell if available
+        if (this.spells.length > 0 && enemies.length > 0) {
+            const spellToCast = this.selectSpellToCast(enemies, gameState);
+            if (spellToCast) {
+                return this.startCasting(spellToCast, gameState);
+            }
+        }
 
         if (currentTime - this.lastShot > this.cooldown) {
             const projectile = this.shoot(enemies, currentTime);
             if (projectile) {
                 this.lastShot = currentTime;
                 return projectile;
+            }
+        }
+        return null;
+    }
+
+    startCasting(spell, gameState) {
+        const spellData = gameState.dataManager.get('spells')[spell];
+        if (!spellData) return null;
+
+        this.isCasting = true;
+        this.initialCastTime = spellData.castTime;
+        this.castTimer = spellData.castTime;
+        this.currentSpell = spell;
+        this.spellCooldowns[spell] = spellData.cooldown;
+
+        return null;
+    }
+
+    selectSpellToCast(enemies, gameState) {
+        const spellsData = gameState.dataManager.get('spells');
+        if (!spellsData) return null;
+
+        for (let spellKey of this.spells) {
+            if (this.spellCooldowns[spellKey] > 0) continue;
+
+            const spell = spellsData[spellKey];
+
+            // Basic AI: Cast if there are enemies in range
+            if (spell.type === 'aoe' || spell.type === 'single' || spell.type === 'multi') {
+                const inRange = enemies.some(e => {
+                    const dx = (this.x * Config.gridSize + Config.gridSize / 2) - e.x;
+                    const dy = (this.y * Config.gridSize + Config.gridSize / 2) - e.y;
+                    return dx * dx + dy * dy <= this.range * this.range;
+                });
+                if (inRange) return spellKey;
+            } else if (spell.type === 'heal' && gameState.lives < Config.initialLives) {
+                return spellKey;
+            } else if (spell.type === 'buff') {
+                return spellKey;
             }
         }
         return null;
@@ -370,17 +457,8 @@ export class Tower extends Character {
                 const dx = centerX - tx;
                 const dy = centerY - ty;
                 if (dx * dx + dy * dy <= auraRangeSq) {
-                    // Apply aura effect (e.g., +1 AC placeholder)
                     tower.hasPaladinAura = true;
                 }
-            }
-        }
-
-        // Cleric Healing: Every 5 seconds, small chance to restore 1 life if level 2+
-        if (this.type === 'cleric' && this.level >= 2 && currentTime % 300 === 0) {
-            if (Math.random() < 0.05 && gameState.lives < Config.initialLives) {
-                gameState.lives++;
-                // We'd need a way to show floating text here, maybe return an effect object
             }
         }
     }

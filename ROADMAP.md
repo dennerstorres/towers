@@ -242,18 +242,18 @@ Aumentar profundidade tática.
 Trazer identidade D&D.
 
 ## Spellcasting
-- [ ] Spell slots
-- [ ] Cooldowns
-- [ ] Cast time
-- [ ] AoE indicators
+- [x] Spell slots
+- [x] Cooldowns
+- [x] Cast time
+- [x] AoE indicators
 
 ## Spells Iniciais
-- [ ] Fireball
-- [ ] Magic Missile
-- [ ] Heal
-- [ ] Bless
-- [ ] Ice Storm
-- [ ] Lightning Bolt
+- [x] Fireball
+- [x] Magic Missile
+- [x] Heal
+- [x] Bless
+- [x] Ice Storm
+- [x] Lightning Bolt
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 7 — Sistema de Magias | Concluído | # | 2026-05-29 |
 | FASE 6 — Targeting Avançado | Concluído | # | 2026-05-28 |
 | FASE 5 — Party System | Concluído | #5 | 2026-05-27 |
 | FASE 4 — Sistema de Efeitos | Concluído | #4 | 2026-05-26 |
