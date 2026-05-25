@@ -1166,6 +1166,8 @@ export class CanvasRenderer {
         buttons.forEach(btn => {
             if (btn.type === 'recruit') {
                 this.drawRecruitCard(btn);
+            } else if (btn.type === 'buy_item_pool') {
+                this.drawItemCard(btn);
             } else {
                 this.drawButton(btn, btn.canAfford === false ? '#7f8c8d' : Config.THEME.colors.gold, btn.label);
             }
@@ -1173,6 +1175,50 @@ export class CanvasRenderer {
 
         // Next Wave Button
         this.drawButton(nextWaveButton, Config.THEME.colors.gold, nextWaveButton.label);
+    }
+
+    drawItemCard(btn) {
+        const item = btn.item;
+        const rarity = item.rarityData || { name: 'Comum', color: '#bdc3c7' };
+
+        this.ctx.save();
+
+        // Background
+        this.ctx.fillStyle = 'rgba(44, 62, 80, 0.9)';
+        this.ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
+
+        // Border based on rarity
+        this.ctx.strokeStyle = rarity.color;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
+
+        // Item Name
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'top';
+        this.ctx.fillStyle = rarity.color;
+        this.ctx.font = `bold 14px ${Config.THEME.font}`;
+        this.ctx.fillText(item.name.toUpperCase(), btn.x + 10, btn.y + 10);
+
+        // Rarity Label
+        this.ctx.font = `10px ${Config.THEME.font}`;
+        this.ctx.fillText(rarity.name.toUpperCase(), btn.x + 10, btn.y + 26);
+
+        // Affixes / Stats
+        this.ctx.fillStyle = '#bdc3c7';
+        this.ctx.font = `11px ${Config.THEME.font}`;
+        let statText = "";
+        if (item.damage) statText += `Dano: +${item.damage} `;
+        if (item.ac) statText += `AC: +${item.ac} `;
+        if (item.attackBonus) statText += `Hit: +${item.attackBonus} `;
+        this.ctx.fillText(statText, btn.x + 10, btn.y + 40);
+
+        // Cost
+        this.ctx.textAlign = 'right';
+        this.ctx.fillStyle = btn.canAfford ? Config.THEME.colors.gold : '#e74c3c';
+        this.ctx.font = `bold 16px ${Config.THEME.font}`;
+        this.ctx.fillText(`${btn.cost} G`, btn.x + btn.width - 10, btn.y + btn.height / 2);
+
+        this.ctx.restore();
     }
 
     drawRecruitCard(btn) {

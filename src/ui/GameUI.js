@@ -327,7 +327,9 @@ export class GameUI {
         const tabs = [
             { label: 'Recrutar', id: 'recruit' },
             { label: 'Grupo', id: 'party' },
-            { label: 'Ferreiro', id: 'blacksmith' }
+            { label: 'Ferreiro', id: 'blacksmith' },
+            { label: 'Mago', id: 'mage_tower' },
+            { label: 'Treino', id: 'training_grounds' }
         ];
 
         const tabWidth = 150;
@@ -393,33 +395,55 @@ export class GameUI {
                 });
             });
         } else if (tab === 'blacksmith') {
-            const items = dataManager.get('items');
-            if (items) {
-                let i = 0;
-                ['weapons', 'armor', 'accessory'].forEach(cat => {
-                    Object.keys(items[cat]).forEach(itemKey => {
-                        const item = items[cat][itemKey];
-                        const btnWidth = 300;
-                        const btnHeight = 50;
-                        const col = i % 2;
-                        const row = Math.floor(i / 2);
-                        buttons.push({
-                            type: 'buy_item',
-                            category: cat,
-                            itemKey: itemKey,
-                            item: item,
-                            label: `${item.name} (${item.cost}G)`,
-                            cost: item.cost,
-                            canAfford: gameState.money >= item.cost,
-                            x: x + 40 + col * (btnWidth + 20),
-                            y: contentY + row * (btnHeight + 10),
-                            width: btnWidth,
-                            height: btnHeight
-                        });
-                        i++;
-                    });
+            const shopItems = gameState.blacksmithPool || [];
+            shopItems.forEach((item, i) => {
+                const btnWidth = 300;
+                const btnHeight = 65;
+                const col = i % 2;
+                const row = Math.floor(i / 2);
+                buttons.push({
+                    type: 'buy_item_pool',
+                    item: item,
+                    cost: item.cost,
+                    canAfford: gameState.money >= item.cost,
+                    x: x + 40 + col * (btnWidth + 20),
+                    y: contentY + row * (btnHeight + 10),
+                    width: btnWidth,
+                    height: btnHeight
                 });
-            }
+            });
+        } else if (tab === 'mage_tower') {
+            gameState.towerManager.placedTowers.forEach((tower, i) => {
+                const cost = (tower.maxSpellSlots || 1) * 100;
+                buttons.push({
+                    type: 'upgrade_spell_slots',
+                    tower: tower,
+                    cost: cost,
+                    canAfford: gameState.money >= cost,
+                    x: x + 50,
+                    y: contentY + i * 55,
+                    width: 400,
+                    height: 45,
+                    label: `+1 Slot de Magia para ${tower.name} (${cost}G)`
+                });
+            });
+        } else if (tab === 'training_grounds') {
+            gameState.towerManager.placedTowers.forEach((tower, i) => {
+                const xpAmount = 50;
+                const cost = 40;
+                buttons.push({
+                    type: 'buy_xp',
+                    tower: tower,
+                    xp: xpAmount,
+                    cost: cost,
+                    canAfford: gameState.money >= cost,
+                    x: x + 50,
+                    y: contentY + i * 55,
+                    width: 400,
+                    height: 45,
+                    label: `Treinar ${tower.name}: +${xpAmount} XP (${cost}G)`
+                });
+            });
         }
 
         return {

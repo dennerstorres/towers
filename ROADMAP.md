@@ -289,8 +289,8 @@ Criar hub entre waves.
 ## Camp Features
 - [x] Shop
 - [x] Blacksmith
-- [ ] Mage tower
-- [ ] Training grounds
+- [x] Mage tower
+- [x] Training grounds
 
 ---
 
@@ -300,22 +300,22 @@ Criar hub entre waves.
 Adicionar RPG pesado.
 
 ## Equipment
-- [ ] Weapons
-- [ ] Armor
-- [ ] Rings
-- [ ] Amulets
+- [x] Weapons
+- [x] Armor
+- [x] Rings
+- [x] Amulets
 
 ## Rarity
-- [ ] Common
-- [ ] Rare
-- [ ] Epic
-- [ ] Legendary
+- [x] Common
+- [x] Rare
+- [x] Epic
+- [x] Legendary
 
 ## Affixes
-- [ ] +Crit
-- [ ] +Spell Power
-- [ ] +Armor
-- [ ] +Attack Speed
+- [x] +Crit
+- [x] +Spell Power
+- [x] +Armor
+- [x] +Attack Speed
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 10 — Loot & Equipamentos | Concluído | # | 2026-06-02 |
 | FASE 9 — Tavern System | Concluído | # | 2026-06-01 |
 | FASE 8 — Meta Progression | Concluído | # | 2026-05-30 |
 | FASE 7 — Sistema de Magias | Concluído | # | 2026-05-29 |

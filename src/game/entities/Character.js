@@ -21,7 +21,10 @@ export class Character {
         this.equipment = data.equipment || {
             weapon: null,
             armor: null,
-            accessory: null
+            accessory: null,
+            ring1: null,
+            ring2: null,
+            amulet: null
         };
 
         // Atributos D&D 5e (padrão 10)
