@@ -69,7 +69,7 @@ export class Game {
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
-            this.towerManager.reset();
+            this.towerManager.reset(this.metaManager);
             // Carrega dados de meta-progressão
             await this.dataManager.loadJSON('meta', 'src/game/data/meta.json');
 
@@ -80,7 +80,7 @@ export class Game {
             this.state.metaManager = this.metaManager;
 
             // Aplica bônus de meta-progressão ao estado inicial
-            this.applyMetaBonuses();
+            this.applyMetaBonuses(true);
         }
 
         return true;
@@ -238,17 +238,21 @@ export class Game {
         return false;
     }
 
-    applyMetaBonuses() {
+    applyMetaBonuses(isStartOfRun = false) {
         const metaData = this.dataManager.get('meta');
         const bonuses = this.metaManager.getBonuses(metaData);
 
-        this.state.money += bonuses.startingGold;
-        this.state.lives += bonuses.extraLives;
+        if (isStartOfRun) {
+            this.state.money += bonuses.startingGold;
+            this.state.lives += bonuses.extraLives;
+        }
+
         this.state.metaBonuses = bonuses;
     }
 
     handleTavernClick(clickX, clickY) {
-        const layout = this.ui.getTavernLayout(this.canvas, this.dataManager.get('meta'), this.metaManager);
+        const metaData = this.dataManager.get('meta');
+        const layout = this.ui.getTavernLayout(this.canvas, metaData, this.metaManager);
 
         // Voltar
         if (clickX >= layout.backButton.x && clickX <= layout.backButton.x + layout.backButton.width &&
@@ -263,16 +267,35 @@ export class Game {
             return;
         }
 
-        // Upgrades
-        layout.upgradeButtons.forEach(btn => {
-            if (clickX >= btn.x && clickX <= btn.x + btn.width &&
-                clickY >= btn.y && clickY <= btn.y + btn.height) {
-                if (this.metaManager.upgrade(btn.upgradeKey, btn.cost)) {
-                    this.audio.playWaveStart(); // Use a sound for purchase
-                    this.applyMetaBonuses(); // Update current session if applicable (though mostly for new games)
-                }
+        // Tabs
+        layout.tabs.forEach(tab => {
+            if (clickX >= tab.x && clickX <= tab.x + tab.width &&
+                clickY >= tab.y && clickY <= tab.y + tab.height) {
+                this.state.tavernCategory = tab.category;
             }
         });
+
+        // Upgrades
+        if (layout.upgradeButtons) {
+            layout.upgradeButtons.forEach(btn => {
+                if (clickX >= btn.x && clickX <= btn.x + btn.width &&
+                    clickY >= btn.y && clickY <= btn.y + btn.height) {
+                    let success = false;
+                    if (btn.type === 'upgrade') success = this.metaManager.upgrade(btn.key, btn.cost);
+                    else if (btn.type === 'unlock') success = this.metaManager.unlockClass(btn.key, btn.cost);
+                    else if (btn.type === 'talent') success = this.metaManager.buyTalent(btn.key, btn.cost, btn.requires, metaData);
+                    else if (btn.type === 'research') success = this.metaManager.buyResearch(btn.key, metaData);
+                    else if (btn.type === 'relic') success = this.metaManager.buyRelic(btn.key, btn.cost);
+
+                    if (success) {
+                        this.audio.playWaveStart();
+                        this.applyMetaBonuses(false);
+                        // Re-filter towers if a class was unlocked
+                        if (btn.type === 'unlock') this.towerManager.reset(this.metaManager);
+                    }
+                }
+            });
+        }
     }
 
     applyLevelUpSelection(tower, index) {
@@ -346,7 +369,10 @@ export class Game {
 
     canPlaceTower(x, y) {
         const selectedTower = this.towerManager.getSelectedTower();
-        if (this.state.money < selectedTower.cost) return false;
+        const costMultiplier = this.state.metaBonuses ? this.state.metaBonuses.costMultiplier : 1.0;
+        const actualCost = Math.floor(selectedTower.cost * costMultiplier);
+
+        if (this.state.money < actualCost) return false;
 
         // Limite de Party Slots
         if (this.towerManager.placedTowers.length >= Config.maxPartySlots) return false;
@@ -368,6 +394,8 @@ export class Game {
 
     placeTower(x, y) {
         const selectedTower = this.towerManager.getSelectedTower();
+        const costMultiplier = this.state.metaBonuses ? this.state.metaBonuses.costMultiplier : 1.0;
+        const actualCost = Math.floor(selectedTower.cost * costMultiplier);
 
         // Randomly assign a race for variety (FASE 2 requirement)
         const races = this.dataManager.get('races');
@@ -382,7 +410,7 @@ export class Game {
             tower.metaCritBonus = this.state.metaBonuses.critThresholdBonus;
         }
 
-        this.state.money -= selectedTower.cost;
+        this.state.money -= actualCost;
     }
 
     start() {
@@ -400,14 +428,14 @@ export class Game {
     }
 
     restart() {
-        this.towerManager.reset();
+        this.towerManager.reset(this.metaManager);
         this.waveSystem.reset();
         this.stateStore.reset();
         this.state = this.stateStore.state;
         this.state.towerManager = this.towerManager;
         this.state.dataManager = this.dataManager;
         this.state.metaManager = this.metaManager;
-        this.applyMetaBonuses();
+        this.applyMetaBonuses(true);
 
         this.particleSystem.particles = [];
         this.floatingTexts.texts = [];

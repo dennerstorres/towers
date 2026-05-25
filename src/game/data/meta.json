@@ -34,11 +34,81 @@
         }
     },
     "talents": {
-        "unlockedClasses": {
-            "name": "Diverse Recruitment",
-            "description": "Unlock advanced hero classes.",
-            "cost": 100,
+        "offense_1": {
+            "name": "Warrior's Might",
+            "description": "+10% Damage for all units.",
+            "cost": 30,
             "requires": []
+        },
+        "offense_2": {
+            "name": "Master Combatant",
+            "description": "+5 Attack Bonus for all units.",
+            "cost": 60,
+            "requires": ["offense_1"]
+        },
+        "defense_1": {
+            "name": "Sturdy Plate",
+            "description": "+2 Armor Class for all units.",
+            "cost": 30,
+            "requires": []
+        },
+        "utility_1": {
+            "name": "Swift Feet",
+            "description": "+10% Projectile Speed.",
+            "cost": 25,
+            "requires": []
+        }
+    },
+    "classUnlocks": {
+        "wizard": {
+            "name": "Arcane Mastery",
+            "description": "Unlock the Wizard class.",
+            "cost": 50
+        },
+        "cleric": {
+            "name": "Divine Intervention",
+            "description": "Unlock the Cleric class.",
+            "cost": 50
+        },
+        "rogue": {
+            "name": "Shadow Work",
+            "description": "Unlock the Rogue class.",
+            "cost": 50
+        },
+        "paladin": {
+            "name": "Oath of Protection",
+            "description": "Unlock the Paladin class.",
+            "cost": 75
+        }
+    },
+    "research": {
+        "elemental_fire": {
+            "name": "Fire Research",
+            "description": "+10% Fire Damage per level.",
+            "maxLevel": 5,
+            "baseCost": 20,
+            "costMultiplier": 2.0,
+            "bonusPerLevel": 0.1
+        },
+        "elemental_ice": {
+            "name": "Ice Research",
+            "description": "+10% Ice Damage per level.",
+            "maxLevel": 5,
+            "baseCost": 20,
+            "costMultiplier": 2.0,
+            "bonusPerLevel": 0.1
+        }
+    },
+    "relics": {
+        "dragons_heart": {
+            "name": "Dragon's Heart",
+            "description": "+2 extra lives at game start.",
+            "cost": 100
+        },
+        "golden_quill": {
+            "name": "Golden Quill",
+            "description": "25% cheaper recruits.",
+            "cost": 100
         }
     }
 }

@@ -368,17 +368,19 @@ export class CanvasRenderer {
             }
 
             // Draw Mini Tower Icon
-            this.drawTowerIcon(tower.type, itemX + itemWidth / 2, itemY + 30);
+            const costMultiplier = gameState.metaBonuses ? gameState.metaBonuses.costMultiplier : 1.0;
+            const actualCost = Math.floor(tower.cost * costMultiplier);
+            this.drawTowerIcon(tower.type, itemX + itemWidth / 2, itemY + 30, costMultiplier);
 
             // Cost
-            this.ctx.fillStyle = gameState.money >= tower.cost ? Config.THEME.colors.gold : Config.THEME.colors.bloodRed;
+            this.ctx.fillStyle = gameState.money >= actualCost ? Config.THEME.colors.gold : Config.THEME.colors.bloodRed;
             this.ctx.font = `bold 14px ${Config.THEME.font}`;
             this.ctx.textAlign = 'center';
-            this.ctx.fillText(`${tower.cost} G`, itemX + itemWidth / 2, itemY + 65);
+            this.ctx.fillText(`${actualCost} G`, itemX + itemWidth / 2, itemY + 65);
         });
     }
 
-    drawTowerIcon(type, x, y) {
+    drawTowerIcon(type, x, y, costMultiplier = 1.0) {
         this.ctx.save();
         this.ctx.translate(x - 15, y - 15);
         this.ctx.scale(0.8, 0.8);
@@ -1017,7 +1019,7 @@ export class CanvasRenderer {
     drawTavern(gameState, ui) {
         const metaData = gameState.dataManager.get('meta');
         const layout = ui.getTavernLayout(this.canvas, metaData, gameState.metaManager);
-        const { modal, upgradeButtons, backButton } = layout;
+        const { modal, tabs, upgradeButtons, backButton } = layout;
 
         // Overlay
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
@@ -1037,40 +1039,69 @@ export class CanvasRenderer {
         this.ctx.fillText('TAVERNA DO AVENTUREIRO', modal.x + modal.width / 2, modal.y + 40);
 
         // Currency
-        this.ctx.font = `bold 20px ${Config.THEME.font}`;
+        this.ctx.font = `bold 18px ${Config.THEME.font}`;
         this.ctx.fillStyle = '#9b59b6';
-        this.ctx.fillText(`Fragmentos Arcanos: ${gameState.metaManager.state.arcaneShards} ✨`, modal.x + modal.width / 2, modal.y + 70);
+        this.ctx.fillText(`Fragmentos Arcanos: ${gameState.metaManager.state.arcaneShards} ✨`, modal.x + modal.width / 2 - 120, modal.y + 65);
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.fillText(`Ouro Persistente: ${gameState.metaManager.state.gold} G`, modal.x + modal.width / 2 + 120, modal.y + 65);
+
+        // Tabs
+        tabs.forEach(tab => {
+            this.ctx.save();
+            this.ctx.fillStyle = tab.isActive ? 'rgba(241, 196, 15, 0.2)' : 'rgba(0, 0, 0, 0.3)';
+            this.ctx.fillRect(tab.x, tab.y, tab.width, tab.height);
+            this.ctx.strokeStyle = tab.isActive ? Config.THEME.colors.gold : 'rgba(255,255,255,0.2)';
+            this.ctx.lineWidth = tab.isActive ? 2 : 1;
+            this.ctx.strokeRect(tab.x, tab.y, tab.width, tab.height);
+            this.ctx.fillStyle = tab.isActive ? Config.THEME.colors.gold : '#bdc3c7';
+            this.ctx.font = `bold 14px ${Config.THEME.font}`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(tab.label.toUpperCase(), tab.x + tab.width / 2, tab.y + tab.height / 2);
+            this.ctx.restore();
+        });
 
         // Upgrades
         upgradeButtons.forEach(btn => {
             this.ctx.save();
 
+            const isLocked = btn.type === 'unlock' && !btn.isUnlocked;
+            const isOwned = (btn.type === 'unlock' && btn.isUnlocked) || (btn.type === 'talent' && btn.isOwned) || (btn.type === 'relic' && btn.isOwned);
+            const isMaxed = btn.isMaxed;
+            const canBuy = btn.canAfford && (btn.type !== 'talent' || btn.hasPrereqs);
+
             // Button Background
-            this.ctx.fillStyle = btn.canAfford ? 'rgba(44, 62, 80, 0.9)' : 'rgba(20, 20, 20, 0.9)';
-            if (btn.isMaxed) this.ctx.fillStyle = 'rgba(39, 174, 96, 0.2)';
+            this.ctx.fillStyle = canBuy ? 'rgba(44, 62, 80, 0.9)' : 'rgba(20, 20, 20, 0.9)';
+            if (isOwned || isMaxed) this.ctx.fillStyle = 'rgba(39, 174, 96, 0.2)';
             this.ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
 
-            this.ctx.strokeStyle = btn.canAfford ? Config.THEME.colors.gold : '#555';
-            if (btn.isMaxed) this.ctx.strokeStyle = '#27ae60';
+            this.ctx.strokeStyle = canBuy ? Config.THEME.colors.gold : '#555';
+            if (isOwned || isMaxed) this.ctx.strokeStyle = '#27ae60';
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
 
-            // Name & Level
+            // Name & Level/Status
             this.ctx.textAlign = 'left';
-            this.ctx.fillStyle = btn.isMaxed ? '#27ae60' : '#ecf0f1';
+            this.ctx.fillStyle = (isOwned || isMaxed) ? '#27ae60' : '#ecf0f1';
             this.ctx.font = `bold 16px ${Config.THEME.font}`;
-            this.ctx.fillText(`${btn.upgradeName} (Nv. ${btn.level}/${btn.maxLevel})`, btn.x + 15, btn.y + 25);
+            let label = btn.name;
+            if (btn.level !== undefined) label += ` (Nv. ${btn.level}/${btn.maxLevel})`;
+            this.ctx.fillText(label, btn.x + 15, btn.y + 25);
 
             // Description
             this.ctx.fillStyle = '#bdc3c7';
             this.ctx.font = `12px ${Config.THEME.font}`;
             this.ctx.fillText(btn.description, btn.x + 15, btn.y + 45);
 
-            // Cost / Max
+            // Cost / Status
             this.ctx.textAlign = 'right';
-            if (btn.isMaxed) {
+            if (isMaxed || isOwned) {
                 this.ctx.fillStyle = '#27ae60';
-                this.ctx.fillText('MAXIMIZADO', btn.x + btn.width - 15, btn.y + btn.height / 2 + 5);
+                this.ctx.fillText('ADQUIRIDO', btn.x + btn.width - 15, btn.y + btn.height / 2 + 5);
+            } else if (btn.type === 'talent' && !btn.hasPrereqs) {
+                this.ctx.fillStyle = '#e74c3c';
+                this.ctx.font = '10px Arial';
+                this.ctx.fillText(`REQUER: ${btn.requires.join(', ')}`, btn.x + btn.width - 15, btn.y + btn.height / 2 + 5);
             } else {
                 this.ctx.fillStyle = btn.canAfford ? '#9b59b6' : '#e74c3c';
                 this.ctx.font = `bold 16px ${Config.THEME.font}`;
