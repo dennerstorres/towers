@@ -63,6 +63,38 @@ export class WaveSystem {
     endWave(gameState) {
         const reward = Config.waveMoneyReward + (this.currentWave - 1) * Config.waveMoneyIncrease;
         gameState.money += reward;
+
+        // Meta progression rewards
+        if (gameState.metaManager) {
+            // Gold persistent based on wave
+            const persistentGold = Math.floor(reward / 2);
+            gameState.metaManager.addGold(persistentGold);
+
+            // Shards on milestones
+            if (this.currentWave % 2 === 0) {
+                const shards = Math.max(1, Math.floor(this.currentWave / 2));
+                gameState.metaManager.addShards(shards);
+            }
+
+            // Relic drop chance on boss waves (every 5 waves)
+            if (this.currentWave % 5 === 0) {
+                const relicChance = 0.2; // 20%
+                if (Math.random() < relicChance) {
+                    const metaData = gameState.dataManager ? gameState.dataManager.get('meta') : null;
+                    if (metaData && metaData.relics) {
+                        const relicKeys = Object.keys(metaData.relics);
+                        const unownedRelics = relicKeys.filter(k => !gameState.metaManager.state.relics.includes(k));
+                        if (unownedRelics.length > 0) {
+                            const randomRelic = unownedRelics[Math.floor(Math.random() * unownedRelics.length)];
+                            gameState.metaManager.state.relics.push(randomRelic);
+                            gameState.metaManager.save();
+                            console.log(`Relic dropped: ${randomRelic}`);
+                        }
+                    }
+                }
+            }
+        }
+
         this.currentWave++;
         this.enemiesToSpawn = Config.initialEnemiesPerWave + (this.currentWave - 1) * Config.waveEnemyIncrease;
 

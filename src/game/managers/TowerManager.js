@@ -6,9 +6,19 @@ export class TowerManager {
         this.reset();
     }
 
-    reset() {
+    reset(metaManager = null) {
         this.selectedTowerType = 'archer';
-        this.availableTowers = Object.values(Config.TOWERS);
+
+        // Filter available towers based on meta progression
+        const allTowers = Object.values(Config.TOWERS);
+        if (metaManager && metaManager.state.unlockedClasses) {
+            this.availableTowers = allTowers.filter(t =>
+                metaManager.state.unlockedClasses.includes(t.type)
+            );
+        } else {
+            this.availableTowers = allTowers;
+        }
+
         this.placedTowers = [];
     }
 

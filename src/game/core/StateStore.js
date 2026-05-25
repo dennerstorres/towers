@@ -22,7 +22,8 @@ export class StateStore {
             gameSpeed: 1,
             logicalTime: 0,
             highscore: parseInt(localStorage.getItem('towers_highscore')) || 0,
-            showTavern: false
+            showTavern: false,
+            tavernCategory: 'upgrades'
         };
     }
 

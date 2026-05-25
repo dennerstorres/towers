@@ -202,47 +202,111 @@ export class GameUI {
      * Retorna o layout para a Taverna (Meta Progressão)
      */
     getTavernLayout(canvas, metaData, metaManager) {
-        const width = 600;
-        const height = 450;
+        const width = 650;
+        const height = 500;
         const x = (canvas.width - this.panelWidth) / 2 - width / 2;
         const y = canvas.height / 2 - height / 2;
 
+        const category = window.game?.state?.tavernCategory || 'upgrades';
+        const tabs = [
+            { label: 'Upgrades', category: 'upgrades' },
+            { label: 'Unlocks', category: 'unlocks' },
+            { label: 'Talents', category: 'talents' },
+            { label: 'Research', category: 'research' },
+            { label: 'Relics', category: 'relics' }
+        ];
+
+        const tabWidth = 120;
+        const tabHeight = 35;
+        const tabsX = x + (width - (tabWidth * tabs.length)) / 2;
+        const tabsY = y + 80;
+
+        const formattedTabs = tabs.map((t, i) => ({
+            ...t,
+            x: tabsX + i * tabWidth,
+            y: tabsY,
+            width: tabWidth,
+            height: tabHeight,
+            isActive: t.category === category
+        }));
+
         const upgradeButtons = [];
-        const buttonWidth = 500;
-        const buttonHeight = 60;
-        const spacing = 15;
+        const buttonWidth = 550;
+        const buttonHeight = 65;
+        const spacing = 10;
+        const contentY = tabsY + tabHeight + 20;
 
-        if (metaData && metaData.upgrades) {
-            let i = 0;
-            for (const key in metaData.upgrades) {
-                const upgrade = metaData.upgrades[key];
-                const level = metaManager.getUpgradeLevel(key);
-                const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, level));
-
-                upgradeButtons.push({
-                    x: x + (width - buttonWidth) / 2,
-                    y: y + 80 + (buttonHeight + spacing) * i,
-                    width: buttonWidth,
-                    height: buttonHeight,
-                    upgradeKey: key,
-                    upgradeName: upgrade.name,
-                    description: upgrade.description,
-                    level: level,
-                    maxLevel: upgrade.maxLevel,
-                    cost: cost,
-                    canAfford: metaManager.state.arcaneShards >= cost,
-                    isMaxed: level >= upgrade.maxLevel
+        if (metaData) {
+            if (category === 'upgrades' && metaData.upgrades) {
+                Object.keys(metaData.upgrades).forEach((key, i) => {
+                    const upgrade = metaData.upgrades[key];
+                    const level = metaManager.getUpgradeLevel(key);
+                    const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, level));
+                    upgradeButtons.push({
+                        type: 'upgrade', key, name: upgrade.name, description: upgrade.description,
+                        level, maxLevel: upgrade.maxLevel, cost,
+                        canAfford: metaManager.state.arcaneShards >= cost,
+                        isMaxed: level >= upgrade.maxLevel,
+                        x: x + (width - buttonWidth) / 2, y: contentY + i * (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
+                    });
                 });
-                i++;
+            } else if (category === 'unlocks' && metaData.classUnlocks) {
+                Object.keys(metaData.classUnlocks).forEach((key, i) => {
+                    const unlock = metaData.classUnlocks[key];
+                    const isUnlocked = metaManager.state.unlockedClasses.includes(key);
+                    upgradeButtons.push({
+                        type: 'unlock', key, name: unlock.name, description: unlock.description,
+                        cost: unlock.cost, isUnlocked,
+                        canAfford: metaManager.state.arcaneShards >= unlock.cost,
+                        x: x + (width - buttonWidth) / 2, y: contentY + i * (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
+                    });
+                });
+            } else if (category === 'talents' && metaData.talents) {
+                Object.keys(metaData.talents).forEach((key, i) => {
+                    const talent = metaData.talents[key];
+                    const isOwned = metaManager.state.talents.includes(key);
+                    const hasPrereqs = !talent.requires || talent.requires.every(req => metaManager.state.talents.includes(req));
+                    upgradeButtons.push({
+                        type: 'talent', key, name: talent.name, description: talent.description,
+                        cost: talent.cost, isOwned, hasPrereqs, requires: talent.requires,
+                        canAfford: metaManager.state.arcaneShards >= talent.cost,
+                        x: x + (width - buttonWidth) / 2, y: contentY + i * (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
+                    });
+                });
+            } else if (category === 'research' && metaData.research) {
+                Object.keys(metaData.research).forEach((key, i) => {
+                    const res = metaData.research[key];
+                    const level = metaManager.getResearchLevel(key);
+                    const cost = Math.floor(res.baseCost * Math.pow(res.costMultiplier, level));
+                    upgradeButtons.push({
+                        type: 'research', key, name: res.name, description: res.description,
+                        level, maxLevel: res.maxLevel, cost,
+                        canAfford: metaManager.state.arcaneShards >= cost,
+                        isMaxed: level >= res.maxLevel,
+                        x: x + (width - buttonWidth) / 2, y: contentY + i * (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
+                    });
+                });
+            } else if (category === 'relics' && metaData.relics) {
+                Object.keys(metaData.relics).forEach((key, i) => {
+                    const relic = metaData.relics[key];
+                    const isOwned = metaManager.state.relics.includes(key);
+                    upgradeButtons.push({
+                        type: 'relic', key, name: relic.name, description: relic.description,
+                        cost: relic.cost, isOwned,
+                        canAfford: metaManager.state.arcaneShards >= relic.cost,
+                        x: x + (width - buttonWidth) / 2, y: contentY + i * (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
+                    });
+                });
             }
         }
 
         return {
             modal: { x, y, width, height },
+            tabs: formattedTabs,
             upgradeButtons,
             backButton: {
                 x: x + width / 2 - 100,
-                y: y + height - 60,
+                y: y + height - 55,
                 width: 200,
                 height: 40,
                 label: 'Voltar'

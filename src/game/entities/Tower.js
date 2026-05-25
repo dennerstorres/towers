@@ -207,6 +207,15 @@ export class Tower extends Character {
     getDamage() {
         let totalDamage = this.damage + (this.synergyBonuses.damage || 0);
 
+        // Apply Meta Bonuses
+        if (this.gameState && this.gameState.metaBonuses) {
+            const mb = this.gameState.metaBonuses;
+            totalDamage = Math.floor(totalDamage * mb.damageMultiplier);
+
+            if (this.damageType === 'fire') totalDamage = Math.floor(totalDamage * mb.elementalFireMultiplier);
+            if (this.damageType === 'ice') totalDamage = Math.floor(totalDamage * mb.elementalIceMultiplier);
+        }
+
         // Positioning bonus for ranged in backline (Data-driven)
         const rangedRoles = Config.ROLES ? Config.ROLES.ranged : [];
         const backlineBonus = Config.POSITIONING_BONUSES?.backline?.ranged;
@@ -229,6 +238,11 @@ export class Tower extends Character {
         let bonus = proficiency + modifier;
         if (this.type === 'rogue' && this.level >= 2) bonus += 2;
 
+        // Meta Bonus
+        if (this.gameState && this.gameState.metaBonuses) {
+            bonus += (this.gameState.metaBonuses.attackBonus || 0);
+        }
+
         return bonus;
     }
 
@@ -238,6 +252,11 @@ export class Tower extends Character {
      */
     getArmorClass() {
         let ac = 10 + this.getModifier('dex') + this.armorBonus;
+
+        // Meta Bonus
+        if (this.gameState && this.gameState.metaBonuses) {
+            ac += (this.gameState.metaBonuses.acBonus || 0);
+        }
 
         // Synergy Bonus
         ac += (this.synergyBonuses.ac || 0);
