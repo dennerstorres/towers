@@ -234,6 +234,8 @@ export class CanvasRenderer {
             this.drawEndGameScreen(gameState, waveManager, ui);
         } else if (gameState.showTavern) {
             this.drawTavern(gameState, ui);
+        } else if (gameState.showCamp) {
+            this.drawCamp(gameState, ui);
         } else if (gameState.isPaused) {
             this.drawPauseOverlay(ui);
         } else if (waveManager.isWaiting) {
@@ -1113,6 +1115,109 @@ export class CanvasRenderer {
 
         // Back Button
         this.drawButton(backButton, Config.THEME.colors.gold, backButton.label);
+    }
+
+    /**
+     * Desenha o Acampamento (Camp Hub)
+     */
+    drawCamp(gameState, ui) {
+        const layout = ui.getCampLayout(this.canvas, gameState, gameState.dataManager);
+        const { modal, tabs, buttons, nextWaveButton } = layout;
+
+        // Overlay
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Modal
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 4;
+        this.ctx.fillRect(modal.x, modal.y, modal.width, modal.height);
+        this.ctx.strokeRect(modal.x, modal.y, modal.width, modal.height);
+
+        // Title
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 32px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('ACAMPAMENTO', modal.x + modal.width / 2, modal.y + 40);
+
+        // Money
+        this.ctx.font = `bold 18px ${Config.THEME.font}`;
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.fillText(`Ouro: ${gameState.money} G`, modal.x + modal.width / 2, modal.y + 65);
+
+        // Tabs
+        tabs.forEach(tab => {
+            this.ctx.save();
+            this.ctx.fillStyle = tab.isActive ? 'rgba(241, 196, 15, 0.2)' : 'rgba(0, 0, 0, 0.3)';
+            this.ctx.fillRect(tab.x, tab.y, tab.width, tab.height);
+            this.ctx.strokeStyle = tab.isActive ? Config.THEME.colors.gold : 'rgba(255,255,255,0.2)';
+            this.ctx.lineWidth = tab.isActive ? 2 : 1;
+            this.ctx.strokeRect(tab.x, tab.y, tab.width, tab.height);
+            this.ctx.fillStyle = tab.isActive ? Config.THEME.colors.gold : '#bdc3c7';
+            this.ctx.font = `bold 14px ${Config.THEME.font}`;
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(tab.label.toUpperCase(), tab.x + tab.width / 2, tab.y + tab.height / 2);
+            this.ctx.restore();
+        });
+
+        // Content
+        buttons.forEach(btn => {
+            if (btn.type === 'recruit') {
+                this.drawRecruitCard(btn);
+            } else {
+                this.drawButton(btn, btn.canAfford === false ? '#7f8c8d' : Config.THEME.colors.gold, btn.label);
+            }
+        });
+
+        // Next Wave Button
+        this.drawButton(nextWaveButton, Config.THEME.colors.gold, nextWaveButton.label);
+    }
+
+    drawRecruitCard(btn) {
+        const hero = btn.hero;
+        this.ctx.save();
+
+        // Card Background
+        this.ctx.fillStyle = 'rgba(44, 62, 80, 0.9)';
+        this.ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
+        this.ctx.strokeStyle = btn.canAfford ? Config.THEME.colors.gold : '#555';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
+
+        // Hero Name
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 18px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(hero.name.toUpperCase(), btn.x + btn.width / 2, btn.y + 30);
+
+        // Hero Info
+        this.ctx.fillStyle = '#bdc3c7';
+        this.ctx.font = `14px ${Config.THEME.font}`;
+        this.ctx.fillText(`${hero.race.toUpperCase()}`, btn.x + btn.width / 2, btn.y + 50);
+
+        // Draw Icon
+        this.ctx.save();
+        this.ctx.translate(btn.x + btn.width / 2, btn.y + 110);
+        this.ctx.scale(1.5, 1.5);
+        const mockTower = { x: -0.5, y: -0.5, type: hero.type, traits: [] };
+        this.drawTower(mockTower, true);
+        this.ctx.restore();
+
+        // Stats
+        this.ctx.fillStyle = '#ecf0f1';
+        this.ctx.font = `12px ${Config.THEME.font}`;
+        const stats = Config.TOWERS[hero.type.toUpperCase()];
+        this.ctx.fillText(`Dano: ${stats.damage} | Alcance: ${stats.range}`, btn.x + btn.width / 2, btn.y + 180);
+        this.ctx.fillText(`Vida: ${stats.maxHealth}`, btn.x + btn.width / 2, btn.y + 200);
+
+        // Cost
+        this.ctx.fillStyle = btn.canAfford ? Config.THEME.colors.gold : '#e74c3c';
+        this.ctx.font = `bold 20px ${Config.THEME.font}`;
+        this.ctx.fillText(`${btn.cost} G`, btn.x + btn.width / 2, btn.y + 250);
+
+        this.ctx.restore();
     }
 
     /**

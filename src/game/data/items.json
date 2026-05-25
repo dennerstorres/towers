@@ -1,6 +1,19 @@
 {
-  "weapons": {},
-  "armor": {},
-  "rings": {},
-  "amulets": {}
+  "weapons": {
+    "short_sword": { "name": "Espada Curta", "damage": 5, "attackBonus": 1, "cost": 30 },
+    "long_sword": { "name": "Espada Longa", "damage": 10, "attackBonus": 2, "cost": 60 },
+    "short_bow": { "name": "Arco Curto", "damage": 4, "range": 40, "cost": 35 },
+    "long_bow": { "name": "Arco Longo", "damage": 8, "range": 80, "cost": 70 },
+    "wizard_staff": { "name": "Cajado Arcano", "damage": 6, "attackBonus": 2, "cost": 50 }
+  },
+  "armor": {
+    "leather_armor": { "name": "Armadura de Couro", "ac": 1, "cost": 25 },
+    "chain_mail": { "name": "Cota de Malha", "ac": 3, "cost": 60 },
+    "plate_armor": { "name": "Armadura de Placas", "ac": 5, "cost": 120 }
+  },
+  "accessory": {
+    "ring_of_protection": { "name": "Anel de Proteção", "ac": 1, "cost": 40 },
+    "boots_of_speed": { "name": "Botas de Velocidade", "range": 20, "cost": 45 },
+    "amulet_of_health": { "name": "Amuleto de Saúde", "health": 20, "cost": 50 }
+  }
 }

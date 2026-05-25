@@ -14,7 +14,15 @@ export class Character {
         this.class = data.class || 'fighter';
         this.level = data.level || 1;
         this.xp = data.xp || 0;
+        this.maxHealth = data.maxHealth || 50;
+        this.health = data.health || this.maxHealth;
         this.primaryAbility = data.primaryAbility || 'str';
+
+        this.equipment = data.equipment || {
+            weapon: null,
+            armor: null,
+            accessory: null
+        };
 
         // Atributos D&D 5e (padrão 10)
         const defaultAttributes = {

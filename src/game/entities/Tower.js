@@ -12,6 +12,8 @@ export class Tower extends Character {
             class: type,
             level: 1,
             xp: 0,
+            maxHealth: stats.maxHealth || 100,
+            health: stats.health || stats.maxHealth || 100,
             primaryAbility: stats.primaryAbility || 'dex',
             attributes: stats.attributes || {},
             traits: [],
@@ -198,7 +200,10 @@ export class Tower extends Character {
      * Retorna o alcance atual dinâmico
      */
     getRange() {
-        return this.range + (this.synergyBonuses.range || 0);
+        let bonus = (this.synergyBonuses.range || 0);
+        if (this.equipment.weapon?.range) bonus += this.equipment.weapon.range;
+        if (this.equipment.accessory?.range) bonus += this.equipment.accessory.range;
+        return this.range + bonus;
     }
 
     /**
@@ -206,6 +211,9 @@ export class Tower extends Character {
      */
     getDamage() {
         let totalDamage = this.damage + (this.synergyBonuses.damage || 0);
+
+        // Equipment damage
+        if (this.equipment.weapon?.damage) totalDamage += this.equipment.weapon.damage;
 
         // Apply Meta Bonuses
         if (this.gameState && this.gameState.metaBonuses) {
@@ -234,8 +242,12 @@ export class Tower extends Character {
         const proficiency = this.getProficiencyBonus();
         const modifier = this.getModifier(this.primaryAbility);
 
+        // Equipment attack bonus
+        let equipmentBonus = 0;
+        if (this.equipment.weapon?.attackBonus) equipmentBonus += this.equipment.weapon.attackBonus;
+
         // Rogue Backstab bonus: if level 2+
-        let bonus = proficiency + modifier;
+        let bonus = proficiency + modifier + equipmentBonus;
         if (this.type === 'rogue' && this.level >= 2) bonus += 2;
 
         // Meta Bonus
@@ -252,6 +264,10 @@ export class Tower extends Character {
      */
     getArmorClass() {
         let ac = 10 + this.getModifier('dex') + this.armorBonus;
+
+        // Equipment AC
+        if (this.equipment.armor?.ac) ac += this.equipment.armor.ac;
+        if (this.equipment.accessory?.ac) ac += this.equipment.accessory.ac;
 
         // Meta Bonus
         if (this.gameState && this.gameState.metaBonuses) {

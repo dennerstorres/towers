@@ -20,6 +20,32 @@ export class TowerManager {
         }
 
         this.placedTowers = [];
+        this.recruitmentPool = [];
+    }
+
+    /**
+     * Gera um novo pool de recrutamento aleatório
+     */
+    generateRecruitmentPool(dataManager) {
+        const races = dataManager.get('races');
+        const raceKeys = Object.keys(races || { 'human': {} });
+
+        this.recruitmentPool = [];
+        const poolSize = 3;
+
+        for (let i = 0; i < poolSize; i++) {
+            const randomTower = this.availableTowers[Math.floor(Math.random() * this.availableTowers.length)];
+            const randomRaceKey = raceKeys[Math.floor(Math.random() * raceKeys.length)];
+            const raceData = races ? races[randomRaceKey] : null;
+
+            this.recruitmentPool.push({
+                type: randomTower.type,
+                race: randomRaceKey,
+                raceData: raceData,
+                cost: randomTower.cost,
+                name: randomTower.type.charAt(0).toUpperCase() + randomTower.type.slice(1)
+            });
+        }
     }
 
     addTower(x, y, type, race = 'human', raceData = null) {

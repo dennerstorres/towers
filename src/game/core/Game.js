@@ -46,7 +46,7 @@ export class Game {
         this.gameLoopController = new GameLoop({
             onUpdate: (timeStep) => this.updateLogic(timeStep),
             onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas),
-            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern,
+            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp,
             isPaused: () => this.state.isPaused,
             getGameSpeed: () => this.state.gameSpeed
         });
@@ -66,6 +66,7 @@ export class Game {
             await this.dataManager.loadJSON('races', 'src/game/data/races.json');
             await this.dataManager.loadJSON('feats', 'src/game/data/feats.json');
             await this.dataManager.loadJSON('effects', 'src/game/data/effects.json');
+            await this.dataManager.loadJSON('items', 'src/game/data/items.json');
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
@@ -99,6 +100,16 @@ export class Game {
     }
 
     handleClick(clickX, clickY) {
+        if (this.state.showCamp) {
+            this.handleCampClick(clickX, clickY);
+            return;
+        }
+
+        if (this.state.isMovingTower) {
+            this.handleMoveTowerClick(clickX, clickY);
+            return;
+        }
+
         if (this.state.showTavern) {
             this.handleTavernClick(clickX, clickY);
             return;
@@ -134,6 +145,17 @@ export class Game {
                 }
             }
             return; // Bloqueia outros cliques enquanto o modal está aberto
+        }
+
+        if (this.state.isPlacingRecruit) {
+            const x = Math.floor(clickX / Config.gridSize);
+            const y = Math.floor(clickY / Config.gridSize);
+            if (this.canPlaceTower(x, y)) {
+                this.placeRecruitedTower(x, y);
+                this.state.isPlacingRecruit = false;
+                this.state.showCamp = true;
+            }
+            return;
         }
 
         // Verifica clique no botão de Iniciar Agora (countdown)
@@ -248,6 +270,93 @@ export class Game {
         }
 
         this.state.metaBonuses = bonuses;
+    }
+
+    handleCampClick(clickX, clickY) {
+        const layout = this.ui.getCampLayout(this.canvas, this.state, this.dataManager);
+
+        // Próxima Onda
+        if (clickX >= layout.nextWaveButton.x && clickX <= layout.nextWaveButton.x + layout.nextWaveButton.width &&
+            clickY >= layout.nextWaveButton.y && clickY <= layout.nextWaveButton.y + layout.nextWaveButton.height) {
+            this.state.showCamp = false;
+            this.waveSystem.startCountdown();
+            return;
+        }
+
+        // Tabs
+        layout.tabs.forEach(tab => {
+            if (clickX >= tab.x && clickX <= tab.x + tab.width &&
+                clickY >= tab.y && clickY <= tab.y + tab.height) {
+                this.state.campTab = tab.id;
+            }
+        });
+
+        // Buttons
+        layout.buttons.forEach(btn => {
+            if (clickX >= btn.x && clickX <= btn.x + btn.width &&
+                clickY >= btn.y && clickY <= btn.y + btn.height) {
+
+                if (btn.type === 'recruit' && btn.canAfford) {
+                    if (this.towerManager.placedTowers.length < Config.maxPartySlots) {
+                        this.state.money -= btn.cost;
+                        this.state.pendingRecruit = btn.hero;
+                        this.state.showCamp = false;
+                        this.state.isPlacingRecruit = true;
+                    } else {
+                        this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, 'LIMITE DE GRUPO ATINGIDO!', Config.THEME.colors.bloodRed);
+                    }
+                } else if (btn.type === 'heal_all' && btn.canAfford) {
+                    this.state.money -= btn.cost;
+                    this.towerManager.placedTowers.forEach(t => t.health = t.maxHealth);
+                    this.audio.playWaveStart();
+                } else if (btn.type === 'move_hero') {
+                    this.state.showCamp = false;
+                    this.state.isMovingTower = true;
+                    this.state.towerToMove = btn.tower;
+                } else if (btn.type === 'buy_item' && btn.canAfford) {
+                    const cat = btn.category === 'weapons' ? 'weapon' : (btn.category === 'armor' ? 'armor' : 'accessory');
+                    const targetHero = this.towerManager.placedTowers.find(t => t.equipment[cat] === null);
+                    if (targetHero) {
+                        this.state.money -= btn.cost;
+                        targetHero.equipment[cat] = btn.item;
+                        this.floatingTexts.add(targetHero.x * Config.gridSize + 20, targetHero.y * Config.gridSize, `${btn.item.name} EQUIPADO!`, Config.THEME.colors.gold);
+                    } else {
+                        this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, 'TODOS ESTÃO EQUIPADOS!', Config.THEME.colors.bloodRed);
+                    }
+                }
+            }
+        });
+    }
+
+    handleMoveTowerClick(clickX, clickY) {
+        const x = Math.floor(clickX / Config.gridSize);
+        const y = Math.floor(clickY / Config.gridSize);
+
+        if (this.canPlaceMovedTower(x, y)) {
+            const tower = this.state.towerToMove;
+            tower.x = x;
+            tower.y = y;
+            tower.calculatePositioning(Config.path);
+            this.partySystem.update(this.towerManager.placedTowers);
+
+            this.state.isMovingTower = false;
+            this.state.towerToMove = null;
+            this.state.showCamp = true;
+        }
+    }
+
+    canPlaceMovedTower(x, y) {
+        if (x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
+        if (y * Config.gridSize < this.ui.hudHeight) return false;
+
+        for (let point of Config.path) {
+            if (point.x === x && point.y === y) return false;
+        }
+
+        const existing = this.towerManager.getTowerAt(x, y);
+        if (existing && existing !== this.state.towerToMove) return false;
+
+        return true;
     }
 
     handleTavernClick(clickX, clickY) {
@@ -413,6 +522,19 @@ export class Game {
         this.state.money -= actualCost;
     }
 
+    placeRecruitedTower(x, y) {
+        const hero = this.state.pendingRecruit;
+        const tower = this.towerManager.addTower(x, y, hero.type, hero.race, hero.raceData);
+
+        // Remove from pool
+        this.towerManager.recruitmentPool = this.towerManager.recruitmentPool.filter(h => h !== hero);
+        this.state.pendingRecruit = null;
+
+        if (this.state.metaBonuses) {
+            tower.metaCritBonus = this.state.metaBonuses.critThresholdBonus;
+        }
+    }
+
     start() {
         console.log('Game iniciado');
         this.audio.resume();
@@ -550,6 +672,10 @@ export class Game {
 
             if (waveResult && waveResult.type === 'wave_complete') {
                 this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
+
+                // Enter Camp Mode
+                this.state.showCamp = true;
+                this.towerManager.generateRecruitmentPool(this.dataManager);
 
                 // Ganha Arcane Shards baseado na onda
                 const shardsGained = Math.max(1, Math.floor(waveResult.wave / 2));

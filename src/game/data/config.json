@@ -61,6 +61,7 @@
             "projectileSpeed": 8,
             "primaryAbility": "dex",
             "critThreshold": 20,
+            "maxHealth": 80,
             "attributes": { "dex": 14 }
         },
         "CANNON": {
@@ -73,6 +74,7 @@
             "projectileSpeed": 5,
             "primaryAbility": "str",
             "critThreshold": 20,
+            "maxHealth": 120,
             "attributes": { "str": 14 }
         },
         "WIZARD": {
@@ -86,6 +88,7 @@
             "splashRadius": 60,
             "primaryAbility": "int",
             "critThreshold": 20,
+            "maxHealth": 70,
             "attributes": { "int": 14 }
         },
         "FIGHTER": {
@@ -100,6 +103,7 @@
             "critThreshold": 20,
             "armorBonus": 2,
             "tauntDuration": 60,
+            "maxHealth": 150,
             "attributes": { "str": 16, "dex": 12, "con": 14 }
         },
         "RANGER": {
@@ -114,6 +118,7 @@
             "critThreshold": 19,
             "critThresholdDecreasePerLevel": 1,
             "rangeIncreasePerLevel": 25,
+            "maxHealth": 90,
             "attributes": { "dex": 16, "wis": 14 }
         },
         "CLERIC": {
@@ -127,6 +132,7 @@
             "primaryAbility": "wis",
             "critThreshold": 20,
             "buffDuration": 180,
+            "maxHealth": 100,
             "attributes": { "wis": 16, "con": 14 }
         },
         "ROGUE": {
@@ -139,6 +145,7 @@
             "projectileSpeed": 12,
             "primaryAbility": "dex",
             "critThreshold": 19,
+            "maxHealth": 85,
             "attributes": { "dex": 16, "int": 12 }
         },
         "PALADIN": {
@@ -153,6 +160,7 @@
             "critThreshold": 20,
             "armorBonus": 2,
             "auraRange": 100,
+            "maxHealth": 140,
             "attributes": { "str": 16, "cha": 14, "con": 14 }
         }
     },

@@ -315,6 +315,128 @@ export class GameUI {
     }
 
     /**
+     * Retorna o layout para o Acampamento (Hub entre waves)
+     */
+    getCampLayout(canvas, gameState, dataManager) {
+        const width = 700;
+        const height = 500;
+        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
+        const y = canvas.height / 2 - height / 2;
+
+        const tab = gameState.campTab || 'recruit';
+        const tabs = [
+            { label: 'Recrutar', id: 'recruit' },
+            { label: 'Grupo', id: 'party' },
+            { label: 'Ferreiro', id: 'blacksmith' }
+        ];
+
+        const tabWidth = 150;
+        const tabHeight = 40;
+        const tabsX = x + (width - (tabWidth * tabs.length)) / 2;
+        const tabsY = y + 70;
+
+        const formattedTabs = tabs.map((t, i) => ({
+            ...t,
+            x: tabsX + i * tabWidth,
+            y: tabsY,
+            width: tabWidth,
+            height: tabHeight,
+            isActive: t.id === tab
+        }));
+
+        const buttons = [];
+        const contentY = tabsY + tabHeight + 20;
+
+        if (tab === 'recruit') {
+            const pool = gameState.towerManager.recruitmentPool || [];
+            pool.forEach((hero, i) => {
+                const btnWidth = 200;
+                const btnHeight = 280;
+                const spacing = 20;
+                const startX = x + (width - (btnWidth * 3 + spacing * 2)) / 2;
+                buttons.push({
+                    type: 'recruit',
+                    index: i,
+                    hero: hero,
+                    cost: hero.cost,
+                    canAfford: gameState.money >= hero.cost,
+                    x: startX + i * (btnWidth + spacing),
+                    y: contentY,
+                    width: btnWidth,
+                    height: btnHeight
+                });
+            });
+        } else if (tab === 'party') {
+            // Botão Curar Todos
+            const healCost = gameState.towerManager.placedTowers.reduce((acc, t) => acc + (t.maxHealth - t.health), 0);
+            buttons.push({
+                type: 'heal_all',
+                cost: healCost,
+                canAfford: gameState.money >= healCost,
+                x: x + 50,
+                y: contentY,
+                width: 200,
+                height: 50,
+                label: `Curar Todos (${healCost}G)`
+            });
+
+            // Lista de Heróis para Mover
+            gameState.towerManager.placedTowers.forEach((tower, i) => {
+                buttons.push({
+                    type: 'move_hero',
+                    tower: tower,
+                    x: x + 50,
+                    y: contentY + 70 + i * 45,
+                    width: 300,
+                    height: 40,
+                    label: `Mover ${tower.name} (Nv. ${tower.level})`
+                });
+            });
+        } else if (tab === 'blacksmith') {
+            const items = dataManager.get('items');
+            if (items) {
+                let i = 0;
+                ['weapons', 'armor', 'accessory'].forEach(cat => {
+                    Object.keys(items[cat]).forEach(itemKey => {
+                        const item = items[cat][itemKey];
+                        const btnWidth = 300;
+                        const btnHeight = 50;
+                        const col = i % 2;
+                        const row = Math.floor(i / 2);
+                        buttons.push({
+                            type: 'buy_item',
+                            category: cat,
+                            itemKey: itemKey,
+                            item: item,
+                            label: `${item.name} (${item.cost}G)`,
+                            cost: item.cost,
+                            canAfford: gameState.money >= item.cost,
+                            x: x + 40 + col * (btnWidth + 20),
+                            y: contentY + row * (btnHeight + 10),
+                            width: btnWidth,
+                            height: btnHeight
+                        });
+                        i++;
+                    });
+                });
+            }
+        }
+
+        return {
+            modal: { x, y, width, height },
+            tabs: formattedTabs,
+            buttons,
+            nextWaveButton: {
+                x: x + width / 2 - 100,
+                y: y + height - 55,
+                width: 200,
+                height: 40,
+                label: 'Próxima Onda'
+            }
+        };
+    }
+
+    /**
      * Retorna o layout para as telas de vitória e derrota
      */
     getEndGameLayout(canvas) {
