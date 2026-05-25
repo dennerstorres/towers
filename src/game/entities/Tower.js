@@ -201,8 +201,12 @@ export class Tower extends Character {
      */
     getRange() {
         let bonus = (this.synergyBonuses.range || 0);
-        if (this.equipment.weapon?.range) bonus += this.equipment.weapon.range;
-        if (this.equipment.accessory?.range) bonus += this.equipment.accessory.range;
+
+        // Equipment range
+        for (let slot in this.equipment) {
+            if (this.equipment[slot]?.range) bonus += this.equipment[slot].range;
+        }
+
         return this.range + bonus;
     }
 
@@ -213,7 +217,13 @@ export class Tower extends Character {
         let totalDamage = this.damage + (this.synergyBonuses.damage || 0);
 
         // Equipment damage
-        if (this.equipment.weapon?.damage) totalDamage += this.equipment.weapon.damage;
+        for (let slot in this.equipment) {
+            if (this.equipment[slot]?.damage) totalDamage += this.equipment[slot].damage;
+            if (this.equipment[slot]?.damageMultiplier) totalDamage *= this.equipment[slot].damageMultiplier;
+            if (this.equipment[slot]?.spellPower && (this.damageType === 'fire' || this.damageType === 'ice' || this.damageType === 'radiant' || this.damageType === 'lightning')) {
+                totalDamage += this.equipment[slot].spellPower;
+            }
+        }
 
         // Apply Meta Bonuses
         if (this.gameState && this.gameState.metaBonuses) {
@@ -244,7 +254,9 @@ export class Tower extends Character {
 
         // Equipment attack bonus
         let equipmentBonus = 0;
-        if (this.equipment.weapon?.attackBonus) equipmentBonus += this.equipment.weapon.attackBonus;
+        for (let slot in this.equipment) {
+            if (this.equipment[slot]?.attackBonus) equipmentBonus += this.equipment[slot].attackBonus;
+        }
 
         // Rogue Backstab bonus: if level 2+
         let bonus = proficiency + modifier + equipmentBonus;
@@ -266,8 +278,9 @@ export class Tower extends Character {
         let ac = 10 + this.getModifier('dex') + this.armorBonus;
 
         // Equipment AC
-        if (this.equipment.armor?.ac) ac += this.equipment.armor.ac;
-        if (this.equipment.accessory?.ac) ac += this.equipment.accessory.ac;
+        for (let slot in this.equipment) {
+            if (this.equipment[slot]?.ac) ac += this.equipment[slot].ac;
+        }
 
         // Meta Bonus
         if (this.gameState && this.gameState.metaBonuses) {
@@ -523,11 +536,11 @@ export class Tower extends Character {
                 taunt = Math.floor(taunt * frontlineBonus.tauntMultiplier);
             }
 
-            // Wizard Spell Slots logic
-            if (this.type === 'wizard' && currentTime - this.lastSpellTime > this.spellCooldown) {
+            // Wizard Spell Slots logic (Empowered attack if slots available)
+            if (this.type === 'wizard' && this.spellSlots > 0) {
                 splash *= 2; // Empowered fireball
                 damage *= 1.5;
-                this.lastSpellTime = currentTime;
+                this.spellSlots--; // Consume slot for empowered attack
             }
 
             // Rogue Backstab: extra damage to first hit

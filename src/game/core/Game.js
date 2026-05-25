@@ -82,6 +82,7 @@ export class Game {
 
             // Aplica bônus de meta-progressão ao estado inicial
             this.applyMetaBonuses(true);
+            this.generateBlacksmithPool();
         }
 
         return true;
@@ -313,16 +314,33 @@ export class Game {
                     this.state.showCamp = false;
                     this.state.isMovingTower = true;
                     this.state.towerToMove = btn.tower;
-                } else if (btn.type === 'buy_item' && btn.canAfford) {
-                    const cat = btn.category === 'weapons' ? 'weapon' : (btn.category === 'armor' ? 'armor' : 'accessory');
-                    const targetHero = this.towerManager.placedTowers.find(t => t.equipment[cat] === null);
+                } else if (btn.type === 'buy_item_pool' && btn.canAfford) {
+                    const item = btn.item;
+                    let slot = item.category;
+                    if (slot === 'weapons') slot = 'weapon';
+                    if (slot === 'armor') slot = 'armor';
+                    if (slot === 'accessory') slot = 'accessory';
+                    if (slot === 'ring') slot = this.towerManager.placedTowers.some(t => t.equipment.ring1 === null) ? 'ring1' : 'ring2';
+                    if (slot === 'amulet') slot = 'amulet';
+
+                    const targetHero = this.towerManager.placedTowers.find(t => t.equipment[slot] === null);
                     if (targetHero) {
                         this.state.money -= btn.cost;
-                        targetHero.equipment[cat] = btn.item;
-                        this.floatingTexts.add(targetHero.x * Config.gridSize + 20, targetHero.y * Config.gridSize, `${btn.item.name} EQUIPADO!`, Config.THEME.colors.gold);
+                        targetHero.equipment[slot] = item;
+                        this.state.blacksmithPool = this.state.blacksmithPool.filter(i => i !== item);
+                        this.floatingTexts.add(targetHero.x * Config.gridSize + 20, targetHero.y * Config.gridSize, `${item.name} EQUIPADO!`, Config.THEME.colors.gold);
                     } else {
-                        this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, 'TODOS ESTÃO EQUIPADOS!', Config.THEME.colors.bloodRed);
+                        this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, 'SEM ESPAÇO NO SLOT!', Config.THEME.colors.bloodRed);
                     }
+                } else if (btn.type === 'buy_xp' && btn.canAfford) {
+                    this.state.money -= btn.cost;
+                    btn.tower.addXp(btn.xp);
+                    this.floatingTexts.add(btn.tower.x * Config.gridSize + 20, btn.tower.y * Config.gridSize, `+${btn.xp} XP`, '#3498db');
+                } else if (btn.type === 'upgrade_spell_slots' && btn.canAfford) {
+                    this.state.money -= btn.cost;
+                    btn.tower.maxSpellSlots = (btn.tower.maxSpellSlots || 1) + 1;
+                    btn.tower.spellSlots = btn.tower.maxSpellSlots;
+                    this.floatingTexts.add(btn.tower.x * Config.gridSize + 20, btn.tower.y * Config.gridSize, '+1 SLOT DE MAGIA', '#9b59b6');
                 }
             }
         });
@@ -522,6 +540,59 @@ export class Game {
         this.state.money -= actualCost;
     }
 
+    generateBlacksmithPool() {
+        const itemData = this.dataManager.get('items');
+        if (!itemData) return;
+
+        const pool = [];
+        const categories = ['weapons', 'armor', 'accessory', 'ring', 'amulet'];
+
+        for (let i = 0; i < 4; i++) {
+            const cat = categories[Math.floor(Math.random() * categories.length)];
+            const items = itemData[cat];
+            const itemKeys = Object.keys(items);
+            const randomItemKey = itemKeys[Math.floor(Math.random() * itemKeys.length)];
+            const baseItem = { ...items[randomItemKey], category: cat };
+
+            // Determine Rarity
+            const roll = Math.random();
+            let rarityKey = 'common';
+            if (roll > 0.95) rarityKey = 'legendary';
+            else if (roll > 0.8) rarityKey = 'epic';
+            else if (roll > 0.5) rarityKey = 'rare';
+
+            const rarity = itemData.rarities[rarityKey];
+            const item = { ...baseItem, rarity: rarityKey, rarityData: rarity };
+
+            // Apply Rarity Multipliers
+            if (item.damage) item.damage = Math.floor(item.damage * rarity.multiplier);
+            if (item.ac) item.ac = Math.floor(item.ac * rarity.multiplier);
+            if (item.attackBonus) item.attackBonus = Math.floor(item.attackBonus * rarity.multiplier);
+            item.cost = Math.floor(item.cost * rarity.multiplier);
+
+            // Add Affixes
+            const numAffixes = rarity.affixes;
+            const availableAffixes = [...itemData.affixes];
+            for (let j = 0; j < numAffixes; j++) {
+                if (availableAffixes.length === 0) break;
+                const affixIndex = Math.floor(Math.random() * availableAffixes.length);
+                const affix = availableAffixes.splice(affixIndex, 1)[0];
+
+                item.name += ` ${affix.name}`;
+                if (affix.damage) item.damage = (item.damage || 0) + affix.damage;
+                if (affix.ac) item.ac = (item.ac || 0) + affix.ac;
+                if (affix.attackBonus) item.attackBonus = (item.attackBonus || 0) + affix.attackBonus;
+                if (affix.critBonus) item.critBonus = (item.critBonus || 0) + affix.critBonus;
+                if (affix.spellPower) item.spellPower = (item.spellPower || 0) + affix.spellPower;
+                if (affix.spellSlots) item.spellSlots = (item.spellSlots || 0) + affix.spellSlots;
+            }
+
+            pool.push(item);
+        }
+
+        this.state.blacksmithPool = pool;
+    }
+
     placeRecruitedTower(x, y) {
         const hero = this.state.pendingRecruit;
         const tower = this.towerManager.addTower(x, y, hero.type, hero.race, hero.raceData);
@@ -676,6 +747,7 @@ export class Game {
                 // Enter Camp Mode
                 this.state.showCamp = true;
                 this.towerManager.generateRecruitmentPool(this.dataManager);
+                this.generateBlacksmithPool();
 
                 // Ganha Arcane Shards baseado na onda
                 const shardsGained = Math.max(1, Math.floor(waveResult.wave / 2));
