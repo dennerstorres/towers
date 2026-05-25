@@ -263,6 +263,12 @@ export class Tower extends Character {
      */
     getCritThreshold() {
         let threshold = this.critThreshold;
+
+        // Bonus de meta-progressão
+        if (this.metaCritBonus) {
+            threshold -= this.metaCritBonus;
+        }
+
         // Rogue burst: higher crit at level 3
         if (this.type === 'rogue' && this.level >= 3) threshold -= 1;
         return threshold;

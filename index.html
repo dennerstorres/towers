@@ -149,6 +149,7 @@
         <h1>🏰 Tower Defense</h1>
         <p>Defenda seu território construindo torres estratégicas!</p>
         <button id="startButton">Iniciar Jogo</button>
+        <button id="tavernButton" style="background-color: #34495e; margin-top: 10px;">Taverna</button>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script type="module">
@@ -157,6 +158,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('gameCanvas');
             const startButton = document.getElementById('startButton');
+            const tavernButton = document.getElementById('tavernButton');
             const startScreen = document.getElementById('startScreen');
             
             const game = new Game(canvas);
@@ -178,6 +180,14 @@
                 startScreen.style.display = 'none';
                 canvas.style.display = 'block';
                 game.start();
+            });
+
+            tavernButton.addEventListener('click', () => {
+                if (!isInitialized) return;
+                startScreen.style.display = 'none';
+                canvas.style.display = 'block';
+                game.state.showTavern = true;
+                game.gameLoopController.start();
             });
         });
     </script>

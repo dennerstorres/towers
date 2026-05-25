@@ -95,11 +95,12 @@ export class WaveSystem {
 
         // Verifica fim da onda
         if (this.enemiesKilled >= this.enemiesToSpawn && gameState.enemies.length === 0) {
+            const completedWave = this.currentWave;
             const reward = this.endWave(gameState);
             if (this.currentWave <= Config.maxWaves) {
                 this.startCountdown();
             }
-            return { type: 'wave_complete', reward };
+            return { type: 'wave_complete', reward, wave: completedWave };
         }
 
         return null;

@@ -9,6 +9,7 @@ import { WaveSystem } from '../systems/WaveSystem.js';
 import { PartySystem } from '../systems/PartySystem.js';
 import { TowerManager } from '../managers/TowerManager.js';
 import { DataManager } from '../managers/DataManager.js';
+import { MetaManager } from '../managers/MetaManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
@@ -24,6 +25,7 @@ export class Game {
         this.partySystem = new PartySystem();
         this.towerManager = new TowerManager();
         this.dataManager = new DataManager();
+        this.metaManager = new MetaManager();
         this.particleSystem = new ParticleSystem();
         this.floatingTexts = new FloatingText();
         this.audio = new AudioManager();
@@ -31,6 +33,8 @@ export class Game {
         this.stateStore = new StateStore();
         this.state = this.stateStore.state;
         this.state.towerManager = this.towerManager;
+        this.state.dataManager = this.dataManager;
+        this.state.metaManager = this.metaManager;
 
         this.renderSystem = new RenderSystem(this.renderer, this.ui);
         this.inputSystem = new InputSystem(canvas, {
@@ -42,7 +46,7 @@ export class Game {
         this.gameLoopController = new GameLoop({
             onUpdate: (timeStep) => this.updateLogic(timeStep),
             onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas),
-            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory,
+            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern,
             isPaused: () => this.state.isPaused,
             getGameSpeed: () => this.state.gameSpeed
         });
@@ -66,9 +70,17 @@ export class Game {
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
             this.towerManager.reset();
+            // Carrega dados de meta-progressão
+            await this.dataManager.loadJSON('meta', 'src/game/data/meta.json');
+
             this.stateStore.reset();
             this.state = this.stateStore.state;
             this.state.towerManager = this.towerManager;
+            this.state.dataManager = this.dataManager;
+            this.state.metaManager = this.metaManager;
+
+            // Aplica bônus de meta-progressão ao estado inicial
+            this.applyMetaBonuses();
         }
 
         return true;
@@ -87,6 +99,11 @@ export class Game {
     }
 
     handleClick(clickX, clickY) {
+        if (this.state.showTavern) {
+            this.handleTavernClick(clickX, clickY);
+            return;
+        }
+
         if (this.state.isGameOver || this.state.isVictory) {
             const layout = this.ui.getEndGameLayout(this.canvas);
             if (clickX >= layout.restartButton.x && clickX <= layout.restartButton.x + layout.restartButton.width &&
@@ -221,6 +238,43 @@ export class Game {
         return false;
     }
 
+    applyMetaBonuses() {
+        const metaData = this.dataManager.get('meta');
+        const bonuses = this.metaManager.getBonuses(metaData);
+
+        this.state.money += bonuses.startingGold;
+        this.state.lives += bonuses.extraLives;
+        this.state.metaBonuses = bonuses;
+    }
+
+    handleTavernClick(clickX, clickY) {
+        const layout = this.ui.getTavernLayout(this.canvas, this.dataManager.get('meta'), this.metaManager);
+
+        // Voltar
+        if (clickX >= layout.backButton.x && clickX <= layout.backButton.x + layout.backButton.width &&
+            clickY >= layout.backButton.y && clickY <= layout.backButton.y + layout.backButton.height) {
+            this.state.showTavern = false;
+            if (!this.state.gameRunning) {
+                // If we came from the start screen, go back there
+                this.canvas.style.display = 'none';
+                document.getElementById('startScreen').style.display = 'block';
+                this.gameLoopController.stop();
+            }
+            return;
+        }
+
+        // Upgrades
+        layout.upgradeButtons.forEach(btn => {
+            if (clickX >= btn.x && clickX <= btn.x + btn.width &&
+                clickY >= btn.y && clickY <= btn.y + btn.height) {
+                if (this.metaManager.upgrade(btn.upgradeKey, btn.cost)) {
+                    this.audio.playWaveStart(); // Use a sound for purchase
+                    this.applyMetaBonuses(); // Update current session if applicable (though mostly for new games)
+                }
+            }
+        });
+    }
+
     applyLevelUpSelection(tower, index) {
         if (index === 0) {
             // Atributo: +2 no Atributo Primário
@@ -321,7 +375,13 @@ export class Game {
         const randomRaceKey = raceKeys[Math.floor(Math.random() * raceKeys.length)];
         const raceData = races ? races[randomRaceKey] : null;
 
-        this.towerManager.addTower(x, y, selectedTower.type, randomRaceKey, raceData);
+        const tower = this.towerManager.addTower(x, y, selectedTower.type, randomRaceKey, raceData);
+
+        // Aplica bônus de meta-progressão se existirem
+        if (this.state.metaBonuses) {
+            tower.metaCritBonus = this.state.metaBonuses.critThresholdBonus;
+        }
+
         this.state.money -= selectedTower.cost;
     }
 
@@ -345,6 +405,9 @@ export class Game {
         this.stateStore.reset();
         this.state = this.stateStore.state;
         this.state.towerManager = this.towerManager;
+        this.state.dataManager = this.dataManager;
+        this.state.metaManager = this.metaManager;
+        this.applyMetaBonuses();
 
         this.particleSystem.particles = [];
         this.floatingTexts.texts = [];
@@ -426,7 +489,8 @@ export class Game {
                 this.audio.playEnemyDeath();
                 // Award XP to the tower that killed the enemy
                 if (enemy.lastHitBy && typeof enemy.lastHitBy.addXp === 'function') {
-                    enemy.lastHitBy.addXp(enemy.xp || 10);
+                    const xpMultiplier = this.state.metaBonuses ? this.state.metaBonuses.xpMultiplier : 1.0;
+                    enemy.lastHitBy.addXp((enemy.xp || 10) * xpMultiplier);
                 }
                 return false;
             }
@@ -458,6 +522,13 @@ export class Game {
 
             if (waveResult && waveResult.type === 'wave_complete') {
                 this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
+
+                // Ganha Arcane Shards baseado na onda
+                const shardsGained = Math.max(1, Math.floor(waveResult.wave / 2));
+                if (shardsGained > 0) {
+                    this.metaManager.addShards(shardsGained);
+                    this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2 + 30, `+${shardsGained} ✨`, '#9b59b6');
+                }
             }
 
             if (this.waveSystem.currentWave > waveBefore && this.waveSystem.currentWave <= Config.maxWaves) {

@@ -21,19 +21,24 @@ export class StateStore {
             isPaused: false,
             gameSpeed: 1,
             logicalTime: 0,
-            highscore: parseInt(localStorage.getItem('towers_highscore')) || 0
+            highscore: parseInt(localStorage.getItem('towers_highscore')) || 0,
+            showTavern: false
         };
     }
 
     reset() {
         const initialState = this.getInitialState();
-        // Preserve some properties like highscore and towerManager reference
+        // Preserve some properties
         const towerManager = this.state.towerManager;
+        const dataManager = this.state.dataManager;
+        const metaManager = this.state.metaManager;
         const highscore = this.state.highscore;
 
         this.state = {
             ...initialState,
             towerManager,
+            dataManager,
+            metaManager,
             highscore
         };
     }
