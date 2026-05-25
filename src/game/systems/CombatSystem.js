@@ -119,7 +119,8 @@ export const CombatSystem = {
                 let color = Config.THEME.colors.bloodRed;
 
                 if (attackResult.crit) {
-                    damage *= 2;
+                    const critMultiplier = 2 + (gameState.metaBonuses?.crit_efficiency || 0);
+                    damage = Math.floor(damage * critMultiplier);
                     color = Config.THEME.colors.gold;
                 }
 

@@ -263,15 +263,15 @@ Trazer identidade D&D.
 Criar replay infinito.
 
 ## Progressão Permanente
-- [ ] Talent tree
-- [ ] Unlocks
-- [ ] Research
-- [ ] Persistent upgrades
+- [x] Talent tree
+- [x] Unlocks
+- [x] Research
+- [x] Persistent upgrades
 
 ## Currency
-- [ ] Gold
-- [ ] Arcane shards
-- [ ] Relics
+- [x] Gold
+- [x] Arcane shards
+- [x] Relics
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 8 — Meta Progression | Concluído | # | 2026-05-30 |
 | FASE 7 — Sistema de Magias | Concluído | # | 2026-05-29 |
 | FASE 6 — Targeting Avançado | Concluído | # | 2026-05-28 |
 | FASE 5 — Party System | Concluído | #5 | 2026-05-27 |

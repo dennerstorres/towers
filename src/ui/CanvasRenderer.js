@@ -1010,6 +1010,59 @@ export class CanvasRenderer {
     }
 
     /**
+     * Desenha o Hub de Upgrades Persistentes
+     */
+    drawMetaHub(gameState, metaManager, ui) {
+        if (!metaManager || !metaManager.metaConfig) return;
+
+        const layout = ui.getMetaHubLayout(this.canvas);
+        const { container, backButton, upgrades } = layout;
+
+        // Background
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Header
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 36px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('UPGRADES PERSISTENTES', this.canvas.width / 2, container.y + 50);
+
+        // Currency
+        this.ctx.font = `bold 24px ${Config.THEME.font}`;
+        this.ctx.fillStyle = Config.THEME.colors.wizard;
+        this.ctx.fillText(`${metaManager.shards} Shards`, this.canvas.width / 2, container.y + 85);
+
+        // Back Button
+        this.drawButton(backButton, Config.THEME.colors.gold, backButton.label);
+
+        // Upgrade Buttons
+        const upgradeKeys = Object.keys(metaManager.metaConfig.upgrades);
+        upgrades.forEach((opt, index) => {
+            const key = upgradeKeys[index];
+            const upgrade = metaManager.metaConfig.upgrades[key];
+            const rank = metaManager.getUpgradeRank(key);
+            const cost = upgrade.costPerRank * (rank + 1);
+            const isMax = rank >= upgrade.maxRank;
+
+            let label = `${upgrade.name} (${rank}/${upgrade.maxRank})`;
+            if (!isMax) {
+                label += ` - Custo: ${cost} Shards`;
+            } else {
+                label += ` - MAX`;
+            }
+
+            this.drawButton(opt, isMax ? '#95a5a6' : Config.THEME.colors.gold, label, isMax || metaManager.shards < cost);
+
+            // Subtext for description
+            this.ctx.font = `12px ${Config.THEME.font}`;
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.fillText(upgrade.description, opt.x + opt.width / 2, opt.y + opt.height - 10);
+            this.ctx.font = `bold 18px ${Config.THEME.font}`; // Reset font for next button
+        });
+    }
+
+    /**
      * Desenha o modal de Level Up
      */
     drawLevelUpModal(tower, ui, dataManager = null) {

@@ -1,0 +1,33 @@
+{
+    "upgrades": {
+        "starting_gold": {
+            "name": "Starting Gold",
+            "description": "Increase initial gold by 10 per rank.",
+            "maxRank": 10,
+            "costPerRank": 5,
+            "bonusPerRank": 10
+        },
+        "extra_lives": {
+            "name": "Extra Lives",
+            "description": "Increase initial lives by 1 per rank.",
+            "maxRank": 5,
+            "costPerRank": 10,
+            "bonusPerRank": 1
+        },
+        "xp_multiplier": {
+            "name": "XP Gain",
+            "description": "Increase XP gain by 10% per rank.",
+            "maxRank": 10,
+            "costPerRank": 8,
+            "bonusPerRank": 0.1
+        },
+        "crit_efficiency": {
+            "name": "Crit Efficiency",
+            "description": "Increase crit damage multiplier by 0.1 per rank.",
+            "maxRank": 5,
+            "costPerRank": 15,
+            "bonusPerRank": 0.1
+        }
+    },
+    "unlocks": {}
+}

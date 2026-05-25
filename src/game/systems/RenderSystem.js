@@ -14,7 +14,13 @@ export class RenderSystem {
      * @param {Object} floatingTexts - Floating texts for drawing
      * @param {HTMLCanvasElement} canvas - Main canvas
      */
-    render(gameState, waveSystem, particleSystem, floatingTexts, canvas) {
+    render(gameState, waveSystem, particleSystem, floatingTexts, canvas, metaManager = null) {
+        if (gameState.isMetaHubOpen) {
+            this.renderer.drawMetaHub(gameState, metaManager, this.ui);
+            this.renderer.drawFloatingTexts(floatingTexts.texts);
+            return;
+        }
+
         this.renderer.drawGrid();
         this.drawRangeVisuals(gameState, canvas);
 

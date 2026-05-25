@@ -9,6 +9,7 @@ import { WaveSystem } from '../systems/WaveSystem.js';
 import { PartySystem } from '../systems/PartySystem.js';
 import { TowerManager } from '../managers/TowerManager.js';
 import { DataManager } from '../managers/DataManager.js';
+import { MetaManager } from '../managers/MetaManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
@@ -22,13 +23,14 @@ export class Game {
         this.ui = new GameUI();
         this.waveSystem = new WaveSystem();
         this.partySystem = new PartySystem();
-        this.towerManager = new TowerManager();
         this.dataManager = new DataManager();
+        this.metaManager = new MetaManager();
+        this.towerManager = new TowerManager(this.metaManager);
         this.particleSystem = new ParticleSystem();
         this.floatingTexts = new FloatingText();
         this.audio = new AudioManager();
         
-        this.stateStore = new StateStore();
+        this.stateStore = new StateStore(this.metaManager);
         this.state = this.stateStore.state;
         this.state.towerManager = this.towerManager;
 
@@ -41,8 +43,8 @@ export class Game {
 
         this.gameLoopController = new GameLoop({
             onUpdate: (timeStep) => this.updateLogic(timeStep),
-            onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas),
-            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory,
+            onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas, this.metaManager),
+            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.isMetaHubOpen,
             isPaused: () => this.state.isPaused,
             getGameSpeed: () => this.state.gameSpeed
         });
@@ -62,6 +64,10 @@ export class Game {
             await this.dataManager.loadJSON('races', 'src/game/data/races.json');
             await this.dataManager.loadJSON('feats', 'src/game/data/feats.json');
             await this.dataManager.loadJSON('effects', 'src/game/data/effects.json');
+            const metaConfig = await this.dataManager.loadJSON('meta', 'src/game/data/meta.json');
+            if (metaConfig) {
+                this.metaManager.setMetaConfig(metaConfig);
+            }
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
@@ -87,6 +93,11 @@ export class Game {
     }
 
     handleClick(clickX, clickY) {
+        if (this.state.isMetaHubOpen) {
+            this.handleMetaHubClick(clickX, clickY);
+            return;
+        }
+
         if (this.state.isGameOver || this.state.isVictory) {
             const layout = this.ui.getEndGameLayout(this.canvas);
             if (clickX >= layout.restartButton.x && clickX <= layout.restartButton.x + layout.restartButton.width &&
@@ -277,6 +288,37 @@ export class Game {
         console.log(`Velocidade: ${this.state.gameSpeed}x`);
     }
 
+    openMetaHub() {
+        this.state.isMetaHubOpen = true;
+        this.state.gameRunning = false;
+        this.gameLoopController.start(); // Start loop if not already running for rendering
+    }
+
+    handleMetaHubClick(clickX, clickY) {
+        const layout = this.ui.getMetaHubLayout(this.canvas);
+
+        // Back to Menu
+        if (clickX >= layout.backButton.x && clickX <= layout.backButton.x + layout.backButton.width &&
+            clickY >= layout.backButton.y && clickY <= layout.backButton.y + layout.backButton.height) {
+
+            // For now, back to start screen involves a page reload or just UI toggle
+            window.location.reload();
+            return;
+        }
+
+        // Upgrades
+        layout.upgrades.forEach((opt, index) => {
+            if (clickX >= opt.x && clickX <= opt.x + opt.width &&
+                clickY >= opt.y && clickY <= opt.y + opt.height) {
+
+                const upgradeId = Object.keys(this.metaManager.metaConfig.upgrades)[index];
+                if (this.metaManager.buyUpgrade(upgradeId)) {
+                    this.floatingTexts.add(clickX, clickY, "UPGRADE COMPRADO!", Config.THEME.colors.gold);
+                }
+            }
+        });
+    }
+
     handlePanelClick(y) {
         const itemHeight = 80;
         const padding = 10;
@@ -361,6 +403,9 @@ export class Game {
             this.partySystem.update(this.towerManager.placedTowers);
         }
 
+        // Update Meta Bonuses for systems
+        this.state.metaBonuses = this.metaManager.getBonuses();
+
         // Reset Paladin Aura effects before recalculating
         for (let tower of this.towerManager.placedTowers) {
             tower.hasPaladinAura = false;
@@ -426,7 +471,8 @@ export class Game {
                 this.audio.playEnemyDeath();
                 // Award XP to the tower that killed the enemy
                 if (enemy.lastHitBy && typeof enemy.lastHitBy.addXp === 'function') {
-                    enemy.lastHitBy.addXp(enemy.xp || 10);
+                    const xpGain = (enemy.xp || 10) * (1 + (this.state.metaBonuses?.xp_multiplier || 0));
+                    enemy.lastHitBy.addXp(xpGain);
                 }
                 return false;
             }
@@ -457,7 +503,11 @@ export class Game {
             const waveResult = this.waveSystem.update(this.state, this.dataManager);
 
             if (waveResult && waveResult.type === 'wave_complete') {
+                const shardsEarned = Math.max(1, Math.floor(waveResult.wave / 2));
+                this.metaManager.addShards(shardsEarned);
+
                 this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
+                this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2 + 30, `+${shardsEarned} Shards`, Config.THEME.colors.wizard);
             }
 
             if (this.waveSystem.currentWave > waveBefore && this.waveSystem.currentWave <= Config.maxWaves) {

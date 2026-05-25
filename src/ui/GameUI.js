@@ -201,6 +201,34 @@ export class GameUI {
     /**
      * Retorna o layout para as telas de vitória e derrota
      */
+    getMetaHubLayout(canvas) {
+        const width = 600;
+        const height = 450;
+        const x = canvas.width / 2 - width / 2;
+        const y = canvas.height / 2 - height / 2;
+
+        const buttonWidth = 500;
+        const buttonHeight = 60;
+        const spacing = 15;
+
+        return {
+            container: { x, y, width, height },
+            backButton: {
+                x: x + 20,
+                y: y + 20,
+                width: 120,
+                height: 40,
+                label: '< Voltar'
+            },
+            upgrades: [0, 1, 2, 3].map(i => ({
+                x: x + (width - buttonWidth) / 2,
+                y: y + 100 + (buttonHeight + spacing) * i,
+                width: buttonWidth,
+                height: buttonHeight
+            }))
+        };
+    }
+
     getEndGameLayout(canvas) {
         const width = 400;
         const height = 300;

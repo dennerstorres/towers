@@ -2,13 +2,25 @@ import { Config } from '../core/Config.js';
 import { Tower } from '../entities/Tower.js';
 
 export class TowerManager {
-    constructor() {
+    constructor(metaManager = null) {
+        this.metaManager = metaManager;
         this.reset();
     }
 
     reset() {
         this.selectedTowerType = 'archer';
         this.availableTowers = Object.values(Config.TOWERS);
+
+        // Filter available towers based on meta-unlocks
+        if (this.metaManager && this.metaManager.metaConfig && this.metaManager.metaConfig.unlocks) {
+            const unlocks = this.metaManager.metaConfig.unlocks;
+            this.availableTowers = this.availableTowers.filter(tower => {
+                const unlockConfig = unlocks[tower.type];
+                if (!unlockConfig) return true; // Default to unlocked if no config
+                return this.metaManager.shards >= unlockConfig.cost; // Example condition
+            });
+        }
+
         this.placedTowers = [];
     }
 

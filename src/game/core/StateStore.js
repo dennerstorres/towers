@@ -1,16 +1,18 @@
 import { Config } from './Config.js';
 
 export class StateStore {
-    constructor() {
+    constructor(metaManager = null) {
+        this.metaManager = metaManager;
         this.state = this.getInitialState();
     }
 
     getInitialState() {
+        const metaBonuses = this.metaManager ? this.metaManager.getBonuses() : {};
         return {
             enemies: [],
             projectiles: [],
-            money: Config.initialMoney,
-            lives: Config.initialLives,
+            money: Config.initialMoney + (metaBonuses.starting_gold || 0),
+            lives: Config.initialLives + (metaBonuses.extra_lives || 0),
             gameRunning: false,
             isGameOver: false,
             isVictory: false,
