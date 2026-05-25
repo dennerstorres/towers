@@ -23,7 +23,9 @@ export class StateStore {
             logicalTime: 0,
             highscore: parseInt(localStorage.getItem('towers_highscore')) || 0,
             showTavern: false,
-            tavernCategory: 'upgrades'
+            tavernCategory: 'upgrades',
+            showCamp: false,
+            campTab: 'recruit'
         };
     }
 

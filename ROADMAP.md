@@ -281,14 +281,14 @@ Criar replay infinito.
 Criar hub entre waves.
 
 ## Tavern
-- [ ] Recruit characters
-- [ ] Upgrade gear
-- [ ] Heal party
-- [ ] Change formation
+- [x] Recruit characters
+- [x] Upgrade gear
+- [x] Heal party
+- [x] Change formation
 
 ## Camp Features
-- [ ] Shop
-- [ ] Blacksmith
+- [x] Shop
+- [x] Blacksmith
 - [ ] Mage tower
 - [ ] Training grounds
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 9 — Tavern System | Concluído | # | 2026-06-01 |
 | FASE 8 — Meta Progression | Concluído | # | 2026-05-30 |
 | FASE 7 — Sistema de Magias | Concluído | # | 2026-05-29 |
 | FASE 6 — Targeting Avançado | Concluído | # | 2026-05-28 |
