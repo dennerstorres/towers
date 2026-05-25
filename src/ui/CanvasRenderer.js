@@ -232,6 +232,8 @@ export class CanvasRenderer {
 
         if (gameState.isGameOver || gameState.isVictory) {
             this.drawEndGameScreen(gameState, waveManager, ui);
+        } else if (gameState.showTavern) {
+            this.drawTavern(gameState, ui);
         } else if (gameState.isPaused) {
             this.drawPauseOverlay(ui);
         } else if (waveManager.isWaiting) {
@@ -1007,6 +1009,79 @@ export class CanvasRenderer {
             this.ctx.fillText(t.text, t.x, t.y);
         }
         this.ctx.restore();
+    }
+
+    /**
+     * Desenha a tela da Taverna (Meta Progressão)
+     */
+    drawTavern(gameState, ui) {
+        const metaData = gameState.dataManager.get('meta');
+        const layout = ui.getTavernLayout(this.canvas, metaData, gameState.metaManager);
+        const { modal, upgradeButtons, backButton } = layout;
+
+        // Overlay
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Modal
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 4;
+        this.ctx.fillRect(modal.x, modal.y, modal.width, modal.height);
+        this.ctx.strokeRect(modal.x, modal.y, modal.width, modal.height);
+
+        // Title
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 32px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('TAVERNA DO AVENTUREIRO', modal.x + modal.width / 2, modal.y + 40);
+
+        // Currency
+        this.ctx.font = `bold 20px ${Config.THEME.font}`;
+        this.ctx.fillStyle = '#9b59b6';
+        this.ctx.fillText(`Fragmentos Arcanos: ${gameState.metaManager.state.arcaneShards} ✨`, modal.x + modal.width / 2, modal.y + 70);
+
+        // Upgrades
+        upgradeButtons.forEach(btn => {
+            this.ctx.save();
+
+            // Button Background
+            this.ctx.fillStyle = btn.canAfford ? 'rgba(44, 62, 80, 0.9)' : 'rgba(20, 20, 20, 0.9)';
+            if (btn.isMaxed) this.ctx.fillStyle = 'rgba(39, 174, 96, 0.2)';
+            this.ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
+
+            this.ctx.strokeStyle = btn.canAfford ? Config.THEME.colors.gold : '#555';
+            if (btn.isMaxed) this.ctx.strokeStyle = '#27ae60';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
+
+            // Name & Level
+            this.ctx.textAlign = 'left';
+            this.ctx.fillStyle = btn.isMaxed ? '#27ae60' : '#ecf0f1';
+            this.ctx.font = `bold 16px ${Config.THEME.font}`;
+            this.ctx.fillText(`${btn.upgradeName} (Nv. ${btn.level}/${btn.maxLevel})`, btn.x + 15, btn.y + 25);
+
+            // Description
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.font = `12px ${Config.THEME.font}`;
+            this.ctx.fillText(btn.description, btn.x + 15, btn.y + 45);
+
+            // Cost / Max
+            this.ctx.textAlign = 'right';
+            if (btn.isMaxed) {
+                this.ctx.fillStyle = '#27ae60';
+                this.ctx.fillText('MAXIMIZADO', btn.x + btn.width - 15, btn.y + btn.height / 2 + 5);
+            } else {
+                this.ctx.fillStyle = btn.canAfford ? '#9b59b6' : '#e74c3c';
+                this.ctx.font = `bold 16px ${Config.THEME.font}`;
+                this.ctx.fillText(`${btn.cost} ✨`, btn.x + btn.width - 15, btn.y + btn.height / 2 + 5);
+            }
+
+            this.ctx.restore();
+        });
+
+        // Back Button
+        this.drawButton(backButton, Config.THEME.colors.gold, backButton.label);
     }
 
     /**

@@ -266,11 +266,11 @@ Criar replay infinito.
 - [ ] Talent tree
 - [ ] Unlocks
 - [ ] Research
-- [ ] Persistent upgrades
+- [x] Persistent upgrades
 
 ## Currency
-- [ ] Gold
-- [ ] Arcane shards
+- [x] Gold
+- [x] Arcane shards
 - [ ] Relics
 
 ---
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 8 — Meta Progression | In Progress | # | 2026-05-30 |
 | FASE 7 — Sistema de Magias | Concluído | # | 2026-05-29 |
 | FASE 6 — Targeting Avançado | Concluído | # | 2026-05-28 |
 | FASE 5 — Party System | Concluído | #5 | 2026-05-27 |

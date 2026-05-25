@@ -1,0 +1,44 @@
+{
+    "upgrades": {
+        "startingGold": {
+            "name": "Wealthy Patron",
+            "description": "Start with more gold for recruitment.",
+            "maxLevel": 5,
+            "baseCost": 10,
+            "costMultiplier": 1.5,
+            "bonusPerLevel": 20
+        },
+        "extraLives": {
+            "name": "Bastion of Hope",
+            "description": "Increases base lives of your territory.",
+            "maxLevel": 5,
+            "baseCost": 20,
+            "costMultiplier": 2.0,
+            "bonusPerLevel": 1
+        },
+        "xpBonus": {
+            "name": "Veteran Training",
+            "description": "Characters gain XP faster.",
+            "maxLevel": 5,
+            "baseCost": 15,
+            "costMultiplier": 1.5,
+            "bonusPerLevel": 0.1
+        },
+        "critEfficiency": {
+            "name": "Lethal Precision",
+            "description": "Increases base critical hit chance.",
+            "maxLevel": 3,
+            "baseCost": 50,
+            "costMultiplier": 2.5,
+            "bonusPerLevel": 1
+        }
+    },
+    "talents": {
+        "unlockedClasses": {
+            "name": "Diverse Recruitment",
+            "description": "Unlock advanced hero classes.",
+            "cost": 100,
+            "requires": []
+        }
+    }
+}

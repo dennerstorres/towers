@@ -199,6 +199,58 @@ export class GameUI {
     }
 
     /**
+     * Retorna o layout para a Taverna (Meta Progressão)
+     */
+    getTavernLayout(canvas, metaData, metaManager) {
+        const width = 600;
+        const height = 450;
+        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
+        const y = canvas.height / 2 - height / 2;
+
+        const upgradeButtons = [];
+        const buttonWidth = 500;
+        const buttonHeight = 60;
+        const spacing = 15;
+
+        if (metaData && metaData.upgrades) {
+            let i = 0;
+            for (const key in metaData.upgrades) {
+                const upgrade = metaData.upgrades[key];
+                const level = metaManager.getUpgradeLevel(key);
+                const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, level));
+
+                upgradeButtons.push({
+                    x: x + (width - buttonWidth) / 2,
+                    y: y + 80 + (buttonHeight + spacing) * i,
+                    width: buttonWidth,
+                    height: buttonHeight,
+                    upgradeKey: key,
+                    upgradeName: upgrade.name,
+                    description: upgrade.description,
+                    level: level,
+                    maxLevel: upgrade.maxLevel,
+                    cost: cost,
+                    canAfford: metaManager.state.arcaneShards >= cost,
+                    isMaxed: level >= upgrade.maxLevel
+                });
+                i++;
+            }
+        }
+
+        return {
+            modal: { x, y, width, height },
+            upgradeButtons,
+            backButton: {
+                x: x + width / 2 - 100,
+                y: y + height - 60,
+                width: 200,
+                height: 40,
+                label: 'Voltar'
+            }
+        };
+    }
+
+    /**
      * Retorna o layout para as telas de vitória e derrota
      */
     getEndGameLayout(canvas) {
