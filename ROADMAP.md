@@ -382,10 +382,10 @@ Dar sensação AAA indie.
 Preparar para crescimento.
 
 ## Optimization
-- [ ] Object pooling
-- [ ] Spatial partitioning
-- [ ] Render culling
-- [ ] Offscreen canvas
+- [x] Object pooling
+- [x] Spatial partitioning
+- [x] Render culling
+- [x] Offscreen canvas
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 14 — Performance | Concluído | # | 2026-06-05 |
 | FASE 13 — Visual & Game Feel | In Review | # | 2026-05-26 |
 | FASE 12 — Sistema de Mapas | In Review | #11 | 2026-05-26 |
 | FASE 11 — Bosses RPG | Concluído | # | 2026-06-03 |

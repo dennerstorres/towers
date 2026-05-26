@@ -15,6 +15,9 @@ export class CanvasRenderer {
         this.bgCanvas.height = canvas.height;
         this.bgCtx = this.bgCanvas.getContext('2d');
         this.isBgRendered = false;
+
+        // Cache para bases de torres
+        this.towerCache = new Map(); // type -> canvas
     }
 
     preRenderBackground(gameState) {
@@ -586,6 +589,77 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
+    /**
+     * Pre-renderiza e cacheia a base visual de uma torre
+     */
+    getTowerBaseCanvas(type) {
+        if (this.towerCache.has(type)) return this.towerCache.get(type);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = Config.gridSize;
+        canvas.height = Config.gridSize;
+        const ctx = canvas.getContext('2d');
+
+        // Distinct colors based on type
+        let primaryColor = Config.THEME.colors.stone;
+        let accentColor = Config.THEME.colors.gold;
+
+        if (type === 'archer') accentColor = Config.THEME.colors.archer;
+        if (type === 'cannon') {
+            primaryColor = '#95a5a6';
+            accentColor = Config.THEME.colors.cannon;
+        }
+        if (type === 'wizard') {
+            primaryColor = '#34495e';
+            accentColor = Config.THEME.colors.wizard;
+        }
+        if (type === 'fighter') {
+            primaryColor = '#5d6d7e';
+            accentColor = Config.THEME.colors.fighter;
+        }
+        if (type === 'ranger') {
+            primaryColor = '#1e8449';
+            accentColor = Config.THEME.colors.ranger;
+        }
+        if (type === 'cleric') {
+            primaryColor = '#ecf0f1';
+            accentColor = Config.THEME.colors.cleric;
+        }
+        if (type === 'rogue') {
+            primaryColor = '#2c3e50';
+            accentColor = Config.THEME.colors.rogue;
+        }
+        if (type === 'paladin') {
+            primaryColor = '#f39c12';
+            accentColor = Config.THEME.colors.paladin;
+        }
+
+        // Tower Body
+        ctx.fillStyle = primaryColor;
+        ctx.fillRect(8, 10, 24, 25);
+
+        // Tower Top (the platform)
+        ctx.fillStyle = primaryColor;
+        ctx.fillRect(5, 5, 30, 7);
+
+        // Battlements (merlons)
+        ctx.fillStyle = Config.THEME.colors.darkStone;
+        ctx.fillRect(5, 2, 6, 3);
+        ctx.fillRect(17, 2, 6, 3);
+        ctx.fillRect(29, 2, 6, 3);
+
+        // Decorative line under battlements
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(5, 12, 30, 2);
+
+        // Base/Foundation
+        ctx.fillStyle = Config.THEME.colors.darkStone;
+        ctx.fillRect(6, 35, 28, 3);
+
+        this.towerCache.set(type, canvas);
+        return canvas;
+    }
+
     drawTower(tower, isIcon = false) {
         const x = isIcon ? 0 : tower.x * Config.gridSize;
         const y = isIcon ? 0 : tower.y * Config.gridSize;
@@ -601,57 +675,20 @@ export class CanvasRenderer {
             this.ctx.fill();
         }
 
-        // Distinct colors based on type
-        let primaryColor = Config.THEME.colors.stone;
+        // Draw cached tower base
+        const baseCanvas = this.getTowerBaseCanvas(tower.type);
+        this.ctx.drawImage(baseCanvas, x, y);
+
+        // Distinct colors based on type for specific visual elements
         let accentColor = Config.THEME.colors.gold;
-
         if (tower.type === 'archer') accentColor = Config.THEME.colors.archer;
-        if (tower.type === 'cannon') {
-            primaryColor = '#95a5a6';
-            accentColor = Config.THEME.colors.cannon;
-        }
-        if (tower.type === 'wizard') {
-            primaryColor = '#34495e';
-            accentColor = Config.THEME.colors.wizard;
-        }
-        if (tower.type === 'fighter') {
-            primaryColor = '#5d6d7e';
-            accentColor = Config.THEME.colors.fighter;
-        }
-        if (tower.type === 'ranger') {
-            primaryColor = '#1e8449';
-            accentColor = Config.THEME.colors.ranger;
-        }
-        if (tower.type === 'cleric') {
-            primaryColor = '#ecf0f1';
-            accentColor = Config.THEME.colors.cleric;
-        }
-        if (tower.type === 'rogue') {
-            primaryColor = '#2c3e50';
-            accentColor = Config.THEME.colors.rogue;
-        }
-        if (tower.type === 'paladin') {
-            primaryColor = '#f39c12';
-            accentColor = Config.THEME.colors.paladin;
-        }
-
-        // Tower Body
-        this.ctx.fillStyle = primaryColor;
-        this.ctx.fillRect(x + 8, y + 10, 24, 25);
-
-        // Tower Top (the platform)
-        this.ctx.fillStyle = primaryColor;
-        this.ctx.fillRect(x + 5, y + 5, 30, 7);
-
-        // Battlements (merlons)
-        this.ctx.fillStyle = Config.THEME.colors.darkStone;
-        this.ctx.fillRect(x + 5, y + 2, 6, 3);
-        this.ctx.fillRect(x + 17, y + 2, 6, 3);
-        this.ctx.fillRect(x + 29, y + 2, 6, 3);
-
-        // Decorative line under battlements
-        this.ctx.fillStyle = accentColor;
-        this.ctx.fillRect(x + 5, y + 12, 30, 2);
+        if (tower.type === 'cannon') accentColor = Config.THEME.colors.cannon;
+        if (tower.type === 'wizard') accentColor = Config.THEME.colors.wizard;
+        if (tower.type === 'fighter') accentColor = Config.THEME.colors.fighter;
+        if (tower.type === 'ranger') accentColor = Config.THEME.colors.ranger;
+        if (tower.type === 'cleric') accentColor = Config.THEME.colors.cleric;
+        if (tower.type === 'rogue') accentColor = Config.THEME.colors.rogue;
+        if (tower.type === 'paladin') accentColor = Config.THEME.colors.paladin;
 
         // Synergy Glow
         if (!isIcon && tower.activeSynergies && tower.activeSynergies.length > 0) {
@@ -730,10 +767,6 @@ export class CanvasRenderer {
             this.ctx.fillStyle = '#2c3e50';
             this.ctx.fillRect(x + 18, y + 18, 4, 6);
         }
-
-        // Base/Foundation
-        this.ctx.fillStyle = Config.THEME.colors.darkStone;
-        this.ctx.fillRect(x + 6, y + 35, 28, 3);
 
         // Aura indicator for Paladin
         if (!isIcon && tower.type === 'paladin') {
