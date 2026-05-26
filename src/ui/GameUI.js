@@ -213,10 +213,11 @@ export class GameUI {
             { label: 'Unlocks', category: 'unlocks' },
             { label: 'Talents', category: 'talents' },
             { label: 'Research', category: 'research' },
-            { label: 'Relics', category: 'relics' }
+            { label: 'Relics', category: 'relics' },
+            { label: 'Save', category: 'save' }
         ];
 
-        const tabWidth = 120;
+        const tabWidth = 105;
         const tabHeight = 35;
         const tabsX = x + (width - (tabWidth * tabs.length)) / 2;
         const tabsY = y + 80;
@@ -296,6 +297,25 @@ export class GameUI {
                         canAfford: metaManager.state.arcaneShards >= relic.cost,
                         x: x + (width - buttonWidth) / 2, y: contentY + i * (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
                     });
+                });
+            } else if (category === 'save') {
+                upgradeButtons.push({
+                    type: 'export_save',
+                    name: 'Exportar Save',
+                    description: 'Copia o seu progresso para a área de transferência.',
+                    x: x + (width - buttonWidth) / 2, y: contentY, width: buttonWidth, height: buttonHeight
+                });
+                upgradeButtons.push({
+                    type: 'import_save',
+                    name: 'Importar Save',
+                    description: 'Carrega um save a partir de um código JSON.',
+                    x: x + (width - buttonWidth) / 2, y: contentY + (buttonHeight + spacing), width: buttonWidth, height: buttonHeight
+                });
+                upgradeButtons.push({
+                    type: 'delete_run',
+                    name: 'Apagar Run Atual',
+                    description: 'Deleta o progresso da partida atual (não afeta meta-progressão).',
+                    x: x + (width - buttonWidth) / 2, y: contentY + (buttonHeight + spacing) * 2, width: buttonWidth, height: buttonHeight
                 });
             }
         }

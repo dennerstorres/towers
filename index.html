@@ -115,9 +115,9 @@
             font-style: italic;
         }
 
-        #startButton {
-            padding: 20px 60px;
-            font-size: 28px;
+        .menu-button {
+            padding: 15px 40px;
+            font-size: 24px;
             font-family: 'MedievalSharp', cursive, serif;
             background-color: #c0392b;
             color: #f1c40f;
@@ -130,17 +130,48 @@
             box-shadow: 0 6px #922b21, 0 10px 20px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden;
+            display: block;
+            margin: 15px auto;
+            width: 300px;
         }
 
-        #startButton:hover {
+        .menu-button:hover {
             background-color: #e74c3c;
             transform: translateY(-3px);
             box-shadow: 0 9px #922b21, 0 15px 25px rgba(0,0,0,0.5);
         }
 
-        #startButton:active {
+        .menu-button:active {
             transform: translateY(3px);
             box-shadow: 0 3px #922b21, 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        #continueButton {
+            background-color: #27ae60;
+            box-shadow: 0 6px #1e8449, 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        #continueButton:hover {
+            background-color: #2ecc71;
+            box-shadow: 0 9px #1e8449, 0 15px 25px rgba(0,0,0,0.5);
+        }
+
+        #continueButton:active {
+            box-shadow: 0 3px #1e8449, 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        #tavernButton {
+            background-color: #34495e;
+            box-shadow: 0 6px #2c3e50, 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        #tavernButton:hover {
+            background-color: #5d6d7e;
+            box-shadow: 0 9px #2c3e50, 0 15px 25px rgba(0,0,0,0.5);
+        }
+
+        #tavernButton:active {
+            box-shadow: 0 3px #2c3e50, 0 5px 10px rgba(0,0,0,0.5);
         }
     </style>
 </head>
@@ -148,16 +179,19 @@
     <div id="startScreen">
         <h1>🏰 Tower Defense</h1>
         <p>Defenda seu território construindo torres estratégicas!</p>
-        <button id="startButton">Iniciar Jogo</button>
-        <button id="tavernButton" style="background-color: #34495e; margin-top: 10px;">Taverna</button>
+        <button id="startButton" class="menu-button">Novo Jogo</button>
+        <button id="continueButton" class="menu-button" style="display: none;">Continuar</button>
+        <button id="tavernButton" class="menu-button">Taverna</button>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script type="module">
         import { Game } from './src/game/core/Game.js';
+        import { SaveSystem } from './src/game/systems/SaveSystem.js';
         
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('gameCanvas');
             const startButton = document.getElementById('startButton');
+            const continueButton = document.getElementById('continueButton');
             const tavernButton = document.getElementById('tavernButton');
             const startScreen = document.getElementById('startScreen');
             
@@ -168,6 +202,11 @@
             game.init().then(() => {
                 console.log('Game inicializado com sucesso.');
                 isInitialized = true;
+
+                // Check for saved run
+                if (SaveSystem.loadRun()) {
+                    continueButton.style.display = 'inline-block';
+                }
             }).catch(err => {
                 console.error('Erro ao inicializar o jogo:', err);
             });
@@ -177,9 +216,24 @@
                     console.warn('Aguardando inicialização do jogo...');
                     return;
                 }
+
+                if (SaveSystem.loadRun()) {
+                    if (!confirm('Iniciar um novo jogo irá apagar o progresso atual. Deseja continuar?')) {
+                        return;
+                    }
+                    SaveSystem.clearRun();
+                }
+
                 startScreen.style.display = 'none';
                 canvas.style.display = 'block';
                 game.start();
+            });
+
+            continueButton.addEventListener('click', () => {
+                if (!isInitialized) return;
+                startScreen.style.display = 'none';
+                canvas.style.display = 'block';
+                game.loadAndStart();
             });
 
             tavernButton.addEventListener('click', () => {

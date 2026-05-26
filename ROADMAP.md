@@ -395,10 +395,10 @@ Preparar para crescimento.
 Persistência real.
 
 ## Save Features
-- [ ] Full save
-- [ ] Autosave
-- [ ] Save versioning
-- [ ] Import/export
+- [x] Full save
+- [x] Autosave
+- [x] Save versioning
+- [x] Import/export
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 15 — Save System | Concluído | # | 2026-06-07 |
 | FASE 14 — Performance | Concluído | # | 2026-06-05 |
 | FASE 13 — Visual & Game Feel | In Review | # | 2026-05-26 |
 | FASE 12 — Sistema de Mapas | In Review | #11 | 2026-05-26 |
