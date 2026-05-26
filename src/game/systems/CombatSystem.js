@@ -150,9 +150,6 @@ export const CombatSystem = {
 
                 // Status Effects Logic
                 if (effects) {
-                    // Feedback for Legendary Resistance if it was used inside applyEffect
-                    const previousResistances = projectile.target.legendaryResistances;
-
                     if (currentDamageType === 'fire' && Math.random() < 0.2) {
                         projectile.target.applyEffect('burn', effects.burn, projectile.attacker);
                     }
@@ -171,10 +168,6 @@ export const CombatSystem = {
                     }
                     if (projectile.attacker && projectile.attacker.type === 'fighter' && Math.random() < 0.25) {
                         projectile.target.applyEffect('armor_break', effects.armor_break, projectile.attacker);
-                    }
-
-                    if (projectile.target.isBoss && projectile.target.legendaryResistances < previousResistances) {
-                        floatingTexts.add(projectile.target.x, projectile.target.y - 30, 'RESISTÊNCIA LENDÁRIA!', '#f1c40f');
                     }
                 }
 

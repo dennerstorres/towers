@@ -45,27 +45,18 @@ export class WaveSystem {
     }
 
     spawnEnemy(gameState, dataManager = null) {
-        let type;
-
-        // Boss wave logic
-        if (this.currentWave === 5 && this.enemiesSpawned === 0) {
-            type = 'boss_1';
-        } else if (this.currentWave === 10 && this.enemiesSpawned === 0) {
-            type = 'boss_2';
-        } else {
-            const types = ['goblin', 'goblin', 'orc', 'scout'];
-            type = types[Math.floor(Math.random() * types.length)];
-        }
+        const types = ['goblin', 'goblin', 'orc', 'scout'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
 
         let enemyData = null;
         if (dataManager) {
             const allEnemies = dataManager.get('enemies');
-            if (allEnemies && allEnemies[type]) {
-                enemyData = allEnemies[type];
+            if (allEnemies && allEnemies[randomType]) {
+                enemyData = allEnemies[randomType];
             }
         }
 
-        gameState.enemies.push(new Enemy(type, enemyData));
+        gameState.enemies.push(new Enemy(randomType, enemyData));
         this.enemiesSpawned++;
     }
 
