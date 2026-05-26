@@ -325,15 +325,15 @@ Adicionar RPG pesado.
 Criar encounters memoráveis.
 
 ## Boss Mechanics
-- [ ] Multiple phases
-- [ ] Resistances
-- [ ] Summons
-- [ ] Area attacks
-- [ ] Enrage
+- [x] Multiple phases
+- [x] Resistances
+- [x] Summons
+- [x] Area attacks
+- [x] Enrage
 
 ## Legendary Mechanics
-- [ ] Legendary resistance
-- [ ] Special actions
+- [x] Legendary resistance
+- [x] Special actions
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 11 — Bosses RPG | Concluído | # | 2026-06-03 |
 | FASE 10 — Loot & Equipamentos | Concluído | # | 2026-06-02 |
 | FASE 9 — Tavern System | Concluído | # | 2026-06-01 |
 | FASE 8 — Meta Progression | Concluído | # | 2026-05-30 |

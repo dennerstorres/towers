@@ -150,6 +150,23 @@ export const CombatSystem = {
 
                 // Status Effects Logic
                 if (effects) {
+                    // Boss Legendary Resistance check
+                    if (projectile.target.isBoss && projectile.target.legendaryResistances > 0) {
+                        // Check if any negative effect would be applied
+                        const roll = Math.random();
+                        if ((currentDamageType === 'fire' && roll < 0.2) ||
+                            (currentDamageType === 'radiant' && roll < 0.1) ||
+                            (projectile.attacker && projectile.attacker.type === 'rogue' && roll < 0.3) ||
+                            (projectile.attacker && projectile.attacker.type === 'cannon' && roll < 0.2) ||
+                            (projectile.attacker && (projectile.attacker.type === 'archer' || projectile.attacker.type === 'ranger') && roll < 0.15) ||
+                            (projectile.attacker && projectile.attacker.type === 'fighter' && roll < 0.25)) {
+
+                            projectile.target.legendaryResistances--;
+                            floatingTexts.add(projectile.target.x, projectile.target.y - 20, "RESISTIDO!", "#f1c40f");
+                            return; // Resist all effects from this hit
+                        }
+                    }
+
                     if (currentDamageType === 'fire' && Math.random() < 0.2) {
                         projectile.target.applyEffect('burn', effects.burn, projectile.attacker);
                     }

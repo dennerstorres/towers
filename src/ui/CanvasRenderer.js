@@ -226,6 +226,12 @@ export class CanvasRenderer {
         this.drawTowerSelectionPanel(gameState, ui);
         this.drawControls(gameState, ui);
 
+        // Draw Boss Health Bar if a boss exists
+        const boss = gameState.enemies.find(e => e.isBoss);
+        if (boss) {
+            this.drawBossHealthBar(boss, ui);
+        }
+
         if (gameState.selectedPlacedTower) {
             this.drawTowerMenu(gameState.selectedPlacedTower, gameState.money, ui);
         }
@@ -1262,6 +1268,60 @@ export class CanvasRenderer {
         this.ctx.fillStyle = btn.canAfford ? Config.THEME.colors.gold : '#e74c3c';
         this.ctx.font = `bold 20px ${Config.THEME.font}`;
         this.ctx.fillText(`${btn.cost} G`, btn.x + btn.width / 2, btn.y + 250);
+
+        this.ctx.restore();
+    }
+
+    /**
+     * Desenha a barra de vida do Boss no topo da tela
+     */
+    drawBossHealthBar(boss, ui) {
+        const layout = ui.getBossHealthBarLayout(this.canvas);
+        const { x, y, width, height } = layout;
+
+        this.ctx.save();
+
+        // Background
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        this.ctx.fillRect(x, y, width, height);
+
+        // Fill
+        const healthPercent = boss.health / boss.maxHealth;
+        const gradient = this.ctx.createLinearGradient(x, 0, x + width, 0);
+        gradient.addColorStop(0, '#c0392b');
+        gradient.addColorStop(1, '#e74c3c');
+
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(x, y, width * healthPercent, height);
+
+        // Border
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x, y, width, height);
+
+        // Name
+        this.ctx.fillStyle = '#fff';
+        this.ctx.font = `bold 16px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'bottom';
+        this.ctx.fillText(boss.name.toUpperCase(), x + width / 2, y - 5);
+
+        // Legendary Resistances
+        const lrSize = 10;
+        const lrSpacing = 5;
+        const lrTotalWidth = (boss.legendaryResistances * lrSize) + ((boss.legendaryResistances - 1) * lrSpacing);
+        const lrX = x + width / 2 - lrTotalWidth / 2;
+        const lrY = y + height + 10;
+
+        for (let i = 0; i < boss.legendaryResistances; i++) {
+            this.ctx.fillStyle = Config.THEME.colors.gold;
+            this.ctx.beginPath();
+            this.ctx.arc(lrX + i * (lrSize + lrSpacing) + lrSize/2, lrY, lrSize/2, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.strokeStyle = '#fff';
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+        }
 
         this.ctx.restore();
     }
