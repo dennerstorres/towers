@@ -7,7 +7,9 @@ import { InputSystem } from '../systems/InputSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { WaveSystem } from '../systems/WaveSystem.js';
 import { PartySystem } from '../systems/PartySystem.js';
+import { SpatialSystem } from '../systems/SpatialSystem.js';
 import { TowerManager } from '../managers/TowerManager.js';
+import { ProjectileManager } from '../managers/ProjectileManager.js';
 import { DataManager } from '../managers/DataManager.js';
 import { MetaManager } from '../managers/MetaManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
@@ -23,7 +25,9 @@ export class Game {
         this.ui = new GameUI();
         this.waveSystem = new WaveSystem();
         this.partySystem = new PartySystem();
+        this.spatialSystem = new SpatialSystem(canvas.width, canvas.height);
         this.towerManager = new TowerManager();
+        this.projectileManager = new ProjectileManager();
         this.dataManager = new DataManager();
         this.metaManager = new MetaManager();
         this.particleSystem = new ParticleSystem();
@@ -33,6 +37,8 @@ export class Game {
         this.stateStore = new StateStore();
         this.state = this.stateStore.state;
         this.state.towerManager = this.towerManager;
+        this.state.spatialSystem = this.spatialSystem;
+        this.state.projectileManager = this.projectileManager;
         this.state.dataManager = this.dataManager;
         this.state.metaManager = this.metaManager;
 
@@ -78,6 +84,8 @@ export class Game {
             this.stateStore.reset();
             this.state = this.stateStore.state;
             this.state.towerManager = this.towerManager;
+            this.state.spatialSystem = this.spatialSystem;
+            this.state.projectileManager = this.projectileManager;
             this.state.dataManager = this.dataManager;
             this.state.metaManager = this.metaManager;
 
@@ -652,6 +660,8 @@ export class Game {
         this.stateStore.reset();
         this.state = this.stateStore.state;
         this.state.towerManager = this.towerManager;
+        this.state.spatialSystem = this.spatialSystem;
+        this.state.projectileManager = this.projectileManager;
         this.state.dataManager = this.dataManager;
         this.state.metaManager = this.metaManager;
         this.applyMetaBonuses(true);
@@ -674,6 +684,9 @@ export class Game {
         }
 
         this.state.logicalTime += timeStep;
+
+        // Atualiza o sistema espacial
+        this.spatialSystem.update(this.state.enemies);
 
         // Atualiza Sinergias a cada 30 frames ou quando a composição muda
         if (this.state.logicalTime % 30 === 0) {
@@ -705,6 +718,9 @@ export class Game {
                         this.dataManager
                     );
                 } else {
+                    // result is now handled within Tower.shoot which calls projectileManager.get()
+                    // or it could be returned. In our plan, we'll make Tower.shoot use the manager.
+                    // If Tower.update returns a projectile, we should ensure it's from the pool.
                     this.state.projectiles.push(result);
                     this.audio.playShoot(tower.type);
                 }
@@ -717,7 +733,8 @@ export class Game {
             p.update();
 
             if (p.reached) {
-                CombatSystem.applyDamage(p, this.state, this.floatingTexts, this.particleSystem, this.dataManager);
+                CombatSystem.applyDamage(p, this.state, this.floatingTexts, this.particleSystem, this.dataManager, this.spatialSystem);
+                this.projectileManager.release(p);
                 this.state.projectiles.splice(i, 1);
             }
         }

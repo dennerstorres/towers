@@ -67,15 +67,18 @@ export const CombatSystem = {
      * @param {Object} floatingTexts - Sistema de textos flutuantes
      * @param {Object} particleSystem - Sistema de partículas
      * @param {Object} dataManager - Gerenciador de dados para efeitos
+     * @param {Object} spatialSystem - Sistema espacial para busca otimizada
      */
-    applyDamage(projectile, gameState, floatingTexts, particleSystem, dataManager) {
+    applyDamage(projectile, gameState, floatingTexts, particleSystem, dataManager, spatialSystem = null) {
         const currentDamageType = projectile.damageType || 'piercing';
         const effects = dataManager ? dataManager.get('effects') : null;
 
         if (projectile.splashRadius > 0) {
             // AoE Spell (Wizard)
             const splashRadiusSq = projectile.splashRadius * projectile.splashRadius;
-            gameState.enemies.forEach(enemy => {
+            const enemiesPool = spatialSystem ? spatialSystem.getEnemiesInRange(projectile.x, projectile.y, projectile.splashRadius) : gameState.enemies;
+
+            enemiesPool.forEach(enemy => {
                 const dx = enemy.x - projectile.x;
                 const dy = enemy.y - projectile.y;
                 const distanceSq = dx * dx + dy * dy;

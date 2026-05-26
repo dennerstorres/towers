@@ -34,8 +34,11 @@ export class RenderSystem {
         }
 
         // Draw Projectiles
+        const buffer = 20;
         for (let p of gameState.projectiles) {
-            this.renderer.drawProjectile(p);
+            if (p.x >= -buffer && p.x <= canvas.width + buffer && p.y >= -buffer && p.y <= canvas.height + buffer) {
+                this.renderer.drawProjectile(p);
+            }
         }
 
         // Draw Spell Area Indicators (FASE 7)
@@ -43,14 +46,25 @@ export class RenderSystem {
 
         // Draw Enemies
         for (let enemy of gameState.enemies) {
-            this.renderer.drawEnemy(enemy);
+            if (enemy.x >= -buffer && enemy.x <= canvas.width + buffer && enemy.y >= -buffer && enemy.y <= canvas.height + buffer) {
+                this.renderer.drawEnemy(enemy);
+            }
         }
 
         // Draw Particles
-        this.renderer.drawParticles(particleSystem.getParticles());
+        const particles = particleSystem.getParticles();
+        for (let p of particles) {
+            if (p.x >= -buffer && p.x <= canvas.width + buffer && p.y >= -buffer && p.y <= canvas.height + buffer) {
+                this.renderer.drawParticles([p]);
+            }
+        }
 
         // Draw Floating Texts
-        this.renderer.drawFloatingTexts(floatingTexts.texts);
+        for (let t of floatingTexts.texts) {
+            if (t.x >= -buffer && t.x <= canvas.width + buffer && t.y >= -buffer && t.y <= canvas.height + buffer) {
+                this.renderer.drawFloatingTexts([t]);
+            }
+        }
 
         // Draw UI overlay
         this.renderer.drawUI(gameState, waveSystem, this.ui);

@@ -323,11 +323,12 @@ export class Tower extends Character {
     }
 
     /**
-     * Seleciona um alvo baseado no targetMode atual (Busca Linear O(N))
+     * Seleciona um alvo baseado no targetMode atual (Busca Espacial O(log N) ou melhor)
      * @param {Array} enemies
+     * @param {Object} spatialSystem
      * @returns {Object|null}
      */
-    getTarget(enemies) {
+    getTarget(enemies, spatialSystem = null) {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
         const currentRange = this.getRange();
@@ -336,7 +337,10 @@ export class Tower extends Character {
         let bestTarget = null;
         let bestValue = null;
 
-        for (const enemy of enemies) {
+        // Use spatial system if available, otherwise fallback to linear scan
+        const targetPool = spatialSystem ? spatialSystem.getEnemiesInRange(centerX, centerY, currentRange) : enemies;
+
+        for (const enemy of targetPool) {
             const dx = centerX - enemy.x;
             const dy = centerY - enemy.y;
             const distSq = dx * dx + dy * dy;
@@ -449,7 +453,7 @@ export class Tower extends Character {
         }
 
         if (currentTime - this.lastShot > this.cooldown) {
-            const projectile = this.shoot(enemies, currentTime);
+            const projectile = this.shoot(enemies, currentTime, gameState);
             if (projectile) {
                 this.lastShot = currentTime;
                 return projectile;
@@ -517,11 +521,11 @@ export class Tower extends Character {
         }
     }
 
-    shoot(enemies, currentTime) {
+    shoot(enemies, currentTime, gameState) {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
 
-        const enemy = this.getTarget(enemies);
+        const enemy = this.getTarget(enemies, gameState.spatialSystem);
 
         if (enemy) {
             let damage = this.getDamage();
@@ -548,7 +552,7 @@ export class Tower extends Character {
                 damage += this.getModifier('dex');
             }
 
-            const projectile = new Projectile(centerX, centerY, enemy, damage, this, this.damageType);
+            const projectile = gameState.projectileManager.get(centerX, centerY, enemy, damage, this, this.damageType);
             projectile.type = type;
             projectile.speed = this.projectileSpeed;
             projectile.splashRadius = splash;
