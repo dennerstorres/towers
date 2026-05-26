@@ -461,18 +461,6 @@ export class GameUI {
     }
 
     /**
-     * Retorna o layout para a barra de vida do Boss
-     */
-    getBossHealthBarLayout(canvas) {
-        const width = 400;
-        const height = 20;
-        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
-        const y = this.hudHeight + 20;
-
-        return { x, y, width, height };
-    }
-
-    /**
      * Retorna o layout para as telas de vitória e derrota
      */
     getEndGameLayout(canvas) {
