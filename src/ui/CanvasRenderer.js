@@ -5,6 +5,10 @@ export class CanvasRenderer {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
 
+        // Feedback Visual
+        this.shakeIntensity = 0;
+        this.shakeTimer = 0;
+
         // Canvas offscreen para pré-renderizar o fundo
         this.bgCanvas = document.createElement('canvas');
         this.bgCanvas.width = canvas.width;
@@ -178,6 +182,16 @@ export class CanvasRenderer {
 
         // Desenha o fundo pré-renderizado (incluindo a grade e o caminho)
         this.ctx.drawImage(this.bgCanvas, 0, 0);
+    }
+
+    /**
+     * Triggers a screen shake effect
+     * @param {number} intensity - Pixels to shake
+     * @param {number} duration - Frames to shake
+     */
+    triggerShake(intensity = 5, duration = 10) {
+        this.shakeIntensity = intensity;
+        this.shakeTimer = duration;
     }
 
     drawPath() {
@@ -530,17 +544,27 @@ export class CanvasRenderer {
             radius = 5;
         }
 
+        // Trail effect
+        if (glow) {
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = color;
+        }
+
         this.ctx.fillStyle = color;
         this.ctx.beginPath();
         this.ctx.arc(projectile.x, projectile.y, radius, 0, Math.PI * 2);
         this.ctx.fill();
 
         if (glow) {
-            this.ctx.shadowBlur = 8;
-            this.ctx.shadowColor = color;
-            this.ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            this.ctx.lineWidth = 1;
+            this.ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+            this.ctx.lineWidth = 1.5;
             this.ctx.stroke();
+
+            // Outer glow for extra juice
+            this.ctx.globalAlpha = 0.3;
+            this.ctx.beginPath();
+            this.ctx.arc(projectile.x, projectile.y, radius * 1.5, 0, Math.PI * 2);
+            this.ctx.fill();
         } else {
             this.ctx.strokeStyle = '#2c3e50';
             this.ctx.lineWidth = 1;
@@ -812,6 +836,20 @@ export class CanvasRenderer {
 
         this.ctx.save();
 
+        // Shadow under enemy
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+        this.ctx.beginPath();
+        this.ctx.ellipse(enemy.x, enemy.y + size / 2 - 2, size / 3, size / 8, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Impact Flash
+        if (enemy.flashTimer > 0) {
+            this.ctx.filter = 'brightness(2) contrast(1.5)';
+            enemy.flashTimer--;
+        } else {
+            this.ctx.filter = 'none';
+        }
+
         // Body color based on type
         let bodyColor = '#27ae60'; // Goblin (Green)
         if (enemy.type === 'orc') bodyColor = '#8e44ad'; // Orc (Purple/Dark)
@@ -1012,19 +1050,33 @@ export class CanvasRenderer {
     drawFloatingTexts(texts) {
         this.ctx.save();
         this.ctx.textAlign = 'center';
-        this.ctx.font = `bold 16px ${Config.THEME.font}`;
 
         for (const t of texts) {
+            this.ctx.save();
             this.ctx.globalAlpha = t.life;
             this.ctx.fillStyle = t.color;
 
-            // Sombra para melhor legibilidade
-            this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-            this.ctx.shadowBlur = 4;
-            this.ctx.shadowOffsetX = 1;
-            this.ctx.shadowOffsetY = 1;
+            // Critical Hit visual feedback
+            const isCrit = t.isCrit || (t.text && t.text.includes('!'));
+            const fontSize = isCrit ? 22 : 16;
+            this.ctx.font = `bold ${fontSize}px ${Config.THEME.font}`;
 
-            this.ctx.fillText(t.text, t.x, t.y);
+            if (isCrit) {
+                this.ctx.shadowColor = '#f1c40f';
+                this.ctx.shadowBlur = 10;
+                // Add a small scale/bounce for crits
+                const scale = 1 + (t.life * 0.2);
+                this.ctx.translate(t.x, t.y);
+                this.ctx.scale(scale, scale);
+                this.ctx.fillText(t.text, 0, 0);
+            } else {
+                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.shadowBlur = 4;
+                this.ctx.shadowOffsetX = 1;
+                this.ctx.shadowOffsetY = 1;
+                this.ctx.fillText(t.text, t.x, t.y);
+            }
+            this.ctx.restore();
         }
         this.ctx.restore();
     }
@@ -1384,6 +1436,8 @@ export class CanvasRenderer {
     }
 
     clear() {
+        // Reset transform from Screen Shake before clearing
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 } 

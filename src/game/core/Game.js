@@ -664,6 +664,15 @@ export class Game {
     updateLogic(timeStep) {
         if (!this.state.gameRunning || this.state.isPaused || this.state.isGameOver || this.state.isVictory) return;
 
+        // Hit Stop Logic
+        if (this.state.isHitStop) {
+            this.state.hitStopTimer--;
+            if (this.state.hitStopTimer <= 0) {
+                this.state.isHitStop = false;
+            }
+            return; // Skip logic update during hit stop
+        }
+
         this.state.logicalTime += timeStep;
 
         // Atualiza Sinergias a cada 30 frames ou quando a composição muda

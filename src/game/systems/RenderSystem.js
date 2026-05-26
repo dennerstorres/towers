@@ -15,6 +15,16 @@ export class RenderSystem {
      * @param {HTMLCanvasElement} canvas - Main canvas
      */
     render(gameState, waveSystem, particleSystem, floatingTexts, canvas) {
+        this.renderer.ctx.save();
+
+        // Aplica Screen Shake
+        if (this.renderer.shakeTimer > 0) {
+            const dx = (Math.random() - 0.5) * this.renderer.shakeIntensity;
+            const dy = (Math.random() - 0.5) * this.renderer.shakeIntensity;
+            this.renderer.ctx.translate(dx, dy);
+            this.renderer.shakeTimer--;
+        }
+
         this.renderer.drawGrid(gameState);
         this.drawRangeVisuals(gameState, canvas);
 
@@ -44,6 +54,8 @@ export class RenderSystem {
 
         // Draw UI overlay
         this.renderer.drawUI(gameState, waveSystem, this.ui);
+
+        this.renderer.ctx.restore();
 
         // Draw Level Up Modal if needed
         if (gameState.levelUpTower) {
