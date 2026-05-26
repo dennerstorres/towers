@@ -60,6 +60,7 @@ export class Enemy {
 
         this.maxHealth = this.health;
         this.tauntTimer = 0;
+        this.flashTimer = 0;
         this.activeEffects = new Map(); // Effect name -> effect object
     }
 

@@ -97,6 +97,8 @@ export const CombatSystem = {
 
                     enemy.health -= finalDamage;
                     enemy.lastHitBy = projectile.attacker;
+                    enemy.flashTimer = 5; // Trigger impact flash
+
                     floatingTexts.add(enemy.x, enemy.y, `-${finalDamage}`, Config.THEME.colors.bloodRed);
                     particleSystem.emit(enemy.x, enemy.y, Config.THEME.colors.bloodRed, 3);
 
@@ -109,7 +111,15 @@ export const CombatSystem = {
                 }
             });
             // Visual feedback for splash
-            particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.wizard, 15);
+            particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.wizard, 15, 'explosion');
+            particleSystem.emit(projectile.x, projectile.y, '#9b59b6', 10, 'smoke');
+
+            // Heavy hit shake for massive AoE (optional check for large damage)
+            if (projectile.damage > 20 && gameState.renderer) {
+                gameState.renderer.triggerShake(5, 10);
+                gameState.isHitStop = true;
+                gameState.hitStopTimer = 2;
+            }
         } else if (projectile.target && projectile.target.health > 0) {
             // Single target damage com sistema D20
             const attackResult = this.calculateHit(projectile.attacker || {}, projectile.target);
@@ -140,7 +150,17 @@ export const CombatSystem = {
 
                 projectile.target.health -= damage;
                 projectile.target.lastHitBy = projectile.attacker;
-                floatingTexts.add(projectile.target.x, projectile.target.y, text, color);
+                projectile.target.flashTimer = 5; // Trigger impact flash
+
+                floatingTexts.add(projectile.target.x, projectile.target.y, text, color, attackResult.crit);
+
+                // Game feel on Crit
+                if (attackResult.crit && gameState.renderer) {
+                    gameState.renderer.triggerShake(8, 15);
+                    // Hit Stop effect (handled in GameLoop usually, but we can set a flag here)
+                    gameState.isHitStop = true;
+                    gameState.hitStopTimer = 3; // 3 frames of pause
+                }
 
                 // Taunt logic for entities with tauntDuration
                 if (projectile.tauntDuration > 0 && typeof projectile.target.tauntTimer !== 'undefined') {
@@ -194,10 +214,12 @@ export const CombatSystem = {
                 }
 
                 if (projectile.target.health <= 0) {
-                    particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount);
+                    particleSystem.emit(projectile.x, projectile.y, Config.THEME.colors.bloodRed, Config.particleCount, 'explosion');
+                    particleSystem.emit(projectile.x, projectile.y, '#333', 10, 'smoke');
                 } else {
                     const particleColor = projectile.type === 'cannon' ? Config.THEME.colors.cannon : '#f1c40f';
-                    particleSystem.emit(projectile.x, projectile.y, particleColor, 5);
+                    const particleType = attackResult.crit ? 'spark' : 'explosion';
+                    particleSystem.emit(projectile.x, projectile.y, particleColor, attackResult.crit ? 12 : 5, particleType);
                 }
             } else {
                 // Errou o ataque

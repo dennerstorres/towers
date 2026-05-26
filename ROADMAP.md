@@ -343,16 +343,16 @@ Criar encounters memoráveis.
 Expandir variedade do gameplay.
 
 ## Maps
-- [ ] Forest
-- [ ] Ice
-- [ ] Lava
-- [ ] Dungeon
-- [ ] Swamp
+- [x] Forest
+- [x] Ice
+- [x] Lava
+- [x] Dungeon
+- [x] Swamp
 
 ## Mechanics
-- [ ] Hazards
-- [ ] Split paths
-- [ ] Dynamic terrain
+- [x] Hazards
+- [x] Split paths
+- [x] Dynamic terrain
 
 ---
 
@@ -362,17 +362,17 @@ Expandir variedade do gameplay.
 Dar sensação AAA indie.
 
 ## Feedback
-- [ ] Screen shake
-- [ ] Hit stop
-- [ ] Impact flash
-- [ ] Damage numbers
-- [ ] Crit effects
+- [x] Screen shake
+- [x] Hit stop
+- [x] Impact flash
+- [x] Damage numbers
+- [x] Crit effects
 
 ## VFX
-- [ ] Explosions
-- [ ] Magic effects
-- [ ] Light glow
-- [ ] Shadows fake
+- [x] Explosions
+- [x] Magic effects
+- [x] Light glow
+- [x] Shadows fake
 
 ---
 
@@ -494,7 +494,8 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
-| FASE 12 — Sistema de Mapas | Em progresso | # | 2026-06-04 |
+| FASE 13 — Visual & Game Feel | In Review | # | 2026-05-26 |
+| FASE 12 — Sistema de Mapas | In Review | #11 | 2026-05-26 |
 | FASE 11 — Bosses RPG | Concluído | # | 2026-06-03 |
 | FASE 10 — Loot & Equipamentos | Concluído | # | 2026-06-02 |
 | FASE 9 — Tavern System | Concluído | # | 2026-06-01 |

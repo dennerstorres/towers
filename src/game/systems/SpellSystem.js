@@ -22,7 +22,8 @@ export const SpellSystem = {
             tower.x * Config.gridSize + Config.gridSize / 2,
             tower.y * Config.gridSize + Config.gridSize / 2,
             spell.color || Config.THEME.colors.gold,
-            10
+            15,
+            'spark'
         );
 
         switch (spell.type) {
@@ -51,7 +52,14 @@ export const SpellSystem = {
         const effects = dataManager.get('effects');
 
         // Visual effect for AoE
-        particleSystem.emit(centerX, centerY, spell.color, 20);
+        particleSystem.emit(centerX, centerY, spell.color, 30, 'explosion');
+        particleSystem.emit(centerX, centerY, '#333', 15, 'smoke');
+
+        if (gameState.renderer) {
+            gameState.renderer.triggerShake(10, 20);
+            gameState.isHitStop = true;
+            gameState.hitStopTimer = 3;
+        }
 
         gameState.enemies.forEach(enemy => {
             const dx = enemy.x - centerX;
@@ -69,8 +77,10 @@ export const SpellSystem = {
 
                 enemy.health -= damage;
                 enemy.lastHitBy = tower;
+                enemy.flashTimer = 5;
+
                 floatingTexts.add(enemy.x, enemy.y, `-${damage}`, spell.color);
-                particleSystem.emit(enemy.x, enemy.y, spell.color, 5);
+                particleSystem.emit(enemy.x, enemy.y, spell.color, 8, 'spark');
 
                 // Apply status effect
                 if (spell.effect && effects && effects[spell.effect]) {
