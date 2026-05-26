@@ -67,6 +67,7 @@ export class Game {
             await this.dataManager.loadJSON('feats', 'src/game/data/feats.json');
             await this.dataManager.loadJSON('effects', 'src/game/data/effects.json');
             await this.dataManager.loadJSON('items', 'src/game/data/items.json');
+            await this.dataManager.loadJSON('maps', 'src/game/data/maps.json');
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
@@ -82,10 +83,35 @@ export class Game {
 
             // Aplica bônus de meta-progressão ao estado inicial
             this.applyMetaBonuses(true);
+            this.updateCurrentMap();
             this.generateBlacksmithPool();
         }
 
         return true;
+    }
+
+    updateCurrentMap() {
+        const maps = this.dataManager.get('maps');
+        if (!maps) return;
+
+        const mapKeys = Object.keys(maps);
+        // Muda de mapa a cada 5 ondas
+        const mapIndex = Math.min(mapKeys.length - 1, Math.floor((this.waveSystem.currentWave - 1) / 5));
+        const mapKey = mapKeys[mapIndex];
+        const mapData = maps[mapKey];
+
+        if (this.state.currentMap && this.state.currentMap.id === mapData.id) return;
+
+        this.state.currentMap = mapData;
+        // Pega o primeiro caminho como padrão para o Config (compatibilidade)
+        Config.path = mapData.paths[0];
+
+        // Se houver renderer, reseta o fundo
+        if (this.renderer) {
+            this.renderer.isBgRendered = false;
+        }
+
+        console.log(`Mapa atualizado para: ${mapData.name}`);
     }
 
     handleKeyDown(e) {
@@ -743,6 +769,9 @@ export class Game {
 
             if (waveResult && waveResult.type === 'wave_complete') {
                 this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
+
+                // Atualiza mapa se necessário
+                this.updateCurrentMap();
 
                 // Enter Camp Mode
                 this.state.showCamp = true;
