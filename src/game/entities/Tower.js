@@ -572,4 +572,58 @@ export class Tower extends Character {
         }
         return null;
     }
+
+    /**
+     * Serializa o estado da torre para salvamento
+     */
+    serialize() {
+        return {
+            x: this.x,
+            y: this.y,
+            type: this.type,
+            race: this.race,
+            level: this.level,
+            xp: this.xp,
+            equipment: JSON.parse(JSON.stringify(this.equipment)),
+            health: this.health,
+            maxHealth: this.maxHealth,
+            attributes: { ...this.attributes },
+            traits: [...this.traits],
+            totalInvested: this.totalInvested,
+            spellSlots: this.spellSlots,
+            maxSpellSlots: this.maxSpellSlots,
+            targetMode: this.targetMode
+        };
+    }
+
+    /**
+     * Restaura o estado da torre a partir de dados salvos
+     */
+    hydrate(data) {
+        this.level = data.level || this.level;
+        this.xp = data.xp || this.xp;
+        this.equipment = data.equipment || this.equipment;
+        this.health = data.health || this.health;
+        this.maxHealth = data.maxHealth || this.maxHealth;
+        this.attributes = data.attributes || this.attributes;
+        this.traits = data.traits || this.traits;
+        this.totalInvested = data.totalInvested || this.totalInvested;
+        this.spellSlots = data.spellSlots !== undefined ? data.spellSlots : this.spellSlots;
+        this.maxSpellSlots = data.maxSpellSlots !== undefined ? data.maxSpellSlots : this.maxSpellSlots;
+        this.targetMode = data.targetMode || this.targetMode;
+
+        // Recalcula atributos baseados no nível se necessário
+        this.requiredXp = this.calculateRequiredXp();
+
+        // Aplica melhorias de nível (damage/range) se a torre for nível > 1
+        // Como o constructor já define stats base nível 1, precisamos aplicar o upgrade progressivo
+        if (this.level > 1) {
+            // Reseta para base e reaplica? Ou assume que damage/range já foram salvos?
+            // Atualmente damage e range NÃO são salvos no serialize(), eles são recalculados.
+            // Então precisamos reaplicar os upgrades de nível.
+            for (let i = 1; i < this.level; i++) {
+                this.upgrade();
+            }
+        }
+    }
 }

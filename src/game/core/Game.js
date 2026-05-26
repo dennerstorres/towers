@@ -7,6 +7,7 @@ import { InputSystem } from '../systems/InputSystem.js';
 import { RenderSystem } from '../systems/RenderSystem.js';
 import { WaveSystem } from '../systems/WaveSystem.js';
 import { PartySystem } from '../systems/PartySystem.js';
+import { SaveSystem } from '../systems/SaveSystem.js';
 import { SpatialSystem } from '../systems/SpatialSystem.js';
 import { TowerManager } from '../managers/TowerManager.js';
 import { ProjectileManager } from '../managers/ProjectileManager.js';
@@ -454,6 +455,27 @@ export class Game {
                         // Re-filter towers if a class was unlocked
                         if (btn.type === 'unlock') this.towerManager.reset(this.metaManager);
                     }
+
+                    if (btn.type === 'export_save') {
+                        const json = SaveSystem.exportSave();
+                        navigator.clipboard.writeText(json).then(() => {
+                            alert('Save copiado para a área de transferência!');
+                        });
+                    } else if (btn.type === 'import_save') {
+                        const json = prompt('Cole aqui o seu código de save:');
+                        if (json && SaveSystem.importSave(json)) {
+                            alert('Save importado com sucesso! Recarregando...');
+                            location.reload();
+                        } else if (json) {
+                            alert('Erro ao importar save. Verifique se o código está correto.');
+                        }
+                    } else if (btn.type === 'delete_run') {
+                        if (confirm('Deseja realmente apagar o progresso da run atual?')) {
+                            SaveSystem.clearRun();
+                            alert('Run apagada. Recarregando...');
+                            location.reload();
+                        }
+                    }
                 }
             });
         }
@@ -654,7 +676,64 @@ export class Game {
         this.waveSystem.endWave(this.state);
     }
 
+    loadAndStart() {
+        const runData = SaveSystem.loadRun();
+        if (!runData) {
+            this.start();
+            return;
+        }
+
+        console.log('Loading saved run...', runData);
+
+        // Reset systems first
+        this.towerManager.reset(this.metaManager);
+        this.waveSystem.reset();
+        this.stateStore.reset();
+        this.state = this.stateStore.state;
+        this.state.towerManager = this.towerManager;
+        this.state.spatialSystem = this.spatialSystem;
+        this.state.projectileManager = this.projectileManager;
+        this.state.dataManager = this.dataManager;
+        this.state.metaManager = this.metaManager;
+
+        // Restore Run Data
+        this.state.money = runData.money;
+        this.state.lives = runData.lives;
+        this.waveSystem.currentWave = runData.currentWave;
+        this.waveSystem.enemiesKilled = runData.enemiesKilled || 0;
+
+        // Restore Map
+        const maps = this.dataManager.get('maps');
+        if (maps && runData.currentMapId) {
+            const mapData = Object.values(maps).find(m => m.id === runData.currentMapId);
+            if (mapData) {
+                this.state.currentMap = mapData;
+                Config.path = mapData.paths[0];
+            }
+        }
+        if (this.renderer) this.renderer.isBgRendered = false;
+
+        // Restore Towers
+        const races = this.dataManager.get('races');
+        runData.towers.forEach(tData => {
+            const raceData = races ? races[tData.race] : null;
+            const tower = this.towerManager.addTower(tData.x, tData.y, tData.type, tData.race, raceData);
+            tower.hydrate(tData);
+        });
+
+        this.applyMetaBonuses(false);
+        this.partySystem.update(this.towerManager.placedTowers);
+
+        // Start directly in Camp Hub
+        this.state.showCamp = true;
+        this.state.gameRunning = true;
+        this.towerManager.generateRecruitmentPool(this.dataManager);
+        this.generateBlacksmithPool();
+        this.gameLoopController.start();
+    }
+
     restart() {
+        SaveSystem.clearRun();
         this.towerManager.reset(this.metaManager);
         this.waveSystem.reset();
         this.stateStore.reset();
@@ -795,6 +874,9 @@ export class Game {
 
             if (waveResult && waveResult.type === 'wave_complete') {
                 this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2, `+${waveResult.reward} G`, Config.THEME.colors.gold);
+
+                // Autosave
+                SaveSystem.saveRun(this);
 
                 // Atualiza mapa se necessário
                 this.updateCurrentMap();
