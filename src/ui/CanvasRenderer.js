@@ -226,6 +226,12 @@ export class CanvasRenderer {
         this.drawTowerSelectionPanel(gameState, ui);
         this.drawControls(gameState, ui);
 
+        // Boss Health Bar
+        const boss = gameState.enemies.find(e => e.isBoss);
+        if (boss) {
+            this.drawBossHealthBar(boss, ui);
+        }
+
         if (gameState.selectedPlacedTower) {
             this.drawTowerMenu(gameState.selectedPlacedTower, gameState.money, ui);
         }
@@ -770,6 +776,54 @@ export class CanvasRenderer {
     }
 
     /**
+     * Draws a prominent health bar for the Boss
+     */
+    drawBossHealthBar(boss, ui) {
+        const layout = ui.getBossHealthBarLayout(this.canvas);
+        const healthPercent = boss.health / boss.maxHealth;
+
+        this.ctx.save();
+
+        // Bar Background
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        this.ctx.fillRect(layout.x, layout.y, layout.width, layout.height);
+
+        // Bar Fill
+        const gradient = this.ctx.createLinearGradient(layout.x, 0, layout.x + layout.width, 0);
+        gradient.addColorStop(0, '#c0392b');
+        gradient.addColorStop(1, '#e74c3c');
+        this.ctx.fillStyle = gradient;
+        this.ctx.fillRect(layout.x, layout.y, layout.width * healthPercent, layout.height);
+
+        // Bar Border
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(layout.x, layout.y, layout.width, layout.height);
+
+        // Boss Name
+        this.ctx.fillStyle = '#fff';
+        this.ctx.font = `bold 14px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        this.ctx.fillText(boss.name.toUpperCase(), layout.x + layout.width / 2, layout.y + layout.height / 2);
+
+        // Legendary Resistances
+        if (boss.legendaryResistances > 0) {
+            for (let i = 0; i < boss.legendaryResistances; i++) {
+                this.ctx.fillStyle = Config.THEME.colors.gold;
+                this.ctx.beginPath();
+                this.ctx.arc(layout.x + layout.width + 15 + (i * 15), layout.y + layout.height / 2, 5, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.lineWidth = 1;
+                this.ctx.stroke();
+            }
+        }
+
+        this.ctx.restore();
+    }
+
+    /**
      * Draws a casting progress bar above the tower
      */
     drawCastBar(tower, x, y) {
@@ -802,6 +856,18 @@ export class CanvasRenderer {
         let bodyColor = '#27ae60'; // Goblin (Green)
         if (enemy.type === 'orc') bodyColor = '#8e44ad'; // Orc (Purple/Dark)
         if (enemy.type === 'scout') bodyColor = '#d35400'; // Scout (Orange)
+        if (enemy.isBoss) bodyColor = '#c0392b'; // Boss (Deep Red)
+
+        // Boss Glow
+        if (enemy.isBoss) {
+            this.ctx.save();
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = Config.THEME.colors.gold;
+            this.ctx.strokeStyle = Config.THEME.colors.gold;
+            this.ctx.lineWidth = 3;
+            this.ctx.strokeRect(x + 5, y + 5, size - 10, size - 10);
+            this.ctx.restore();
+        }
 
         // Body
         this.ctx.fillStyle = bodyColor;

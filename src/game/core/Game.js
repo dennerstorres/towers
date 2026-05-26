@@ -689,7 +689,7 @@ export class Game {
 
         // Atualiza inimigos
         for (let enemy of this.state.enemies) {
-            enemy.update();
+            enemy.update(this);
         }
 
         // Atualiza partículas
