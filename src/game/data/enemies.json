@@ -1,11 +1,67 @@
 {
   "goblin": {
     "name": "Goblin",
-    "hp": 7,
-    "ac": 15,
+    "hp": 30,
+    "ac": 13,
     "speed": 1.6,
     "xp": 50,
     "gold": 10,
     "resistances": ["piercing"]
+  },
+  "orc": {
+    "name": "Orc",
+    "hp": 60,
+    "ac": 14,
+    "speed": 1.2,
+    "xp": 80,
+    "gold": 20,
+    "resistances": ["slashing"]
+  },
+  "scout": {
+    "name": "Scout",
+    "hp": 25,
+    "ac": 12,
+    "speed": 2.2,
+    "xp": 40,
+    "gold": 15,
+    "resistances": ["fire"]
+  },
+  "boss_1": {
+    "name": "Goblin King",
+    "hp": 500,
+    "ac": 16,
+    "speed": 0.8,
+    "xp": 500,
+    "gold": 200,
+    "isBoss": true,
+    "legendaryResistances": 3,
+    "phases": [
+      { "threshold": 0.6, "speedMultiplier": 1.2, "action": "summon" },
+      { "threshold": 0.3, "speedMultiplier": 1.5, "acBonus": 2, "action": "enrage" }
+    ],
+    "specialActions": {
+      "summon": { "type": "summon", "cooldown": 600, "count": 3, "enemyType": "goblin" },
+      "enrage": { "type": "buff", "duration": 300, "damageMultiplier": 1.5 }
+    }
+  },
+  "boss_2": {
+    "name": "Ancient Dragon",
+    "hp": 1500,
+    "ac": 18,
+    "speed": 0.6,
+    "xp": 2000,
+    "gold": 1000,
+    "isBoss": true,
+    "legendaryResistances": 5,
+    "phases": [
+      { "threshold": 0.7, "speedMultiplier": 1.2, "action": "aoe" },
+      { "threshold": 0.4, "speedMultiplier": 1.5, "action": "summon" },
+      { "threshold": 0.2, "speedMultiplier": 2.0, "acBonus": 3, "action": "enrage" }
+    ],
+    "specialActions": {
+      "aoe": { "type": "aoe_attack", "cooldown": 400, "radius": 150, "damage": 20 },
+      "summon": { "type": "summon", "cooldown": 800, "count": 2, "enemyType": "orc" },
+      "enrage": { "type": "buff", "duration": 600, "damageMultiplier": 2.0 }
+    }
   }
 }

@@ -45,18 +45,26 @@ export class WaveSystem {
     }
 
     spawnEnemy(gameState, dataManager = null) {
-        const types = ['goblin', 'goblin', 'orc', 'scout'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
+        let type;
+
+        // Boss Spawning Logic (Data-driven)
+        const bossWaves = Config.bossWaves || {};
+        if (bossWaves[this.currentWave]) {
+            type = bossWaves[this.currentWave];
+        } else {
+            const types = ['goblin', 'goblin', 'orc', 'scout'];
+            type = types[Math.floor(Math.random() * types.length)];
+        }
 
         let enemyData = null;
         if (dataManager) {
             const allEnemies = dataManager.get('enemies');
-            if (allEnemies && allEnemies[randomType]) {
-                enemyData = allEnemies[randomType];
+            if (allEnemies && allEnemies[type]) {
+                enemyData = allEnemies[type];
             }
         }
 
-        gameState.enemies.push(new Enemy(randomType, enemyData));
+        gameState.enemies.push(new Enemy(type, enemyData));
         this.enemiesSpawned++;
     }
 
@@ -115,7 +123,11 @@ export class WaveSystem {
         }
 
         // Lógica de spawn baseada em frames
-        if (this.enemiesSpawned < this.enemiesToSpawn) {
+        const bossWaves = Config.bossWaves || {};
+        const isBossWave = !!bossWaves[this.currentWave];
+        const maxEnemies = isBossWave ? 1 : this.enemiesToSpawn;
+
+        if (this.enemiesSpawned < maxEnemies) {
             this.spawnTimer++;
             if (this.spawnTimer >= this.spawnInterval) {
                 if (gameState.enemies.length < 10) {
@@ -126,7 +138,8 @@ export class WaveSystem {
         }
 
         // Verifica fim da onda
-        if (this.enemiesKilled >= this.enemiesToSpawn && gameState.enemies.length === 0) {
+        const targetKills = isBossWave ? 1 : this.enemiesToSpawn;
+        if (this.enemiesSpawned >= targetKills && gameState.enemies.length === 0) {
             const completedWave = this.currentWave;
             const reward = this.endWave(gameState);
             return { type: 'wave_complete', reward, wave: completedWave };

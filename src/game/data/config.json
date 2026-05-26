@@ -50,6 +50,10 @@
         }
     },
     "waveCountdown": 5,
+    "bossWaves": {
+        "5": "boss_1",
+        "10": "boss_2"
+    },
     "TOWERS": {
         "ARCHER": {
             "type": "archer",
