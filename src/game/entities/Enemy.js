@@ -1,11 +1,12 @@
 import { Config } from '../core/Config.js';
 
 export class Enemy {
-    constructor(type = 'goblin', data = null) {
+    constructor(type = 'goblin', data = null, path = null) {
         this.type = type;
+        this.path = path || Config.path;
         this.pathIndex = 0;
-        this.x = Config.path[0].x * Config.gridSize + Config.gridSize/2;
-        this.y = Config.path[0].y * Config.gridSize + Config.gridSize/2;
+        this.x = this.path[0].x * Config.gridSize + Config.gridSize/2;
+        this.y = this.path[0].y * Config.gridSize + Config.gridSize/2;
 
         // Base stats
         this.speed = Config.enemySpeed;
@@ -119,11 +120,72 @@ export class Enemy {
         return this.resistances.includes(damageType);
     }
 
+    checkHazards(gameState) {
+        const currentMap = gameState?.state?.currentMap;
+        if (!currentMap || !currentMap.hazards) return;
+
+        const gridX = Math.floor(this.x / Config.gridSize);
+        const gridY = Math.floor(this.y / Config.gridSize);
+
+        currentMap.hazards.forEach(hazard => {
+            if (hazard.x === gridX && hazard.y === gridY) {
+                switch (hazard.effect) {
+                    case 'slow':
+                        this.applyEffect(hazard.type, {
+                            duration: 2,
+                            speedMultiplier: hazard.value,
+                            color: '#7f8c8d'
+                        });
+                        break;
+                    case 'burn':
+                        this.applyEffect(hazard.type, {
+                            duration: hazard.duration,
+                            damage: hazard.damage,
+                            tickInterval: 20,
+                            damageType: 'fire',
+                            color: '#e67e22'
+                        });
+                        break;
+                    case 'poison':
+                        this.applyEffect(hazard.type, {
+                            duration: hazard.duration,
+                            damage: hazard.damage,
+                            tickInterval: 30,
+                            damageType: 'poison',
+                            color: '#27ae60'
+                        });
+                        break;
+                    case 'speed_boost':
+                        this.applyEffect(hazard.type, {
+                            duration: 2,
+                            speedMultiplier: hazard.value,
+                            acReduction: hazard.ac_penalty || 0,
+                            color: '#3498db'
+                        });
+                        break;
+                    case 'damage':
+                        // Immediate damage, use a cooldown to avoid every frame
+                        if (!this.activeEffects.has(hazard.type)) {
+                            this.health -= hazard.value;
+                            if (gameState.floatingTexts) {
+                                gameState.floatingTexts.add(this.x, this.y, `-${hazard.value}`, '#e74c3c');
+                            }
+                            this.applyEffect(hazard.type, { duration: 60 }); // 1 second cooldown
+                        }
+                        break;
+                }
+            }
+        });
+    }
+
     /**
      * Update loop for the enemy
      * @param {Object} gameState - Full game state for managers and context
      */
     update(gameState) {
+        // Check for map hazards
+        this.checkHazards(gameState);
+
         // Update status effects
         for (const [key, effect] of this.activeEffects) {
             effect.timer--;
@@ -172,9 +234,9 @@ export class Enemy {
             }
         }
 
-        if (this.pathIndex < Config.path.length - 1) {
-            const targetX = Config.path[this.pathIndex + 1].x * Config.gridSize + Config.gridSize/2;
-            const targetY = Config.path[this.pathIndex + 1].y * Config.gridSize + Config.gridSize/2;
+        if (this.pathIndex < this.path.length - 1) {
+            const targetX = this.path[this.pathIndex + 1].x * Config.gridSize + Config.gridSize/2;
+            const targetY = this.path[this.pathIndex + 1].y * Config.gridSize + Config.gridSize/2;
             
             const dx = targetX - this.x;
             const dy = targetY - this.y;
@@ -182,7 +244,7 @@ export class Enemy {
             
             if (distanceSq < currentSpeed * currentSpeed) {
                 this.pathIndex++;
-                if (this.pathIndex >= Config.path.length - 1) {
+                if (this.pathIndex >= this.path.length - 1) {
                     this.reachedEnd = true;
                 }
             } else {
@@ -249,7 +311,7 @@ export class Enemy {
 
         const enemyData = gameState.dataManager.get('enemies')[action.enemyType];
         for (let i = 0; i < action.count; i++) {
-            const minion = new Enemy(action.enemyType, enemyData);
+            const minion = new Enemy(action.enemyType, enemyData, this.path);
             // Spawn slightly behind or near the boss
             minion.pathIndex = Math.max(0, this.pathIndex - 1);
             minion.x = this.x + (Math.random() - 0.5) * 40;

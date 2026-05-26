@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 12 — Sistema de Mapas | Em progresso | # | 2026-06-04 |
 | FASE 11 — Bosses RPG | Concluído | # | 2026-06-03 |
 | FASE 10 — Loot & Equipamentos | Concluído | # | 2026-06-02 |
 | FASE 9 — Tavern System | Concluído | # | 2026-06-01 |

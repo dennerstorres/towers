@@ -1,0 +1,134 @@
+{
+    "forest": {
+        "id": "forest",
+        "name": "Floresta Sombria",
+        "theme": {
+            "grass": "#27ae60",
+            "grassDark": "#229958",
+            "dirt": "#8d6e63",
+            "path": "#95a5a6",
+            "pathEdge": "#7f8c8d",
+            "stone": "#7f8c8d"
+        },
+        "paths": [
+            [
+                {"x": 0, "y": 4},
+                {"x": 11, "y": 4},
+                {"x": 11, "y": 1},
+                {"x": 15, "y": 1},
+                {"x": 15, "y": 9},
+                {"x": 9, "y": 9},
+                {"x": 9, "y": 15}
+            ]
+        ],
+        "hazards": [
+            {"x": 5, "y": 4, "type": "thick_brush", "effect": "slow", "value": 0.5},
+            {"x": 15, "y": 5, "type": "thick_brush", "effect": "slow", "value": 0.5}
+        ]
+    },
+    "ice": {
+        "id": "ice",
+        "name": "Picos Gelados",
+        "theme": {
+            "grass": "#ebf5fb",
+            "grassDark": "#d6eaf8",
+            "dirt": "#a9cce3",
+            "path": "#ffffff",
+            "pathEdge": "#d1f2eb",
+            "stone": "#aed6f1"
+        },
+        "paths": [
+            [
+                {"x": 0, "y": 2},
+                {"x": 5, "y": 2},
+                {"x": 5, "y": 10},
+                {"x": 12, "y": 10},
+                {"x": 12, "y": 15}
+            ],
+            [
+                {"x": 0, "y": 2},
+                {"x": 5, "y": 2},
+                {"x": 5, "y": 5},
+                {"x": 18, "y": 5},
+                {"x": 18, "y": 15}
+            ]
+        ],
+        "hazards": [
+            {"x": 8, "y": 10, "type": "slippery_ice", "effect": "speed_boost", "value": 1.5, "ac_penalty": 2}
+        ]
+    },
+    "lava": {
+        "id": "lava",
+        "name": "Vulcão de Fogo",
+        "theme": {
+            "grass": "#5d4037",
+            "grassDark": "#3e2723",
+            "dirt": "#bf360c",
+            "path": "#424242",
+            "pathEdge": "#212121",
+            "stone": "#757575"
+        },
+        "paths": [
+            [
+                {"x": 0, "y": 7},
+                {"x": 8, "y": 7},
+                {"x": 8, "y": 2},
+                {"x": 15, "y": 2},
+                {"x": 15, "y": 15}
+            ]
+        ],
+        "hazards": [
+            {"x": 8, "y": 5, "type": "lava_pool", "effect": "burn", "damage": 5, "duration": 60}
+        ]
+    },
+    "dungeon": {
+        "id": "dungeon",
+        "name": "Catacumbas Antigas",
+        "theme": {
+            "grass": "#2c3e50",
+            "grassDark": "#1a252f",
+            "dirt": "#34495e",
+            "path": "#7f8c8d",
+            "pathEdge": "#2c3e50",
+            "stone": "#95a5a6"
+        },
+        "paths": [
+            [
+                {"x": 0, "y": 10},
+                {"x": 5, "y": 10},
+                {"x": 5, "y": 5},
+                {"x": 10, "y": 5},
+                {"x": 10, "y": 10},
+                {"x": 15, "y": 10},
+                {"x": 15, "y": 15}
+            ]
+        ],
+        "hazards": [
+            {"x": 10, "y": 7, "type": "spike_trap", "effect": "damage", "value": 20}
+        ]
+    },
+    "swamp": {
+        "id": "swamp",
+        "name": "Pântano Tóxico",
+        "theme": {
+            "grass": "#1b5e20",
+            "grassDark": "#003300",
+            "dirt": "#3e2723",
+            "path": "#4e342e",
+            "pathEdge": "#212121",
+            "stone": "#5d4037"
+        },
+        "paths": [
+            [
+                {"x": 0, "y": 5},
+                {"x": 5, "y": 5},
+                {"x": 5, "y": 8},
+                {"x": 15, "y": 8},
+                {"x": 15, "y": 15}
+            ]
+        ],
+        "hazards": [
+            {"x": 10, "y": 8, "type": "poison_cloud", "effect": "poison", "damage": 2, "duration": 120}
+        ]
+    }
+}

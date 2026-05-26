@@ -1,14 +1,6 @@
 export const Config = {
     gridSize: 40,
-    path: [
-        {x: 0, y: 4},
-        {x: 11, y: 4},
-        {x: 11, y: 1},
-        {x: 15, y: 1},
-        {x: 15, y: 9},
-        {x: 9, y: 9},
-        {x: 9, y: 15}
-    ],
+    path: [], // Agora carregado via mapas
     initialMoney: 100,
     initialLives: 10,
     UPGRADE_MULTIPLIER: 1.5,

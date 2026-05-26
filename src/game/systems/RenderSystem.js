@@ -15,7 +15,7 @@ export class RenderSystem {
      * @param {HTMLCanvasElement} canvas - Main canvas
      */
     render(gameState, waveSystem, particleSystem, floatingTexts, canvas) {
-        this.renderer.drawGrid();
+        this.renderer.drawGrid(gameState);
         this.drawRangeVisuals(gameState, canvas);
 
         // Draw Towers
