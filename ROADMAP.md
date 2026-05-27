@@ -435,14 +435,14 @@ Replayability.
 Transformar em produto.
 
 ## UX
-- [ ] Settings
-- [ ] Audio menu
-- [ ] Keybinds
-- [ ] Controller support
-- [ ] Localization
+- [x] Settings
+- [x] Audio menu
+- [x] Keybinds
+- [x] Controller support
+- [x] Localization
 
 ## Plataforma
-- [ ] PWA
+- [x] PWA
 - [ ] Steam build
 - [ ] Electron/Tauri
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 18 — Polimento Final | Concluído | # | 2026-06-15 |
 | FASE 17 — Endgame | Concluído | # | 2026-06-10 |
 | FASE 16 — Editor de Conteúdo | Concluído | # | 2026-06-08 |
 | FASE 15 — Save System | Concluído | # | 2026-06-07 |

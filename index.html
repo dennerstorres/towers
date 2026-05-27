@@ -218,21 +218,33 @@
             </select>
         </div>
 
-        <button id="startButton" class="menu-button">Novo Jogo</button>
-        <button id="continueButton" class="menu-button" style="display: none;">Continuar</button>
-        <button id="tavernButton" class="menu-button">Taverna</button>
-        <button id="editorButton" class="menu-button">Editor</button>
+        <button id="startButton" class="menu-button" data-i18n="menu_new_game">Novo Jogo</button>
+        <button id="continueButton" class="menu-button" style="display: none;" data-i18n="menu_continue">Continuar</button>
+        <button id="tavernButton" class="menu-button" data-i18n="menu_tavern">Taverna</button>
+        <button id="settingsButton" class="menu-button" data-i18n="menu_settings">Configurações</button>
+        <button id="editorButton" class="menu-button" data-i18n="menu_editor">Editor</button>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script type="module">
         import { Game } from './src/game/core/Game.js';
         import { SaveSystem } from './src/game/systems/SaveSystem.js';
         
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(reg => console.log('Service Worker registrado!', reg))
+                    .catch(err => console.warn('Erro ao registrar Service Worker:', err));
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const canvas = document.getElementById('gameCanvas');
             const startButton = document.getElementById('startButton');
             const continueButton = document.getElementById('continueButton');
             const tavernButton = document.getElementById('tavernButton');
+            const settingsButton = document.getElementById('settingsButton');
+            const editorButton = document.getElementById('editorButton');
             const startScreen = document.getElementById('startScreen');
             
             const game = new Game(canvas);
@@ -242,6 +254,12 @@
             game.init().then(() => {
                 console.log('Game inicializado com sucesso.');
                 isInitialized = true;
+
+                // Update Translations
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    el.textContent = game.localeManager.t(key);
+                });
 
                 // Check for saved run
                 if (SaveSystem.loadRun()) {
@@ -294,6 +312,14 @@
                 startScreen.style.display = 'none';
                 canvas.style.display = 'block';
                 game.state.showTavern = true;
+                game.gameLoopController.start();
+            });
+
+            settingsButton.addEventListener('click', () => {
+                if (!isInitialized) return;
+                startScreen.style.display = 'none';
+                canvas.style.display = 'block';
+                game.state.showSettings = true;
                 game.gameLoopController.start();
             });
 
