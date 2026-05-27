@@ -205,7 +205,8 @@ export class CanvasRenderer {
     drawUI(gameState, waveManager, ui) {
         const hudHeight = ui.hudHeight;
         const padding = 15;
-        const itemWidth = 95;
+        const itemWidth = 85;
+        const localeManager = window.game?.localeManager;
 
         // HUD Background
         this.ctx.fillStyle = Config.THEME.colors.darkStone;
@@ -221,10 +222,10 @@ export class CanvasRenderer {
         this.ctx.lineTo(this.canvas.width, hudHeight);
         this.ctx.stroke();
 
-        const items = ui.getHUDData(gameState, waveManager);
+        const items = ui.getHUDData(gameState, waveManager, localeManager);
 
         items.forEach((item, index) => {
-            const x = padding + index * (index < 5 ? itemWidth : itemWidth * 1.2);
+            const x = padding + index * (index < 6 ? itemWidth : itemWidth * 1.3);
             const y = hudHeight / 2;
 
             this.drawIcon(item.icon, x, y, 20, item.color);
@@ -267,6 +268,8 @@ export class CanvasRenderer {
             this.drawTavern(gameState, ui);
         } else if (gameState.showCamp) {
             this.drawCamp(gameState, ui);
+        } else if (gameState.showSettings) {
+            this.drawSettings(gameState, ui);
         } else if (gameState.isPaused) {
             this.drawPauseOverlay(ui);
         } else if (waveManager.isWaiting) {
@@ -275,18 +278,17 @@ export class CanvasRenderer {
     }
 
     drawControls(gameState, ui) {
-        const layout = ui.getControlButtonsLayout(this.canvas);
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getControlButtonsLayout(this.canvas, gameState, localeManager);
 
-        // Botão de Pausa
-        const pauseLabel = gameState.isPaused ? 'Continuar' : 'Pausar';
-        this.drawButton(layout.pause, Config.THEME.colors.gold, pauseLabel);
-
-        // Botão de Velocidade
-        const speedLabel = `${gameState.gameSpeed}x`;
-        this.drawButton(layout.speed, Config.THEME.colors.gold, speedLabel);
+        this.drawButton(layout.pause, Config.THEME.colors.gold, layout.pause.label);
+        this.drawButton(layout.speed, Config.THEME.colors.gold, layout.speed.label);
     }
 
     drawPauseOverlay(ui) {
+        const localeManager = window.game?.localeManager;
+        const t = (key) => localeManager ? localeManager.t(key) : key;
+
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
         this.ctx.fillRect(0, ui.hudHeight, this.canvas.width - ui.panelWidth, this.canvas.height - ui.hudHeight);
 
@@ -294,15 +296,17 @@ export class CanvasRenderer {
         this.ctx.font = `bold 40px ${Config.THEME.font}`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        this.ctx.fillText('PAUSADO', (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2);
+        this.ctx.fillText(t('ui_pause').toUpperCase(), (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2);
 
         this.ctx.font = `18px ${Config.THEME.font}`;
-        this.ctx.fillText('Pressione ESPAÇO para continuar', (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2 + 50);
+        this.ctx.fillText(`${t('action_pause')}: ${t('ui_resume')}`, (this.canvas.width - ui.panelWidth) / 2, this.canvas.height / 2 + 50);
     }
 
     drawWaveCountdown(waveManager, ui) {
-        const layout = ui.getWaveCountdownLayout(this.canvas);
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getWaveCountdownLayout(this.canvas, localeManager);
         const seconds = Math.ceil(waveManager.countdown / 60);
+        const t = (key) => localeManager ? localeManager.t(key) : key;
 
         this.ctx.save();
 
@@ -316,7 +320,7 @@ export class CanvasRenderer {
         this.ctx.textBaseline = 'middle';
 
         this.ctx.font = `bold 30px ${Config.THEME.font}`;
-        this.ctx.fillText(`Onda ${waveManager.currentWave} chegando em ${seconds}...`,
+        this.ctx.fillText(`${t('ui_wave')} ${waveManager.currentWave} ${seconds}...`,
             (this.canvas.width - ui.panelWidth) / 2,
             this.canvas.height / 2 - 30
         );
@@ -328,7 +332,8 @@ export class CanvasRenderer {
     }
 
     drawTowerMenu(tower, money, ui) {
-        const layout = ui.getTowerMenuLayout(tower);
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getTowerMenuLayout(tower, localeManager);
         const sellValue = tower.getSellValue();
 
         this.ctx.save();
@@ -338,7 +343,7 @@ export class CanvasRenderer {
 
         // Draw Target Mode Button
         const targetLabel = tower.targetMode.toUpperCase();
-        this.drawButton(layout.target, Config.THEME.colors.gold, `ALVO: ${targetLabel}`);
+        this.drawButton(layout.target, Config.THEME.colors.gold, `${layout.target.label} ${targetLabel}`);
 
         // Draw Sell Button
         this.drawButton(layout.sell, Config.THEME.colors.bloodRed, `${layout.sell.label} (${sellValue}G)`);
@@ -1048,7 +1053,8 @@ export class CanvasRenderer {
     }
 
     drawEndGameScreen(gameState, waveManager, ui) {
-        const layout = ui.getEndGameLayout(this.canvas, gameState.isVictory);
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getEndGameLayout(this.canvas, gameState.isVictory, localeManager);
         const { modal, restartButton, continueButton } = layout;
 
         // Overlay
@@ -1067,11 +1073,12 @@ export class CanvasRenderer {
         this.ctx.font = `bold 40px ${Config.THEME.font}`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
-        const title = gameState.isVictory ? 'VITÓRIA!' : 'GAME OVER';
+        const t = (key) => localeManager ? localeManager.t(key) : key;
+        const title = gameState.isVictory ? t('notification_victory') : t('notification_game_over');
         this.ctx.fillText(title, this.canvas.width / 2, modal.y + 50);
 
         // Stats
-        const stats = ui.getEndGameStats(gameState, waveManager);
+        const stats = ui.getEndGameStats(gameState, waveManager, localeManager);
         this.ctx.font = `20px ${Config.THEME.font}`;
 
         stats.forEach((stat, index) => {
@@ -1151,7 +1158,8 @@ export class CanvasRenderer {
      */
     drawTavern(gameState, ui) {
         const metaData = gameState.dataManager.get('meta');
-        const layout = ui.getTavernLayout(this.canvas, metaData, gameState.metaManager);
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getTavernLayout(this.canvas, metaData, gameState.metaManager, localeManager);
         const { modal, tabs, upgradeButtons, backButton } = layout;
 
         // Overlay
@@ -1252,7 +1260,8 @@ export class CanvasRenderer {
      * Desenha o Acampamento (Camp Hub)
      */
     drawCamp(gameState, ui) {
-        const layout = ui.getCampLayout(this.canvas, gameState, gameState.dataManager);
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getCampLayout(this.canvas, gameState, gameState.dataManager, localeManager);
         const { modal, tabs, buttons, nextWaveButton } = layout;
 
         // Overlay
@@ -1649,6 +1658,8 @@ export class CanvasRenderer {
     drawLevelUpModal(tower, ui, dataManager = null) {
         if (!tower) return;
 
+        const localeManager = window.game?.localeManager;
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const layout = ui.getLevelUpModalLayout(this.canvas);
         const { modal, options } = layout;
 
@@ -1667,11 +1678,11 @@ export class CanvasRenderer {
         this.ctx.fillStyle = Config.THEME.colors.gold;
         this.ctx.font = 'bold 28px ' + Config.THEME.font;
         this.ctx.textAlign = 'center';
-        this.ctx.fillText(`LEVEL UP: ${tower.name.toUpperCase()}`, modal.x + modal.width / 2, modal.y + 40);
+        this.ctx.fillText(`${t('notification_level_up')}: ${tower.name.toUpperCase()}`, modal.x + modal.width / 2, modal.y + 40);
 
         this.ctx.font = '16px ' + Config.THEME.font;
         this.ctx.fillStyle = '#ecf0f1';
-        this.ctx.fillText(`Escolha uma melhoria para o Nível ${tower.level}`, modal.x + modal.width / 2, modal.y + 65);
+        this.ctx.fillText(`${t('ui_level')} ${tower.level}`, modal.x + modal.width / 2, modal.y + 65);
 
         // Opções dinâmicas baseadas na torre (Data-driven)
         let optionLabels = [
@@ -1692,9 +1703,57 @@ export class CanvasRenderer {
         this.ctx.textAlign = 'start'; // Reset alignment
     }
 
+    drawSettings(gameState, ui) {
+        const localeManager = window.game?.localeManager;
+        const layout = ui.getSettingsLayout(this.canvas, gameState.settingsManager.state, localeManager);
+        const { modal, language, volumes, keybinds, backButton } = layout;
+
+        // Overlay
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Modal
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 4;
+        this.ctx.fillRect(modal.x, modal.y, modal.width, modal.height);
+        this.ctx.strokeRect(modal.x, modal.y, modal.width, modal.height);
+
+        // Title
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 32px ${Config.THEME.font}`;
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText(modal.title, modal.x + modal.width / 2, modal.y + 40);
+
+        // Language
+        this.drawButton(language, Config.THEME.colors.gold, language.label);
+
+        // Volumes
+        volumes.forEach(vol => {
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.font = `14px ${Config.THEME.font}`;
+            this.ctx.textAlign = 'left';
+            this.ctx.fillText(vol.label, vol.x, vol.y - 10);
+
+            // Bar background
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            this.ctx.fillRect(vol.x, vol.y, vol.width, vol.height);
+
+            // Bar fill
+            this.ctx.fillStyle = Config.THEME.colors.gold;
+            this.ctx.fillRect(vol.x, vol.y, vol.width * vol.value, vol.height);
+        });
+
+        // Keybinds
+        this.drawButton(keybinds, Config.THEME.colors.gold, keybinds.label);
+
+        // Back
+        this.drawButton(backButton, Config.THEME.colors.gold, backButton.label);
+    }
+
     clear() {
         // Reset transform from Screen Shake before clearing
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
-} 
+}

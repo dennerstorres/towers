@@ -2,15 +2,31 @@ export class AudioManager {
     constructor() {
         this.ctx = null;
         this.masterGain = null;
+        this.musicGain = null;
+        this.sfxGain = null;
         this.isMuted = false;
     }
 
     init() {
         if (this.ctx) return;
         this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+
         this.masterGain = this.ctx.createGain();
+        this.musicGain = this.ctx.createGain();
+        this.sfxGain = this.ctx.createGain();
+
         this.masterGain.connect(this.ctx.destination);
-        this.masterGain.gain.value = 0.3; // Volume mestre baixo
+        this.musicGain.connect(this.masterGain);
+        this.sfxGain.connect(this.masterGain);
+
+        this.masterGain.gain.value = 0.8;
+    }
+
+    updateVolumes(settings) {
+        this.init();
+        this.masterGain.gain.setTargetAtTime(settings.masterVolume, this.ctx.currentTime, 0.05);
+        this.musicGain.gain.setTargetAtTime(settings.musicVolume, this.ctx.currentTime, 0.05);
+        this.sfxGain.gain.setTargetAtTime(settings.sfxVolume, this.ctx.currentTime, 0.05);
     }
 
     resume() {
@@ -33,7 +49,7 @@ export class AudioManager {
         gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
 
         osc.connect(gain);
-        gain.connect(this.masterGain);
+        gain.connect(this.sfxGain);
 
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
@@ -59,7 +75,7 @@ export class AudioManager {
                 gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
                 osc.connect(gain);
-                gain.connect(this.masterGain);
+                gain.connect(this.sfxGain);
                 osc.start();
                 osc.stop(this.ctx.currentTime + 0.2);
                 break;
@@ -82,7 +98,7 @@ export class AudioManager {
             gain.gain.setValueAtTime(0.3, now + i * 0.1);
             gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.3);
             osc.connect(gain);
-            gain.connect(this.masterGain);
+            gain.connect(this.sfxGain);
             osc.start(now + i * 0.1);
             osc.stop(now + i * 0.1 + 0.3);
         });
@@ -99,7 +115,7 @@ export class AudioManager {
             gain.gain.setValueAtTime(0.5, now + i * 0.3);
             gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.3 + 0.5);
             osc.connect(gain);
-            gain.connect(this.masterGain);
+            gain.connect(this.sfxGain);
             osc.start(now + i * 0.3);
             osc.stop(now + i * 0.3 + 0.5);
         });
@@ -116,7 +132,7 @@ export class AudioManager {
             gain.gain.setValueAtTime(0.5, now + i * 0.2);
             gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.2 + 0.4);
             osc.connect(gain);
-            gain.connect(this.masterGain);
+            gain.connect(this.sfxGain);
             osc.start(now + i * 0.2);
             osc.stop(now + i * 0.2 + 0.4);
         });

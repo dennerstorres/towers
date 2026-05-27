@@ -9,7 +9,8 @@ export class GameUI {
     /**
      * Retorna os dados formatados para exibição no HUD
      */
-    getHUDData(gameState, waveManager) {
+    getHUDData(gameState, waveManager, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         return [
             {
                 icon: 'gold',
@@ -23,7 +24,7 @@ export class GameUI {
             },
             {
                 icon: 'wave',
-                value: `Onda ${waveManager.currentWave}`,
+                value: `${waveManager.currentWave}`,
                 color: Config.THEME.colors.gold
             },
             {
@@ -38,13 +39,18 @@ export class GameUI {
             },
             {
                 icon: 'ascension',
-                value: `Asc. ${gameState.metaManager?.state?.currentAscension || 0}`,
+                value: `${gameState.metaManager?.state?.currentAscension || 0}`,
                 color: '#e74c3c'
             },
             {
                 icon: 'modifier',
-                value: gameState.activeModifier ? gameState.activeModifier.name : 'Nenhum',
+                value: gameState.activeModifier ? gameState.activeModifier.name : t('modifier_none'),
                 color: '#9b59b6'
+            },
+            {
+                icon: 'settings',
+                value: '⚙️',
+                color: '#95a5a6'
             }
         ];
     }
@@ -62,7 +68,8 @@ export class GameUI {
     /**
      * Retorna o layout dos botões do menu de contexto de uma torre
      */
-    getTowerMenuLayout(tower) {
+    getTowerMenuLayout(tower, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const x = tower.x * Config.gridSize;
         const y = tower.y * Config.gridSize;
         const buttonWidth = 110;
@@ -91,14 +98,14 @@ export class GameUI {
                 y: targetY,
                 width: buttonWidth,
                 height: buttonHeight,
-                label: 'Alvo: '
+                label: t('tower_target') || 'Alvo: '
             },
             sell: {
                 x: x + Config.gridSize / 2 - buttonWidth / 2,
                 y: sellY,
                 width: buttonWidth,
                 height: buttonHeight,
-                label: 'Vender'
+                label: t('tower_sell') || 'Vender'
             }
         };
     }
@@ -106,7 +113,8 @@ export class GameUI {
     /**
      * Retorna o layout para os botões de controle (Pausa e Velocidade)
      */
-    getControlButtonsLayout(canvas) {
+    getControlButtonsLayout(canvas, gameState, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const padding = 10;
         const buttonWidth = 90;
         const buttonHeight = 44;
@@ -118,7 +126,7 @@ export class GameUI {
                 y: (this.hudHeight - buttonHeight) / 2,
                 width: buttonWidth,
                 height: buttonHeight,
-                label: 'Pausar'
+                label: gameState.isPaused ? t('ui_resume') : t('ui_pause')
             },
             speed: {
                 x: panelX - buttonWidth - padding,
@@ -133,7 +141,8 @@ export class GameUI {
     /**
      * Retorna o layout para o anúncio de onda e countdown
      */
-    getWaveCountdownLayout(canvas) {
+    getWaveCountdownLayout(canvas, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const width = 300;
         const height = 150;
         const buttonWidth = 160;
@@ -151,7 +160,7 @@ export class GameUI {
                 y: canvas.height / 2 + 20,
                 width: buttonWidth,
                 height: buttonHeight,
-                label: 'Iniciar agora'
+                label: t('wave_start_now') || 'Iniciar agora'
             }
         };
     }
@@ -159,11 +168,12 @@ export class GameUI {
     /**
      * Retorna os dados das estatísticas finais para a tela de fim de jogo
      */
-    getEndGameStats(gameState, waveManager) {
+    getEndGameStats(gameState, waveManager, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         return [
-            { label: 'Ondas Sobrevividas:', value: waveManager.currentWave - 1 },
-            { label: 'Inimigos Derrotados:', value: waveManager.enemiesKilled },
-            { label: 'Seu Recorde:', value: `${gameState.highscore} Ondas`, color: Config.THEME.colors.gold }
+            { label: t('stats_waves_survived') || 'Ondas Sobrevividas:', value: waveManager.currentWave - 1 },
+            { label: t('stats_enemies_defeated') || 'Inimigos Derrotados:', value: waveManager.enemiesKilled },
+            { label: t('stats_highscore') || 'Seu Recorde:', value: `${gameState.highscore} ${t('ui_wave')}`, color: Config.THEME.colors.gold }
         ];
     }
 
@@ -259,7 +269,8 @@ export class GameUI {
     /**
      * Retorna o layout para a Taverna (Meta Progressão)
      */
-    getTavernLayout(canvas, metaData, metaManager) {
+    getTavernLayout(canvas, metaData, metaManager, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const width = 650;
         const height = 500;
         const x = (canvas.width - this.panelWidth) / 2 - width / 2;
@@ -267,11 +278,11 @@ export class GameUI {
 
         const category = window.game?.state?.tavernCategory || 'upgrades';
         const tabs = [
-            { label: 'Upgrades', category: 'upgrades' },
-            { label: 'Unlocks', category: 'unlocks' },
-            { label: 'Talents', category: 'talents' },
-            { label: 'Research', category: 'research' },
-            { label: 'Relics', category: 'relics' },
+            { label: t('tavern_upgrades'), category: 'upgrades' },
+            { label: t('tavern_unlocks'), category: 'unlocks' },
+            { label: t('tavern_talents'), category: 'talents' },
+            { label: t('tavern_research'), category: 'research' },
+            { label: t('tavern_relics'), category: 'relics' },
             { label: 'Save', category: 'save' }
         ];
 
@@ -387,7 +398,7 @@ export class GameUI {
                 y: y + height - 55,
                 width: 200,
                 height: 40,
-                label: 'Voltar'
+                label: t('settings_back')
             }
         };
     }
@@ -395,7 +406,8 @@ export class GameUI {
     /**
      * Retorna o layout para o Acampamento (Hub entre waves)
      */
-    getCampLayout(canvas, gameState, dataManager) {
+    getCampLayout(canvas, gameState, dataManager, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const width = 700;
         const height = 500;
         const x = (canvas.width - this.panelWidth) / 2 - width / 2;
@@ -403,11 +415,11 @@ export class GameUI {
 
         const tab = gameState.campTab || 'recruit';
         const tabs = [
-            { label: 'Recrutar', id: 'recruit' },
-            { label: 'Grupo', id: 'party' },
-            { label: 'Ferreiro', id: 'blacksmith' },
-            { label: 'Mago', id: 'mage_tower' },
-            { label: 'Treino', id: 'training_grounds' }
+            { label: t('camp_recruit'), id: 'recruit' },
+            { label: t('camp_party') || 'Grupo', id: 'party' },
+            { label: t('camp_blacksmith'), id: 'blacksmith' },
+            { label: t('camp_mage_tower'), id: 'mage_tower' },
+            { label: t('camp_training'), id: 'training_grounds' }
         ];
 
         const tabWidth = 150;
@@ -533,7 +545,7 @@ export class GameUI {
                 y: y + height - 55,
                 width: 200,
                 height: 40,
-                label: 'Próxima Onda'
+                label: t('camp_next_wave')
             }
         };
     }
@@ -553,7 +565,8 @@ export class GameUI {
     /**
      * Retorna o layout para as telas de vitória e derrota
      */
-    getEndGameLayout(canvas, isVictory = false) {
+    getEndGameLayout(canvas, isVictory = false, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
         const width = 450;
         const height = isVictory ? 380 : 300;
         const buttonWidth = 200;
@@ -571,15 +584,59 @@ export class GameUI {
                 y: canvas.height / 2 + (isVictory ? 90 : 50),
                 width: buttonWidth,
                 height: buttonHeight,
-                label: 'Jogar Novamente'
+                label: t('menu_new_game')
             },
             continueButton: isVictory ? {
                 x: canvas.width / 2 - buttonWidth / 2,
                 y: canvas.height / 2 + 30,
                 width: buttonWidth,
                 height: buttonHeight,
-                label: 'Continuar (Endless)'
+                label: t('menu_continue') + ' (Endless)'
             } : null
+        };
+    }
+
+    getSettingsLayout(canvas, settings, localeManager) {
+        const t = (key) => localeManager ? localeManager.t(key) : key;
+        const width = 500;
+        const height = 450;
+        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
+        const y = canvas.height / 2 - height / 2;
+
+        const sliderWidth = 300;
+        const sliderHeight = 10;
+        const contentX = x + (width - sliderWidth) / 2;
+        const startY = y + 100;
+        const spacing = 50;
+
+        return {
+            modal: { x, y, width, height, title: t('settings_title') },
+            language: {
+                x: contentX,
+                y: startY,
+                width: sliderWidth,
+                height: 40,
+                label: `${t('settings_language')}: ${settings.language}`
+            },
+            volumes: [
+                { id: 'master', label: t('settings_volume_master'), value: settings.masterVolume, x: contentX, y: startY + spacing, width: sliderWidth, height: sliderHeight },
+                { id: 'music', label: t('settings_volume_music'), value: settings.musicVolume, x: contentX, y: startY + spacing * 2, width: sliderWidth, height: sliderHeight },
+                { id: 'sfx', label: t('settings_volume_sfx'), value: settings.sfxVolume, x: contentX, y: startY + spacing * 3, width: sliderWidth, height: sliderHeight }
+            ],
+            keybinds: {
+                x: contentX,
+                y: startY + spacing * 4,
+                width: sliderWidth,
+                height: 40,
+                label: t('settings_keybinds')
+            },
+            backButton: {
+                x: x + width / 2 - 100,
+                y: y + height - 55,
+                width: 200,
+                height: 40,
+                label: t('settings_back')
+            }
         };
     }
 }

@@ -13,6 +13,8 @@ import { TowerManager } from '../managers/TowerManager.js';
 import { ProjectileManager } from '../managers/ProjectileManager.js';
 import { DataManager } from '../managers/DataManager.js';
 import { MetaManager } from '../managers/MetaManager.js';
+import { LocaleManager } from '../managers/LocaleManager.js';
+import { SettingsManager } from '../managers/SettingsManager.js';
 import { CanvasRenderer } from '../../ui/CanvasRenderer.js';
 import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
@@ -42,16 +44,21 @@ export class Game {
         this.state.projectileManager = this.projectileManager;
         this.state.dataManager = this.dataManager;
         this.renderSystem = new RenderSystem(this.renderer, this.ui);
+
+        // Initialize Managers before systems that depend on them
+        this.localeManager = new LocaleManager();
+        this.settingsManager = new SettingsManager();
+
         this.inputSystem = new InputSystem(canvas, {
             onKeyDown: (e) => this.handleKeyDown(e),
             onMouseMove: (x, y) => this.handleMouseMove(x, y),
             onClick: (x, y) => this.handleClick(x, y)
-        });
+        }, this.settingsManager);
 
         this.gameLoopController = new GameLoop({
             onUpdate: (timeStep) => this.updateLogic(timeStep),
             onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas),
-            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp || this.state.showEditor,
+            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp || this.state.showEditor || this.state.showSettings,
             isPaused: () => this.state.isPaused,
             getGameSpeed: () => this.state.gameSpeed
         });
@@ -59,6 +66,10 @@ export class Game {
 
     async init() {
         console.log('Inicializando sistemas de dados...');
+
+        // Localização e Configurações
+        await this.localeManager.init(this.dataManager);
+        this.audio.updateVolumes(this.settingsManager.state);
 
         // Carrega configurações globais
         const configData = await this.dataManager.loadJSON('config', 'src/game/data/config.json');
@@ -121,9 +132,13 @@ export class Game {
     }
 
     handleKeyDown(e) {
-        if (e.code === 'Space') {
+        if (this.inputSystem.isActionTriggered(e, 'pause')) {
             e.preventDefault();
             this.togglePause();
+        }
+        if (this.inputSystem.isActionTriggered(e, 'speed')) {
+            e.preventDefault();
+            this.toggleSpeed();
         }
     }
 
@@ -133,6 +148,11 @@ export class Game {
     }
 
     handleClick(clickX, clickY) {
+        if (this.state.showSettings) {
+            this.handleSettingsClick(clickX, clickY);
+            return;
+        }
+
         if (this.state.showCamp) {
             this.handleCampClick(clickX, clickY);
             return;
@@ -217,6 +237,22 @@ export class Game {
             return;
         }
 
+        // Verifica clique no botão de settings do HUD
+        const items = this.ui.getHUDData(this.state, this.waveSystem, this.localeManager);
+        const settingsIcon = items.find(i => i.icon === 'settings');
+        if (settingsIcon) {
+            const index = items.indexOf(settingsIcon);
+            const itemWidth = 95;
+            const padding = 15;
+            const x = padding + index * (index < 5 ? itemWidth : itemWidth * 1.2);
+            const radius = 20;
+            const dist = Math.sqrt((clickX - (x + radius)) ** 2 + (clickY - (this.ui.hudHeight / 2)) ** 2);
+            if (dist < radius) {
+                this.state.showSettings = true;
+                return;
+            }
+        }
+
         // Se estiver pausado, não permite outras interações no canvas (exceto controles)
         if (this.state.isPaused) return;
 
@@ -290,7 +326,7 @@ export class Game {
     }
 
     handleControlsClick(clickX, clickY) {
-        const layout = this.ui.getControlButtonsLayout(this.canvas);
+        const layout = this.ui.getControlButtonsLayout(this.canvas, this.state, this.localeManager);
 
         // Clique Pausa
         if (clickX >= layout.pause.x && clickX <= layout.pause.x + layout.pause.width &&
@@ -326,7 +362,7 @@ export class Game {
     }
 
     handleCampClick(clickX, clickY) {
-        const layout = this.ui.getCampLayout(this.canvas, this.state, this.dataManager);
+        const layout = this.ui.getCampLayout(this.canvas, this.state, this.dataManager, this.localeManager);
 
         // Próxima Onda
         if (clickX >= layout.nextWaveButton.x && clickX <= layout.nextWaveButton.x + layout.nextWaveButton.width &&
@@ -447,7 +483,7 @@ export class Game {
 
     handleTavernClick(clickX, clickY) {
         const metaData = this.dataManager.get('meta');
-        const layout = this.ui.getTavernLayout(this.canvas, metaData, this.metaManager);
+        const layout = this.ui.getTavernLayout(this.canvas, metaData, this.metaManager, this.localeManager);
 
         // Voltar
         if (clickX >= layout.backButton.x && clickX <= layout.backButton.x + layout.backButton.width &&
@@ -568,6 +604,60 @@ export class Game {
     toggleSpeed() {
         this.state.gameSpeed = this.state.gameSpeed === 1 ? 2 : 1;
         console.log(`Velocidade: ${this.state.gameSpeed}x`);
+    }
+
+    handleSettingsClick(clickX, clickY) {
+        const layout = this.ui.getSettingsLayout(this.canvas, this.settingsManager.state, this.localeManager);
+
+        // Language toggle
+        if (clickX >= layout.language.x && clickX <= layout.language.x + layout.language.width &&
+            clickY >= layout.language.y && clickY <= layout.language.y + layout.language.height) {
+            const nextLang = this.settingsManager.state.language === 'pt-BR' ? 'en-US' : 'pt-BR';
+            this.settingsManager.state.language = nextLang;
+            this.localeManager.setLocale(nextLang);
+            this.settingsManager.save();
+
+            // Sync HTML buttons
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = this.localeManager.t(key);
+            });
+            return;
+        }
+
+        // Volume sliders
+        layout.volumes.forEach(vol => {
+            if (clickX >= vol.x && clickX <= vol.x + vol.width &&
+                clickY >= vol.y && clickY <= vol.y + vol.height) {
+                const newValue = (clickX - vol.x) / vol.width;
+                this.settingsManager.setVolume(vol.id, newValue);
+                this.audio.updateVolumes(this.settingsManager.state);
+            }
+        });
+
+        // Keybinds
+        if (clickX >= layout.keybinds.x && clickX <= layout.keybinds.x + layout.keybinds.width &&
+            clickY >= layout.keybinds.y && clickY <= layout.keybinds.y + layout.keybinds.height) {
+            const action = prompt('Qual ação deseja redefinir? (pause, speed)');
+            if (action && this.settingsManager.state.keybinds[action]) {
+                const newCode = prompt('Digite o código da tecla (ex: KeyP, Space, ShiftLeft):');
+                if (newCode) {
+                    this.settingsManager.setKeybind(action, newCode);
+                }
+            }
+            return;
+        }
+
+        // Back
+        if (clickX >= layout.backButton.x && clickX <= layout.backButton.x + layout.backButton.width &&
+            clickY >= layout.backButton.y && clickY <= layout.backButton.y + layout.backButton.height) {
+            this.state.showSettings = false;
+            if (!this.state.gameRunning) {
+                this.canvas.style.display = 'none';
+                document.getElementById('startScreen').style.display = 'block';
+                this.gameLoopController.stop();
+            }
+        }
     }
 
     handlePanelClick(y) {
@@ -798,6 +888,7 @@ export class Game {
     }
 
     updateLogic(timeStep) {
+        this.inputSystem.update();
         if (!this.state.gameRunning || this.state.isPaused || this.state.isGameOver || this.state.isVictory) return;
 
         // Hit Stop Logic
