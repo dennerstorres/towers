@@ -19,6 +19,9 @@ export class SaveSystem {
                 currentWave: waveSystem.currentWave,
                 currentMapId: state.currentMap?.id,
                 enemiesKilled: waveSystem.enemiesKilled,
+                activeModifier: state.activeModifier,
+                isHardcore: state.isHardcore,
+                ascension: state.metaManager?.state.currentAscension || 0,
                 towers: state.towerManager.placedTowers.map(tower => tower.serialize())
             }
         };

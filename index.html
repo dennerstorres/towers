@@ -173,12 +173,51 @@
         #tavernButton:active {
             box-shadow: 0 3px #2c3e50, 0 5px 10px rgba(0,0,0,0.5);
         }
+
+        .setting-container {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            color: #ecf0f1;
+        }
+
+        .setting-container label {
+            cursor: pointer;
+        }
+
+        #hardcoreToggle {
+            transform: scale(1.5);
+            margin-right: 10px;
+        }
+
+        #ascensionSelect {
+            padding: 5px;
+            background: #2c3e50;
+            color: #f1c40f;
+            border: 1px solid #f1c40f;
+            font-family: inherit;
+            font-size: 1.1rem;
+        }
     </style>
 </head>
 <body>
     <div id="startScreen">
         <h1>🏰 Tower Defense</h1>
         <p>Defenda seu território construindo torres estratégicas!</p>
+
+        <div class="setting-container">
+            <label>
+                <input type="checkbox" id="hardcoreToggle">
+                MODO HARDCORE (1 VIDA)
+            </label>
+        </div>
+
+        <div class="setting-container">
+            <label>ASCENSÃO: </label>
+            <select id="ascensionSelect">
+                <option value="0">0 - Normal</option>
+            </select>
+        </div>
+
         <button id="startButton" class="menu-button">Novo Jogo</button>
         <button id="continueButton" class="menu-button" style="display: none;">Continuar</button>
         <button id="tavernButton" class="menu-button">Taverna</button>
@@ -208,6 +247,16 @@
                 if (SaveSystem.loadRun()) {
                     continueButton.style.display = 'inline-block';
                 }
+
+                // Update Ascension Select
+                const meta = game.metaManager;
+                const select = document.getElementById('ascensionSelect');
+                for (let i = 1; i <= meta.state.maxAscension; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    opt.textContent = `${i} - Dificuldade ${i}`;
+                    select.appendChild(opt);
+                }
             }).catch(err => {
                 console.error('Erro ao inicializar o jogo:', err);
             });
@@ -224,6 +273,9 @@
                     }
                     SaveSystem.clearRun();
                 }
+
+                game.state.isHardcore = document.getElementById('hardcoreToggle').checked;
+                game.metaManager.state.currentAscension = parseInt(document.getElementById('ascensionSelect').value);
 
                 startScreen.style.display = 'none';
                 canvas.style.display = 'block';

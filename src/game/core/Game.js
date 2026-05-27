@@ -41,8 +41,6 @@ export class Game {
         this.state.spatialSystem = this.spatialSystem;
         this.state.projectileManager = this.projectileManager;
         this.state.dataManager = this.dataManager;
-        this.state.metaManager = this.metaManager;
-
         this.renderSystem = new RenderSystem(this.renderer, this.ui);
         this.inputSystem = new InputSystem(canvas, {
             onKeyDown: (e) => this.handleKeyDown(e),
@@ -75,6 +73,7 @@ export class Game {
             await this.dataManager.loadJSON('effects', 'src/game/data/effects.json');
             await this.dataManager.loadJSON('items', 'src/game/data/items.json');
             await this.dataManager.loadJSON('maps', 'src/game/data/maps.json');
+            await this.dataManager.loadJSON('modifiers', 'src/game/data/modifiers.json');
 
             // Atualiza managers que dependem do Config
             this.waveSystem.reset();
@@ -88,8 +87,6 @@ export class Game {
             this.state.spatialSystem = this.spatialSystem;
             this.state.projectileManager = this.projectileManager;
             this.state.dataManager = this.dataManager;
-            this.state.metaManager = this.metaManager;
-
             // Aplica bônus de meta-progressão ao estado inicial
             this.applyMetaBonuses(true);
             this.updateCurrentMap();
@@ -152,10 +149,21 @@ export class Game {
         }
 
         if (this.state.isGameOver || this.state.isVictory) {
-            const layout = this.ui.getEndGameLayout(this.canvas);
+            const layout = this.ui.getEndGameLayout(this.canvas, this.state.isVictory);
             if (clickX >= layout.restartButton.x && clickX <= layout.restartButton.x + layout.restartButton.width &&
                 clickY >= layout.restartButton.y && clickY <= layout.restartButton.y + layout.restartButton.height) {
                 this.restart();
+            }
+            if (this.state.isVictory && layout.continueButton) {
+                if (clickX >= layout.continueButton.x && clickX <= layout.continueButton.x + layout.continueButton.width &&
+                    clickY >= layout.continueButton.y && clickY <= layout.continueButton.y + layout.continueButton.height) {
+                    this.state.isVictory = false;
+                    this.state.gameRunning = true;
+                    this.state.endlessConfirmed = true;
+                    this.state.showCamp = true;
+                    this.towerManager.generateRecruitmentPool(this.dataManager);
+                    this.generateBlacksmithPool();
+                }
             }
             return;
         }
@@ -307,7 +315,11 @@ export class Game {
 
         if (isStartOfRun) {
             this.state.money += bonuses.startingGold;
-            this.state.lives += bonuses.extraLives;
+            if (this.state.isHardcore) {
+                this.state.lives = 1;
+            } else {
+                this.state.lives += bonuses.extraLives;
+            }
         }
 
         this.state.metaBonuses = bonuses;
@@ -607,7 +619,7 @@ export class Game {
         const randomRaceKey = raceKeys[Math.floor(Math.random() * raceKeys.length)];
         const raceData = races ? races[randomRaceKey] : null;
 
-        const tower = this.towerManager.addTower(x, y, selectedTower.type, randomRaceKey, raceData);
+        const tower = this.towerManager.addTower(x, y, selectedTower.type, randomRaceKey, raceData, this.state.activeModifier);
 
         // Aplica bônus de meta-progressão se existirem
         if (this.state.metaBonuses) {
@@ -672,7 +684,7 @@ export class Game {
 
     placeRecruitedTower(x, y) {
         const hero = this.state.pendingRecruit;
-        const tower = this.towerManager.addTower(x, y, hero.type, hero.race, hero.raceData);
+        const tower = this.towerManager.addTower(x, y, hero.type, hero.race, hero.raceData, this.state.activeModifier);
 
         // Remove from pool
         this.towerManager.recruitmentPool = this.towerManager.recruitmentPool.filter(h => h !== hero);
@@ -687,6 +699,18 @@ export class Game {
         console.log('Game iniciado');
         this.audio.resume();
         this.state.gameRunning = true;
+
+        // Pick random modifier ONLY if not already set (e.g. from a continue or load)
+        if (!this.state.activeModifier) {
+            const modifiers = this.dataManager.get('modifiers');
+            if (modifiers) {
+                const keys = Object.keys(modifiers);
+                const randomKey = keys[Math.floor(Math.random() * keys.length)];
+                this.state.activeModifier = modifiers[randomKey];
+                console.log(`Active Modifier: ${this.state.activeModifier.name}`);
+            }
+        }
+
         this.waveSystem.startCountdown();
 
         this.gameLoopController.start();
@@ -715,13 +739,16 @@ export class Game {
         this.state.spatialSystem = this.spatialSystem;
         this.state.projectileManager = this.projectileManager;
         this.state.dataManager = this.dataManager;
-        this.state.metaManager = this.metaManager;
-
         // Restore Run Data
         this.state.money = runData.money;
         this.state.lives = runData.lives;
         this.waveSystem.currentWave = runData.currentWave;
         this.waveSystem.enemiesKilled = runData.enemiesKilled || 0;
+        this.state.activeModifier = runData.activeModifier || null;
+        this.state.isHardcore = runData.isHardcore || false;
+        if (this.metaManager && runData.ascension !== undefined) {
+            this.metaManager.state.currentAscension = runData.ascension;
+        }
 
         // Restore Map
         const maps = this.dataManager.get('maps');
@@ -738,8 +765,8 @@ export class Game {
         const races = this.dataManager.get('races');
         runData.towers.forEach(tData => {
             const raceData = races ? races[tData.race] : null;
-            const tower = this.towerManager.addTower(tData.x, tData.y, tData.type, tData.race, raceData);
-            tower.hydrate(tData);
+            const tower = this.towerManager.addTower(tData.x, tData.y, tData.type, tData.race, raceData, this.state.activeModifier);
+            tower.hydrate(tData, this.state.activeModifier);
         });
 
         this.applyMetaBonuses(false);
@@ -763,7 +790,6 @@ export class Game {
         this.state.spatialSystem = this.spatialSystem;
         this.state.projectileManager = this.projectileManager;
         this.state.dataManager = this.dataManager;
-        this.state.metaManager = this.metaManager;
         this.applyMetaBonuses(true);
 
         this.particleSystem.particles = [];
@@ -872,11 +898,18 @@ export class Game {
         this.waveSystem.enemiesKilled += enemiesBefore - this.state.enemies.length;
 
         // Verifica vitória
-        if (this.waveSystem.currentWave > Config.maxWaves) {
+        if (this.waveSystem.currentWave > Config.maxWaves && !this.state.endlessConfirmed) {
             this.state.isVictory = true;
             this.state.gameRunning = false;
             this.audio.playVictory();
             this.stateStore.updateHighscore(this.waveSystem.currentWave - 1);
+
+            // Handle Ascension unlocking
+            const meta = this.metaManager;
+            if (meta.state.currentAscension === meta.state.maxAscension) {
+                meta.state.maxAscension++;
+                meta.save();
+            }
         }
 
         // Verifica derrota

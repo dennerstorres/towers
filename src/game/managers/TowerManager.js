@@ -48,8 +48,9 @@ export class TowerManager {
         }
     }
 
-    addTower(x, y, type, race = 'human', raceData = null) {
-        const tower = new Tower(x, y, type, race, raceData);
+    addTower(x, y, type, race = 'human', raceData = null, activeModifier = null) {
+        const tower = new Tower(x, y, type, race, raceData, activeModifier);
+
         this.placedTowers.push(tower);
         return tower;
     }

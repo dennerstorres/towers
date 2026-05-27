@@ -3,8 +3,13 @@ import { Projectile } from './Projectile.js';
 import { Character } from './Character.js';
 
 export class Tower extends Character {
-    constructor(x, y, type = 'archer', race = 'human', raceData = null) {
+    constructor(x, y, type = 'archer', race = 'human', raceData = null, activeModifier = null) {
         const stats = Config.TOWERS[type.toUpperCase()] || Config.TOWERS.ARCHER;
+
+        let maxHealth = stats.maxHealth || 100;
+        if (activeModifier?.hpMultiplier) {
+            maxHealth = Math.floor(maxHealth * activeModifier.hpMultiplier);
+        }
 
         super(x, y, {
             name: type.charAt(0).toUpperCase() + type.slice(1),
@@ -12,8 +17,8 @@ export class Tower extends Character {
             class: type,
             level: 1,
             xp: 0,
-            maxHealth: stats.maxHealth || 100,
-            health: stats.health || stats.maxHealth || 100,
+            maxHealth: maxHealth,
+            health: maxHealth,
             primaryAbility: stats.primaryAbility || 'dex',
             attributes: stats.attributes || {},
             traits: [],
@@ -21,6 +26,7 @@ export class Tower extends Character {
         });
 
         this.type = type;
+        this.isTower = true;
 
         this.range = stats.range;
         this.damage = stats.damage;
@@ -199,21 +205,26 @@ export class Tower extends Character {
     /**
      * Retorna o alcance atual dinâmico
      */
-    getRange() {
+    getRange(gameState) {
         let bonus = (this.synergyBonuses.range || 0);
+
+        let baseRange = this.range;
+        if (gameState?.activeModifier?.rangeMultiplier) {
+            baseRange *= gameState.activeModifier.rangeMultiplier;
+        }
 
         // Equipment range
         for (let slot in this.equipment) {
             if (this.equipment[slot]?.range) bonus += this.equipment[slot].range;
         }
 
-        return this.range + bonus;
+        return baseRange + bonus;
     }
 
     /**
      * Retorna o dano atual dinâmico
      */
-    getDamage() {
+    getDamage(gameState) {
         let totalDamage = this.damage + (this.synergyBonuses.damage || 0);
 
         // Equipment damage
@@ -225,9 +236,14 @@ export class Tower extends Character {
             }
         }
 
+        // Apply Modifier damage multiplier
+        if (gameState?.activeModifier?.damageMultiplier) {
+            totalDamage = Math.floor(totalDamage * gameState.activeModifier.damageMultiplier);
+        }
+
         // Apply Meta Bonuses
-        if (this.gameState && this.gameState.metaBonuses) {
-            const mb = this.gameState.metaBonuses;
+        if (gameState && gameState.metaBonuses) {
+            const mb = gameState.metaBonuses;
             totalDamage = Math.floor(totalDamage * mb.damageMultiplier);
 
             if (this.damageType === 'fire') totalDamage = Math.floor(totalDamage * mb.elementalFireMultiplier);
@@ -248,7 +264,7 @@ export class Tower extends Character {
      * Retorna o bônus de ataque da torre baseado em D&D 5e
      * @returns {number}
      */
-    getAttackBonus() {
+    getAttackBonus(gameState) {
         const proficiency = this.getProficiencyBonus();
         const modifier = this.getModifier(this.primaryAbility);
 
@@ -263,8 +279,8 @@ export class Tower extends Character {
         if (this.type === 'rogue' && this.level >= 2) bonus += 2;
 
         // Meta Bonus
-        if (this.gameState && this.gameState.metaBonuses) {
-            bonus += (this.gameState.metaBonuses.attackBonus || 0);
+        if (gameState && gameState.metaBonuses) {
+            bonus += (gameState.metaBonuses.attackBonus || 0);
         }
 
         return bonus;
@@ -274,7 +290,7 @@ export class Tower extends Character {
      * Calcula a Classe de Armadura (AC) baseado em D&D 5e
      * @returns {number}
      */
-    getArmorClass() {
+    getArmorClass(gameState) {
         let ac = 10 + this.getModifier('dex') + this.armorBonus;
 
         // Equipment AC
@@ -283,8 +299,8 @@ export class Tower extends Character {
         }
 
         // Meta Bonus
-        if (this.gameState && this.gameState.metaBonuses) {
-            ac += (this.gameState.metaBonuses.acBonus || 0);
+        if (gameState && gameState.metaBonuses) {
+            ac += (gameState.metaBonuses.acBonus || 0);
         }
 
         // Synergy Bonus
@@ -309,7 +325,7 @@ export class Tower extends Character {
      * Retorna o valor necessário no d20 para um acerto crítico
      * @returns {number}
      */
-    getCritThreshold() {
+    getCritThreshold(gameState) {
         let threshold = this.critThreshold;
 
         // Bonus de meta-progressão
@@ -325,19 +341,20 @@ export class Tower extends Character {
     /**
      * Seleciona um alvo baseado no targetMode atual (Busca Espacial O(log N) ou melhor)
      * @param {Array} enemies
-     * @param {Object} spatialSystem
+     * @param {Object} gameState
      * @returns {Object|null}
      */
-    getTarget(enemies, spatialSystem = null) {
+    getTarget(enemies, gameState) {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
-        const currentRange = this.getRange();
+        const currentRange = this.getRange(gameState);
         const rangeSq = currentRange * currentRange;
 
         let bestTarget = null;
         let bestValue = null;
 
         // Use spatial system if available, otherwise fallback to linear scan
+        const spatialSystem = gameState?.spatialSystem;
         const targetPool = spatialSystem ? spatialSystem.getEnemiesInRange(centerX, centerY, currentRange) : enemies;
 
         for (const enemy of targetPool) {
@@ -470,7 +487,12 @@ export class Tower extends Character {
         this.initialCastTime = spellData.castTime;
         this.castTimer = spellData.castTime;
         this.currentSpell = spell;
-        this.spellCooldowns[spell] = spellData.cooldown;
+
+        let cd = spellData.cooldown;
+        if (gameState?.activeModifier?.spellCooldownMultiplier) {
+            cd *= gameState.activeModifier.spellCooldownMultiplier;
+        }
+        this.spellCooldowns[spell] = cd;
 
         return null;
     }
@@ -525,10 +547,10 @@ export class Tower extends Character {
         const centerX = this.x * Config.gridSize + Config.gridSize / 2;
         const centerY = this.y * Config.gridSize + Config.gridSize / 2;
 
-        const enemy = this.getTarget(enemies, gameState.spatialSystem);
+        const enemy = this.getTarget(enemies, gameState);
 
         if (enemy) {
-            let damage = this.getDamage();
+            let damage = this.getDamage(gameState);
             let splash = this.splashRadius;
             let type = this.type;
             let taunt = this.tauntDuration;
@@ -599,12 +621,16 @@ export class Tower extends Character {
     /**
      * Restaura o estado da torre a partir de dados salvos
      */
-    hydrate(data) {
+    hydrate(data, activeModifier = null) {
         this.level = data.level || this.level;
         this.xp = data.xp || this.xp;
         this.equipment = data.equipment || this.equipment;
         this.health = data.health || this.health;
         this.maxHealth = data.maxHealth || this.maxHealth;
+
+        // Note: activeModifier HP reduction is NOT reapplied here because
+        // it was already applied when the tower was first created/saved.
+
         this.attributes = data.attributes || this.attributes;
         this.traits = data.traits || this.traits;
         this.totalInvested = data.totalInvested || this.totalInvested;

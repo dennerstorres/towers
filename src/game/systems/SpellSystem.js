@@ -70,6 +70,13 @@ export const SpellSystem = {
                 // Apply damage
                 let damage = spell.damage;
 
+                // Modifiers
+                if (gameState?.activeModifier) {
+                    const mod = gameState.activeModifier;
+                    if (mod.arcaneDamageMultiplier) damage = Math.floor(damage * mod.arcaneDamageMultiplier);
+                    if (mod.damageMultiplier) damage = Math.floor(damage * mod.damageMultiplier);
+                }
+
                 // Check resistance
                 if (typeof enemy.hasResistance === 'function' && enemy.hasResistance(spell.damageType)) {
                     damage = Math.floor(damage / 2);

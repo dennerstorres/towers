@@ -1,0 +1,33 @@
+{
+  "mana_surge": {
+    "name": "Mana Surge",
+    "description": "Spells have 25% lower cooldown.",
+    "spellCooldownMultiplier": 0.75
+  },
+  "weakened_steel": {
+    "name": "Weakened Steel",
+    "description": "All units deal 10% less physical damage.",
+    "physicalDamageMultiplier": 0.9
+  },
+  "fog_of_war": {
+    "name": "Fog of War",
+    "description": "Tower range reduced by 10%.",
+    "rangeMultiplier": 0.9
+  },
+  "blood_lust": {
+    "name": "Blood Lust",
+    "description": "Units deal 20% more damage but have 20% less HP.",
+    "damageMultiplier": 1.2,
+    "hpMultiplier": 0.8
+  },
+  "arcane_brilliance": {
+    "name": "Arcane Brilliance",
+    "description": "Wizards and Spells deal 25% more damage.",
+    "arcaneDamageMultiplier": 1.25
+  },
+  "sturdy_defenses": {
+    "name": "Sturdy Defenses",
+    "description": "All units gain +2 AC.",
+    "acBonus": 2
+  }
+}

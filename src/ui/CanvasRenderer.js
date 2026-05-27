@@ -224,7 +224,7 @@ export class CanvasRenderer {
         const items = ui.getHUDData(gameState, waveManager);
 
         items.forEach((item, index) => {
-            const x = padding + index * itemWidth;
+            const x = padding + index * (index < 5 ? itemWidth : itemWidth * 1.2);
             const y = hudHeight / 2;
 
             this.drawIcon(item.icon, x, y, 20, item.color);
@@ -507,6 +507,26 @@ export class CanvasRenderer {
                 // Body
                 this.ctx.moveTo(pX + size/4, pY + size);
                 this.ctx.quadraticCurveTo(pX + size/2, pY + size/2, pX + size*0.75, pY + size);
+                this.ctx.fill();
+                break;
+            case 'ascension':
+                // Up Arrow
+                this.ctx.beginPath();
+                this.ctx.moveTo(x + size/2, y - size/2);
+                this.ctx.lineTo(x + size, y + size/2);
+                this.ctx.lineTo(x, y + size/2);
+                this.ctx.closePath();
+                this.ctx.fill();
+                break;
+            case 'modifier':
+                // Gear / Star
+                this.ctx.beginPath();
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI) / 4;
+                    const r = i % 2 === 0 ? size/2 : size/4;
+                    this.ctx.lineTo(x + size/2 + Math.cos(angle) * r, y + Math.sin(angle) * r);
+                }
+                this.ctx.closePath();
                 this.ctx.fill();
                 break;
         }
@@ -1028,8 +1048,8 @@ export class CanvasRenderer {
     }
 
     drawEndGameScreen(gameState, waveManager, ui) {
-        const layout = ui.getEndGameLayout(this.canvas);
-        const { modal, restartButton } = layout;
+        const layout = ui.getEndGameLayout(this.canvas, gameState.isVictory);
+        const { modal, restartButton, continueButton } = layout;
 
         // Overlay
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -1068,7 +1088,19 @@ export class CanvasRenderer {
             this.ctx.fillText(stat.value, this.canvas.width / 2 + 10, y);
         });
 
-        // Restart Button
+        // Buttons
+        if (continueButton) {
+            this.ctx.fillStyle = Config.THEME.colors.archer;
+            this.ctx.fillRect(continueButton.x, continueButton.y, continueButton.width, continueButton.height);
+            this.ctx.strokeStyle = Config.THEME.colors.gold;
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(continueButton.x, continueButton.y, continueButton.width, continueButton.height);
+
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = `bold 18px ${Config.THEME.font}`;
+            this.ctx.fillText(continueButton.label, continueButton.x + continueButton.width / 2, continueButton.y + continueButton.height / 2);
+        }
+
         this.ctx.fillStyle = Config.THEME.colors.bloodRed;
         this.ctx.fillRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
         this.ctx.strokeStyle = Config.THEME.colors.gold;

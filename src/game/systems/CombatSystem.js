@@ -15,19 +15,24 @@ export const CombatSystem = {
      * @param {Object} target - Entidade que defende (deve ter ac)
      * @returns {Object} { hit: boolean, crit: boolean, fail: boolean, roll: number }
      */
-    calculateHit(attacker, target) {
+    calculateHit(attacker, target, gameState = null) {
         const roll = this.rollD20();
-        const attackBonus = (typeof attacker.getAttackBonus === 'function') ? attacker.getAttackBonus() : 0;
+        const attackBonus = (typeof attacker.getAttackBonus === 'function') ? attacker.getAttackBonus(gameState) : 0;
 
         let targetAC = 10;
         if (typeof target.getArmorClass === 'function') {
-            targetAC = target.getArmorClass() || 10;
+            targetAC = target.getArmorClass(gameState) || 10;
         } else if (target.ac !== undefined) {
             targetAC = target.ac || 10;
         }
 
+        // Modifier: Sturdy Defenses
+        if (gameState?.activeModifier?.acBonus && target.isTower) {
+             targetAC += gameState.activeModifier.acBonus;
+        }
+
         // Regra de acerto crítico (usando threshold do atacante)
-        const critThreshold = (typeof attacker.getCritThreshold === 'function') ? attacker.getCritThreshold() : 20;
+        const critThreshold = (typeof attacker.getCritThreshold === 'function') ? attacker.getCritThreshold(gameState) : 20;
         if (roll >= critThreshold) {
             return { hit: true, crit: true, fail: false, roll };
         }
@@ -125,10 +130,22 @@ export const CombatSystem = {
             }
         } else if (projectile.target && projectile.target.health > 0) {
             // Single target damage com sistema D20
-            const attackResult = this.calculateHit(projectile.attacker || {}, projectile.target);
+            const attackResult = this.calculateHit(projectile.attacker || {}, projectile.target, gameState);
 
             if (attackResult.hit) {
                 let damage = projectile.damage;
+
+                // Modifiers (Note: damageMultiplier is already applied in Tower.getDamage())
+                if (gameState?.activeModifier) {
+                    const mod = gameState.activeModifier;
+                    if (mod.physicalDamageMultiplier && (projectile.damageType === 'piercing' || projectile.damageType === 'slashing' || projectile.damageType === 'bludgeoning')) {
+                        damage = Math.floor(damage * mod.physicalDamageMultiplier);
+                    }
+                    if (mod.arcaneDamageMultiplier && (projectile.damageType === 'fire' || projectile.damageType === 'ice' || projectile.damageType === 'radiant' || projectile.damageType === 'lightning')) {
+                        damage = Math.floor(damage * mod.arcaneDamageMultiplier);
+                    }
+                }
+
                 let color = Config.THEME.colors.bloodRed;
 
                 if (attackResult.crit) {

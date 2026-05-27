@@ -60,7 +60,16 @@ export class WaveSystem {
         if (dataManager) {
             const allEnemies = dataManager.get('enemies');
             if (allEnemies && allEnemies[type]) {
-                enemyData = allEnemies[type];
+                // Clone to avoid modifying original data
+                enemyData = { ...allEnemies[type] };
+
+                // Apply Scaling and Ascension
+                const scaling = this.getDifficultyScaling(gameState);
+                enemyData.hp = Math.floor(enemyData.hp * scaling.hp);
+                enemyData.ac = (enemyData.ac || 10) + scaling.ac;
+                enemyData.speed = (enemyData.speed || 1.0) * scaling.speed;
+                enemyData.xp = Math.floor(enemyData.xp * scaling.rewards);
+                enemyData.gold = Math.floor(enemyData.gold * scaling.rewards);
             }
         }
 
@@ -74,6 +83,33 @@ export class WaveSystem {
 
         gameState.enemies.push(new Enemy(type, enemyData, path));
         this.enemiesSpawned++;
+    }
+
+    getDifficultyScaling(gameState) {
+        const wave = this.currentWave;
+        const isEndless = wave > Config.maxWaves;
+        const ascension = gameState?.metaManager?.state?.currentAscension || 0;
+
+        let hpMult = 1.0;
+        let acBonus = 0;
+        let speedMult = 1.0;
+        let rewardMult = 1.0;
+
+        // Ascension Scaling (FASE 17)
+        hpMult += ascension * 0.2; // +20% HP per Ascension
+        acBonus += Math.floor(ascension / 2);
+        speedMult += ascension * 0.05;
+
+        // Endless Scaling (FASE 17)
+        if (isEndless) {
+            const endlessWaves = wave - Config.maxWaves;
+            hpMult *= Math.pow(1.15, endlessWaves); // +15% HP per endless wave
+            acBonus += Math.floor(endlessWaves / 3);
+            speedMult *= Math.pow(1.02, endlessWaves);
+            rewardMult *= Math.pow(1.1, endlessWaves);
+        }
+
+        return { hp: hpMult, ac: acBonus, speed: speedMult, rewards: rewardMult };
     }
 
     endWave(gameState) {
@@ -112,9 +148,15 @@ export class WaveSystem {
         }
 
         this.currentWave++;
-        this.enemiesToSpawn = Config.initialEnemiesPerWave + (this.currentWave - 1) * Config.waveEnemyIncrease;
 
-        if (this.currentWave % 3 === 0) {
+        // Endless wave generation
+        if (this.currentWave > Config.maxWaves) {
+            this.enemiesToSpawn = Math.floor(Config.initialEnemiesPerWave + (Config.maxWaves - 1) * Config.waveEnemyIncrease + (this.currentWave - Config.maxWaves) * 2);
+        } else {
+            this.enemiesToSpawn = Config.initialEnemiesPerWave + (this.currentWave - 1) * Config.waveEnemyIncrease;
+        }
+
+        if (this.currentWave % 3 === 0 && this.currentWave <= Config.maxWaves) {
             Enemy.prototype.speed += Config.enemySpeedIncrease;
         }
 

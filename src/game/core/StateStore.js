@@ -28,7 +28,10 @@ export class StateStore {
             campTab: 'recruit',
             showEditor: false,
             editorMode: 'map',
-            editorSystem: null
+            editorSystem: null,
+            isHardcore: false,
+            endlessConfirmed: false,
+            activeModifier: null
         };
     }
 
