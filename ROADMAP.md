@@ -408,10 +408,10 @@ Persistência real.
 Criar longevidade infinita.
 
 ## Editor
-- [ ] Map editor
-- [ ] Wave editor
-- [ ] Enemy editor
-- [ ] Spell editor
+- [x] Map editor
+- [x] Wave editor
+- [x] Enemy editor
+- [x] Spell editor
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 16 — Editor de Conteúdo | Concluído | # | 2026-06-08 |
 | FASE 15 — Save System | Concluído | # | 2026-06-07 |
 | FASE 14 — Performance | Concluído | # | 2026-06-05 |
 | FASE 13 — Visual & Game Feel | In Review | # | 2026-05-26 |

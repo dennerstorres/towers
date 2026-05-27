@@ -158,6 +158,54 @@ export class GameUI {
     }
 
     /**
+     * Retorna o layout para o Editor de Conteúdo
+     */
+    getEditorLayout(canvas, editorSystem) {
+        const sidebarWidth = 200;
+        const hudHeight = this.hudHeight;
+
+        const tabs = [
+            { label: 'Mapa', mode: 'map' },
+            { label: 'Inimigos', mode: 'enemies' },
+            { label: 'Magias', mode: 'spells' },
+            { label: 'Ondas', mode: 'waves' }
+        ];
+
+        const tabHeight = 40;
+        const sidebarX = canvas.width - sidebarWidth;
+        const sidebarY = hudHeight;
+
+        const formattedTabs = tabs.map((t, i) => ({
+            ...t,
+            x: sidebarX + 10,
+            y: sidebarY + 10 + i * (tabHeight + 5),
+            width: sidebarWidth - 20,
+            height: tabHeight,
+            isActive: t.mode === editorSystem.mode
+        }));
+
+        const actions = [
+            { label: 'Importar JSON', action: 'import' },
+            { label: 'Exportar JSON', action: 'export' },
+            { label: 'Sair', action: 'exit' }
+        ];
+
+        const actionButtons = actions.map((a, i) => ({
+            ...a,
+            x: sidebarX + 10,
+            y: canvas.height - 155 + i * (tabHeight + 5),
+            width: sidebarWidth - 20,
+            height: tabHeight
+        }));
+
+        return {
+            sidebar: { x: sidebarX, y: sidebarY, width: sidebarWidth, height: canvas.height - hudHeight },
+            tabs: formattedTabs,
+            actions: actionButtons
+        };
+    }
+
+    /**
      * Retorna o layout para o modal de Level Up
      */
     getLevelUpModalLayout(canvas) {
