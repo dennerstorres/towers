@@ -421,11 +421,11 @@ Criar longevidade infinita.
 Replayability.
 
 ## Features
-- [ ] Endless mode
-- [ ] Hardcore mode
-- [ ] Roguelite runs
-- [ ] Random modifiers
-- [ ] Ascension levels
+- [x] Endless mode
+- [x] Hardcore mode
+- [x] Roguelite runs
+- [x] Random modifiers
+- [x] Ascension levels
 
 ---
 
@@ -494,6 +494,7 @@ Misturando:
 
 | Task | Status | PR | Date |
 |------|--------|----|------|
+| FASE 17 — Endgame | Concluído | # | 2026-06-10 |
 | FASE 16 — Editor de Conteúdo | Concluído | # | 2026-06-08 |
 | FASE 15 — Save System | Concluído | # | 2026-06-07 |
 | FASE 14 — Performance | Concluído | # | 2026-06-05 |

@@ -35,6 +35,16 @@ export class GameUI {
                 icon: 'party',
                 value: `${gameState.towerManager.placedTowers.length}/${Config.maxPartySlots}`,
                 color: '#3498db'
+            },
+            {
+                icon: 'ascension',
+                value: `Asc. ${gameState.metaManager?.state?.currentAscension || 0}`,
+                color: '#e74c3c'
+            },
+            {
+                icon: 'modifier',
+                value: gameState.activeModifier ? gameState.activeModifier.name : 'Nenhum',
+                color: '#9b59b6'
             }
         ];
     }
@@ -543,9 +553,9 @@ export class GameUI {
     /**
      * Retorna o layout para as telas de vitória e derrota
      */
-    getEndGameLayout(canvas) {
-        const width = 400;
-        const height = 300;
+    getEndGameLayout(canvas, isVictory = false) {
+        const width = 450;
+        const height = isVictory ? 380 : 300;
         const buttonWidth = 200;
         const buttonHeight = 50;
 
@@ -558,11 +568,18 @@ export class GameUI {
             },
             restartButton: {
                 x: canvas.width / 2 - buttonWidth / 2,
-                y: canvas.height / 2 + 50,
+                y: canvas.height / 2 + (isVictory ? 90 : 50),
                 width: buttonWidth,
                 height: buttonHeight,
                 label: 'Jogar Novamente'
-            }
+            },
+            continueButton: isVictory ? {
+                x: canvas.width / 2 - buttonWidth / 2,
+                y: canvas.height / 2 + 30,
+                width: buttonWidth,
+                height: buttonHeight,
+                label: 'Continuar (Endless)'
+            } : null
         };
     }
 }

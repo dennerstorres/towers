@@ -35,7 +35,9 @@ export class MetaManager {
             unlockedClasses: ['fighter', 'ranger'], // Only basic classes unlocked by default
             talents: [], // Array of talent keys
             research: {}, // Key-value for research levels
-            relics: [] // Array of relic keys
+            relics: [], // Array of relic keys
+            maxAscension: 0,
+            currentAscension: 0
         };
     }
 
