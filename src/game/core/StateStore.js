@@ -25,7 +25,10 @@ export class StateStore {
             showTavern: false,
             tavernCategory: 'upgrades',
             showCamp: false,
-            campTab: 'recruit'
+            campTab: 'recruit',
+            showEditor: false,
+            editorMode: 'map',
+            editorSystem: null
         };
     }
 

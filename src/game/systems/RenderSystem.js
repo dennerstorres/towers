@@ -69,6 +69,10 @@ export class RenderSystem {
         // Draw UI overlay
         this.renderer.drawUI(gameState, waveSystem, this.ui);
 
+        if (gameState.showEditor && gameState.editorSystem) {
+            this.renderer.drawEditor(gameState, this.ui);
+        }
+
         this.renderer.ctx.restore();
 
         // Draw Level Up Modal if needed

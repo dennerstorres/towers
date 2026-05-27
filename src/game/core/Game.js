@@ -53,7 +53,7 @@ export class Game {
         this.gameLoopController = new GameLoop({
             onUpdate: (timeStep) => this.updateLogic(timeStep),
             onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas),
-            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp,
+            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp || this.state.showEditor,
             isPaused: () => this.state.isPaused,
             getGameSpeed: () => this.state.gameSpeed
         });
@@ -220,6 +220,11 @@ export class Game {
         }
 
         // Clique no grid para posicionar torre
+        if (this.state.showEditor) {
+            this.handleEditorClick(clickX, clickY);
+            return;
+        }
+
         const x = Math.floor(clickX / Config.gridSize);
         const y = Math.floor(clickY / Config.gridSize);
 
@@ -410,6 +415,22 @@ export class Game {
         if (existing && existing !== this.state.towerToMove) return false;
 
         return true;
+    }
+
+    async openEditor() {
+        this.state.showEditor = true;
+        if (!this.editorSystem) {
+            const module = await import('../systems/EditorSystem.js');
+            this.editorSystem = new module.EditorSystem(this);
+            this.state.editorSystem = this.editorSystem;
+        }
+        this.gameLoopController.start();
+    }
+
+    handleEditorClick(clickX, clickY) {
+        if (this.editorSystem) {
+            this.editorSystem.handleClick(clickX, clickY);
+        }
     }
 
     handleTavernClick(clickX, clickY) {

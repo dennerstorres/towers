@@ -1420,6 +1420,198 @@ export class CanvasRenderer {
     }
 
     /**
+     * Desenha a interface do Editor
+     */
+    drawEditor(gameState, ui) {
+        const editor = gameState.editorSystem;
+        if (!editor) return;
+
+        const layout = ui.getEditorLayout(this.canvas, editor);
+
+        // Sidebar Background
+        this.ctx.fillStyle = Config.THEME.colors.darkStone;
+        this.ctx.globalAlpha = 0.95;
+        this.ctx.fillRect(layout.sidebar.x, layout.sidebar.y, layout.sidebar.width, layout.sidebar.height);
+        this.ctx.globalAlpha = 1.0;
+
+        // Border
+        this.ctx.strokeStyle = Config.THEME.colors.gold;
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(layout.sidebar.x, layout.sidebar.y, layout.sidebar.width, layout.sidebar.height);
+
+        // Tabs
+        layout.tabs.forEach(tab => {
+            this.drawButton(tab, Config.THEME.colors.gold, tab.label, !tab.isActive);
+        });
+
+        // Actions
+        layout.actions.forEach(btn => {
+            this.drawButton(btn, btn.action === 'exit' ? Config.THEME.colors.bloodRed : Config.THEME.colors.gold, btn.label);
+        });
+
+        // Editor Workspace Rendering
+        this.ctx.save();
+        this.ctx.textAlign = 'left';
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 24px ${Config.THEME.font}`;
+        this.ctx.fillText(`EDITOR DE ${editor.mode.toUpperCase()}`, 20, ui.hudHeight + 35);
+
+        if (editor.mode === 'map') {
+            this.drawMapEditorVisuals(editor, ui);
+        } else if (editor.mode === 'enemies') {
+            this.drawEnemyEditorVisuals(editor, ui);
+        } else if (editor.mode === 'spells') {
+            this.drawSpellEditorVisuals(editor, ui);
+        } else if (editor.mode === 'waves') {
+            this.drawWaveEditorVisuals(editor, ui);
+        } else {
+            this.ctx.fillStyle = '#ecf0f1';
+            this.ctx.font = `18px ${Config.THEME.font}`;
+            this.ctx.fillText(`Interface do Editor de ${editor.mode} em desenvolvimento...`, 20, ui.hudHeight + 80);
+        }
+        this.ctx.restore();
+    }
+
+    drawEnemyEditorVisuals(editor, ui) {
+        const hudHeight = ui.hudHeight;
+        const keys = Object.keys(editor.draftEnemies);
+
+        this.drawButton({ x: 20, y: hudHeight + 60, width: 150, height: 30 }, Config.THEME.colors.gold, '+ Novo Inimigo');
+
+        keys.forEach((key, i) => {
+            const isActive = editor.selectedEnemyKey === key;
+            this.drawButton({ x: 20, y: hudHeight + 100 + i * 35, width: 150, height: 30 }, isActive ? Config.THEME.colors.gold : '#555', key);
+        });
+
+        if (editor.selectedEnemyKey) {
+            const enemy = editor.draftEnemies[editor.selectedEnemyKey];
+            const fields = [
+                { label: 'Nome', key: 'name' },
+                { label: 'HP', key: 'hp', type: 'number' },
+                { label: 'AC', key: 'ac', type: 'number' },
+                { label: 'Velocidade', key: 'speed', type: 'number' },
+                { label: 'XP', key: 'xp', type: 'number' },
+                { label: 'Ouro', key: 'gold', type: 'number' }
+            ];
+
+            fields.forEach((f, i) => {
+                const fy = hudHeight + 100 + i * 45;
+                this.ctx.fillStyle = '#bdc3c7';
+                this.ctx.font = '14px Arial';
+                this.ctx.fillText(f.label, 200, fy - 5);
+                this.drawButton({ x: 200, y: fy, width: 300, height: 35 }, Config.THEME.colors.gold, String(enemy[f.key]));
+            });
+        }
+    }
+
+    drawWaveEditorVisuals(editor, ui) {
+        const hudHeight = ui.hudHeight;
+        const wave = editor.draftWaves;
+
+        const fields = [
+            { label: 'Inimigos Iniciais', key: 'initialEnemies' },
+            { label: 'Aumento por Onda', key: 'increasePerWave' }
+        ];
+
+        fields.forEach((f, i) => {
+            const fy = hudHeight + 100 + i * 45;
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.font = '14px Arial';
+            this.ctx.fillText(f.label, 200, fy - 5);
+            this.drawButton({ x: 200, y: fy, width: 300, height: 35 }, Config.THEME.colors.gold, String(wave[f.key]));
+        });
+
+        this.ctx.fillStyle = Config.THEME.colors.gold;
+        this.ctx.font = `bold 18px ${Config.THEME.font}`;
+        this.ctx.fillText('ONDAS DE BOSS:', 200, hudHeight + 230);
+
+        const bossKeys = Object.keys(wave.bossWaves);
+        bossKeys.forEach((w, i) => {
+            const fy = hudHeight + 250 + i * 45;
+            this.ctx.fillStyle = '#bdc3c7';
+            this.ctx.font = '14px Arial';
+            this.ctx.fillText(`Onda ${w}`, 200, fy - 5);
+            this.drawButton({ x: 200, y: fy, width: 300, height: 35 }, Config.THEME.colors.gold, wave.bossWaves[w]);
+        });
+
+        this.drawButton({ x: 200, y: hudHeight + 250 + bossKeys.length * 45, width: 300, height: 40 }, Config.THEME.colors.gold, '+ Adicionar Onda de Boss');
+    }
+
+    drawSpellEditorVisuals(editor, ui) {
+        const hudHeight = ui.hudHeight;
+        const keys = Object.keys(editor.draftSpells);
+
+        this.drawButton({ x: 20, y: hudHeight + 60, width: 150, height: 30 }, Config.THEME.colors.gold, '+ Nova Magia');
+
+        keys.forEach((key, i) => {
+            const isActive = editor.selectedSpellKey === key;
+            this.drawButton({ x: 20, y: hudHeight + 100 + i * 35, width: 150, height: 30 }, isActive ? Config.THEME.colors.gold : '#555', key);
+        });
+
+        if (editor.selectedSpellKey) {
+            const spell = editor.draftSpells[editor.selectedSpellKey];
+            const fields = [
+                { label: 'Nome', key: 'name' },
+                { label: 'Dano', key: 'damage', type: 'number' },
+                { label: 'Raio', key: 'radius', type: 'number' },
+                { label: 'Cooldown', key: 'cooldown', type: 'number' },
+                { label: 'Cast Time', key: 'castTime', type: 'number' },
+                { label: 'Tipo', key: 'type' },
+                { label: 'Dano Tipo', key: 'damageType' }
+            ];
+
+            fields.forEach((f, i) => {
+                const fy = hudHeight + 100 + i * 45;
+                this.ctx.fillStyle = '#bdc3c7';
+                this.ctx.font = '14px Arial';
+                this.ctx.fillText(f.label, 200, fy - 5);
+                this.drawButton({ x: 200, y: fy, width: 300, height: 35 }, Config.THEME.colors.gold, String(spell[f.key]));
+            });
+        }
+    }
+
+    drawMapEditorVisuals(editor, ui) {
+        const map = editor.draftMap;
+        const hudHeight = ui.hudHeight;
+
+        this.ctx.fillStyle = '#ecf0f1';
+        this.ctx.font = `14px ${Config.THEME.font}`;
+        this.ctx.fillText(`Nome: ${map.name}`, 20, hudHeight + 60);
+        this.ctx.fillText(`Clique no grid para desenhar o caminho.`, 20, hudHeight + 80);
+
+        // Toolbar
+        this.drawButton({ x: 20, y: hudHeight + 100, width: 130, height: 30 }, Config.THEME.colors.gold, 'Mudar Nome');
+        this.drawButton({ x: 20, y: hudHeight + 140, width: 130, height: 30 }, Config.THEME.colors.gold, 'Novo Caminho');
+        this.drawButton({ x: 20, y: hudHeight + 180, width: 130, height: 30 }, editor.selectedTool === 'path' ? Config.THEME.colors.gold : '#555', 'Tool: Path');
+        this.drawButton({ x: 20, y: hudHeight + 220, width: 130, height: 30 }, editor.selectedTool === 'hazard' ? Config.THEME.colors.gold : '#555', 'Tool: Hazard');
+        this.drawButton({ x: 20, y: hudHeight + 260, width: 130, height: 30 }, Config.THEME.colors.gold, `Tipo: ${editor.selectedHazard}`);
+
+        // Highlight existing path points for all paths
+        map.paths.forEach((path, pathIdx) => {
+            const color = pathIdx === map.paths.length - 1 ? 'rgba(241, 196, 15, 0.4)' : 'rgba(255, 255, 255, 0.2)';
+            this.ctx.fillStyle = color;
+            path.forEach(p => {
+                this.ctx.fillRect(p.x * Config.gridSize, p.y * Config.gridSize, Config.gridSize, Config.gridSize);
+                this.ctx.strokeStyle = Config.THEME.colors.gold;
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(p.x * Config.gridSize, p.y * Config.gridSize, Config.gridSize, Config.gridSize);
+            });
+        });
+
+        // Hazards indicators
+        map.hazards.forEach(h => {
+            this.ctx.fillStyle = 'rgba(231, 76, 60, 0.5)';
+            this.ctx.fillRect(h.x * Config.gridSize, h.y * Config.gridSize, Config.gridSize, Config.gridSize);
+            this.ctx.strokeStyle = '#e74c3c';
+            this.ctx.strokeRect(h.x * Config.gridSize, h.y * Config.gridSize, Config.gridSize, Config.gridSize);
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = '10px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText(h.type.substring(0, 5), h.x * Config.gridSize + Config.gridSize/2, h.y * Config.gridSize + Config.gridSize/2);
+        });
+    }
+
+    /**
      * Desenha o modal de Level Up
      */
     drawLevelUpModal(tower, ui, dataManager = null) {

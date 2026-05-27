@@ -182,6 +182,7 @@
         <button id="startButton" class="menu-button">Novo Jogo</button>
         <button id="continueButton" class="menu-button" style="display: none;">Continuar</button>
         <button id="tavernButton" class="menu-button">Taverna</button>
+        <button id="editorButton" class="menu-button">Editor</button>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
     <script type="module">
@@ -242,6 +243,13 @@
                 canvas.style.display = 'block';
                 game.state.showTavern = true;
                 game.gameLoopController.start();
+            });
+
+            editorButton.addEventListener('click', () => {
+                if (!isInitialized) return;
+                startScreen.style.display = 'none';
+                canvas.style.display = 'block';
+                game.openEditor();
             });
         });
     </script>
