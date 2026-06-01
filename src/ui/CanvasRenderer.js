@@ -27,7 +27,7 @@ export class CanvasRenderer {
         const width = this.bgCanvas.width;
         const height = this.bgCanvas.height;
 
-        const currentMap = gameState?.state?.currentMap;
+        const currentMap = gameState?.currentMap;
         const theme = currentMap ? currentMap.theme : Config.THEME.colors;
 
         // Fundo base (Grama/Terreno)
@@ -104,7 +104,7 @@ export class CanvasRenderer {
 
     renderPathToCtx(ctx, gameState) {
         const halfGrid = Config.gridSize / 2;
-        const currentMap = gameState?.state?.currentMap;
+        const currentMap = gameState?.currentMap;
         const theme = currentMap ? currentMap.theme : Config.THEME.colors;
         const paths = currentMap ? currentMap.paths : [Config.path];
 
@@ -112,7 +112,7 @@ export class CanvasRenderer {
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
 
-        paths.forEach(path => {
+        paths.forEach((path, pathIndex) => {
             // 1. Borda do caminho (efeito de profundidade/pedra)
             ctx.strokeStyle = theme.pathEdge || Config.THEME.colors.pathEdge;
             ctx.lineWidth = Config.gridSize + 4;
@@ -173,8 +173,95 @@ export class CanvasRenderer {
                     }
                 }
             }
+
+            this.drawPathEndpoints(ctx, path, theme, pathIndex);
         });
 
+        ctx.restore();
+    }
+
+    drawPathEndpoints(ctx, path, theme, pathIndex = 0) {
+        if (!path || path.length < 2) return;
+
+        const start = path[0];
+        const end = path[path.length - 1];
+        const next = path[1];
+        const previous = path[path.length - 2];
+        const startX = start.x * Config.gridSize + Config.gridSize / 2;
+        const startY = start.y * Config.gridSize + Config.gridSize / 2;
+        const endX = end.x * Config.gridSize + Config.gridSize / 2;
+        const endY = end.y * Config.gridSize + Config.gridSize / 2;
+
+        this.drawEndpointMarker(ctx, {
+            x: startX,
+            y: startY,
+            towardX: next.x - start.x,
+            towardY: next.y - start.y,
+            label: pathIndex > 0 ? `ENTRADA ${pathIndex + 1}` : 'ENTRADA',
+            fill: '#153726',
+            stroke: theme.pathEdge || Config.THEME.colors.pathEdge,
+            accent: Config.THEME.colors.gold
+        });
+
+        this.drawEndpointMarker(ctx, {
+            x: endX,
+            y: endY,
+            towardX: end.x - previous.x,
+            towardY: end.y - previous.y,
+            label: pathIndex > 0 ? `BASE ${pathIndex + 1}` : 'BASE',
+            fill: '#3d1717',
+            stroke: '#f4d03f',
+            accent: '#e74c3c'
+        });
+    }
+
+    drawEndpointMarker(ctx, marker) {
+        const radius = 17;
+        const directionLength = Math.hypot(marker.towardX, marker.towardY) || 1;
+        const dx = marker.towardX / directionLength;
+        const dy = marker.towardY / directionLength;
+        const arrowX = marker.x + dx * 9;
+        const arrowY = marker.y + dy * 9;
+        const labelX = Math.max(8, Math.min(this.canvas.width - 92, marker.x + (dx >= 0 ? 16 : -92)));
+        const labelY = Math.max(24, Math.min(this.canvas.height - 8, marker.y - 24));
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.38)';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = marker.fill;
+        ctx.strokeStyle = marker.stroke;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(marker.x, marker.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = marker.accent;
+        ctx.beginPath();
+        ctx.moveTo(arrowX + dx * 9, arrowY + dy * 9);
+        ctx.lineTo(arrowX - dx * 8 - dy * 6, arrowY - dy * 8 + dx * 6);
+        ctx.lineTo(arrowX - dx * 8 + dy * 6, arrowY - dy * 8 - dx * 6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.font = 'bold 12px Georgia, serif';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(16, 21, 26, 0.88)';
+        ctx.strokeStyle = marker.stroke;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+            ctx.roundRect(labelX, labelY - 12, 84, 24, 6);
+        } else {
+            ctx.rect(labelX, labelY - 12, 84, 24);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = marker.accent;
+        ctx.textAlign = 'center';
+        ctx.fillText(marker.label, labelX + 42, labelY);
         ctx.restore();
     }
 
@@ -203,6 +290,28 @@ export class CanvasRenderer {
     }
 
     drawUI(gameState, waveManager, ui) {
+        if (gameState.htmlUIEnabled) {
+            const boss = gameState.enemies.find(e => e.isBoss);
+            if (boss) this.drawBossHealthBar(boss, ui);
+            if (gameState.selectedPlacedTower) {
+                this.drawTowerMenu(gameState.selectedPlacedTower, gameState.money, ui);
+            }
+            if (gameState.isGameOver || gameState.isVictory) {
+                this.drawEndGameScreen(gameState, waveManager, ui);
+            } else if (gameState.showTavern) {
+                this.drawTavern(gameState, ui);
+            } else if (gameState.showCamp) {
+                this.drawCamp(gameState, ui);
+            } else if (gameState.showSettings) {
+                this.drawSettings(gameState, ui);
+            } else if (gameState.isPaused) {
+                this.drawPauseOverlay(ui);
+            } else if (waveManager.isWaiting) {
+                this.drawWaveCountdown(waveManager, ui);
+            }
+            return;
+        }
+
         const hudHeight = ui.hudHeight;
         const padding = 15;
         const itemWidth = 85;
@@ -1467,6 +1576,13 @@ export class CanvasRenderer {
         const editor = gameState.editorSystem;
         if (!editor) return;
 
+        if (gameState.htmlUIEnabled) {
+            if (editor.mode === 'map') {
+                this.drawMapEditorHighlights(editor);
+            }
+            return;
+        }
+
         const layout = ui.getEditorLayout(this.canvas, editor);
 
         // Sidebar Background
@@ -1650,6 +1766,37 @@ export class CanvasRenderer {
             this.ctx.textAlign = 'center';
             this.ctx.fillText(h.type.substring(0, 5), h.x * Config.gridSize + Config.gridSize/2, h.y * Config.gridSize + Config.gridSize/2);
         });
+    }
+
+    drawMapEditorHighlights(editor) {
+        const map = editor.draftMap;
+        if (!map) return;
+
+        this.ctx.save();
+        map.paths.forEach((path, pathIdx) => {
+            const color = pathIdx === map.paths.length - 1 ? 'rgba(241, 196, 15, 0.34)' : 'rgba(255, 255, 255, 0.16)';
+            this.ctx.fillStyle = color;
+            path.forEach(p => {
+                this.ctx.fillRect(p.x * Config.gridSize, p.y * Config.gridSize, Config.gridSize, Config.gridSize);
+                this.ctx.strokeStyle = Config.THEME.colors.gold;
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(p.x * Config.gridSize, p.y * Config.gridSize, Config.gridSize, Config.gridSize);
+            });
+        });
+
+        map.hazards.forEach(h => {
+            this.ctx.fillStyle = 'rgba(192, 57, 43, 0.52)';
+            this.ctx.fillRect(h.x * Config.gridSize, h.y * Config.gridSize, Config.gridSize, Config.gridSize);
+            this.ctx.strokeStyle = '#ffb3a7';
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(h.x * Config.gridSize, h.y * Config.gridSize, Config.gridSize, Config.gridSize);
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = '11px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillText(h.type.substring(0, 5), h.x * Config.gridSize + Config.gridSize / 2, h.y * Config.gridSize + Config.gridSize / 2);
+        });
+        this.ctx.restore();
     }
 
     /**

@@ -75,7 +75,7 @@ export class WaveSystem {
 
         // Seleciona um caminho aleatório do mapa atual se disponível
         let path = Config.path;
-        const currentMap = gameState?.state?.currentMap;
+        const currentMap = gameState?.currentMap;
         if (currentMap && currentMap.paths && currentMap.paths.length > 0) {
             const pathIndex = Math.floor(Math.random() * currentMap.paths.length);
             path = currentMap.paths[pathIndex];

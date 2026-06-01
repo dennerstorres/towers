@@ -79,12 +79,25 @@ export class EditorSystem {
         }
     }
 
+    setMode(mode) {
+        this.mode = mode;
+        this.game.state.editorMode = mode;
+    }
+
+    setTool(tool) {
+        this.selectedTool = tool;
+    }
+
     handleAction(action) {
         if (action === 'exit') {
             this.game.state.showEditor = false;
             this.game.gameLoopController.stop();
-            this.game.canvas.style.display = 'none';
-            document.getElementById('startScreen').style.display = 'block';
+            if (this.game.htmlCallbacks?.showStartScreen && !this.game.state.gameRunning && !this.game.state.isSetupPhase) {
+                this.game.htmlCallbacks.showStartScreen();
+            } else if (!this.game.state.gameRunning && !this.game.state.isSetupPhase) {
+                this.game.canvas.style.display = 'none';
+                document.getElementById('startScreen').style.display = 'block';
+            }
         } else if (action === 'export') {
             const data = this.getDataToExport();
             const json = JSON.stringify(data, null, 2);
@@ -118,6 +131,63 @@ export class EditorSystem {
                     alert('Erro ao processar JSON: ' + e.message);
                 }
             }
+        }
+    }
+
+    promptRenameMap() {
+        const newName = prompt('Nome do mapa:', this.draftMap.name);
+        if (newName) this.draftMap.name = newName;
+    }
+
+    addPath() {
+        this.draftMap.paths.push([{ x: 0, y: 0 }, { x: 19, y: 14 }]);
+        this.game.renderer.isBgRendered = false;
+    }
+
+    createRecord(kind) {
+        if (kind === 'enemy') {
+            const key = prompt('Chave do novo inimigo:');
+            if (key && !this.draftEnemies[key]) {
+                this.draftEnemies[key] = { name: 'Novo Inimigo', hp: 50, ac: 10, speed: 1.0, xp: 50, gold: 10 };
+                this.selectedEnemyKey = key;
+            }
+        } else if (kind === 'spell') {
+            const key = prompt('Chave da nova magia:');
+            if (key && !this.draftSpells[key]) {
+                this.draftSpells[key] = { name: 'Nova Magia', damage: 20, radius: 50, cooldown: 5000, castTime: 1000, type: 'aoe', damageType: 'fire' };
+                this.selectedSpellKey = key;
+            }
+        }
+    }
+
+    editField(kind, key, type = 'text') {
+        const isEnemy = kind === 'enemy';
+        const selectedKey = isEnemy ? this.selectedEnemyKey : this.selectedSpellKey;
+        const target = selectedKey ? (isEnemy ? this.draftEnemies[selectedKey] : this.draftSpells[selectedKey]) : null;
+        if (!target) return;
+
+        const newVal = prompt(key, target[key]);
+        if (newVal !== null) {
+            target[key] = type === 'number' ? parseFloat(newVal) : newVal;
+        }
+    }
+
+    editWaveField(key, type = 'number') {
+        const newVal = prompt(key, this.draftWaves[key]);
+        if (newVal !== null) {
+            this.draftWaves[key] = type === 'number' ? parseFloat(newVal) : newVal;
+        }
+    }
+
+    editBossWave(waveNumber) {
+        const newBoss = prompt(`Boss da Onda ${waveNumber}:`, this.draftWaves.bossWaves[waveNumber]);
+        if (newBoss !== null) this.draftWaves.bossWaves[waveNumber] = newBoss;
+    }
+
+    addBossWave() {
+        const waveNum = prompt('Numero da onda para o boss:');
+        if (waveNum) {
+            this.draftWaves.bossWaves[waveNum] = 'boss_1';
         }
     }
 

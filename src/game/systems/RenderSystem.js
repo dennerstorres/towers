@@ -92,7 +92,7 @@ export class RenderSystem {
         const mouseGridX = Math.floor(gameState.mouseX / Config.gridSize);
         const mouseGridY = Math.floor(gameState.mouseY / Config.gridSize);
         const selectedType = gameState.towerManager.getSelectedTower();
-        const panelX = canvas.width - this.ui.panelWidth;
+        const panelX = gameState.htmlUIEnabled ? canvas.width : canvas.width - this.ui.panelWidth;
 
         if (selectedType && gameState.mouseX < panelX && gameState.mouseY > this.ui.hudHeight) {
             this.renderer.drawRangeCircle(

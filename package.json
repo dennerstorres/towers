@@ -1,0 +1,15 @@
+{
+  "name": "towers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RPG party defense built with vanilla JavaScript and Canvas.",
+  "scripts": {
+    "start": "node tools/dev-server.cjs",
+    "test": "npm run test:syntax && npm run test:smoke",
+    "test:syntax": "node tests/check-syntax.cjs",
+    "test:smoke": "node tests/smoke-playable.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}

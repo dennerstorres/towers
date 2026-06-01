@@ -1,4 +1,4 @@
-const CACHE_NAME = 'towers-v1';
+const CACHE_NAME = 'towers-v4';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -40,13 +40,39 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+    const request = event.request;
+    const url = new URL(request.url);
+    const shouldRefreshFirst =
+        request.mode === 'navigate' ||
+        request.destination === 'script' ||
+        request.destination === 'style' ||
+        url.pathname.endsWith('.json');
+
+    if (shouldRefreshFirst) {
+        event.respondWith(
+            fetch(request).then(fetchResponse => {
+                if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
+                    return fetchResponse;
+                }
+
+                const responseToCache = fetchResponse.clone();
+                caches.open(CACHE_NAME).then(cache => {
+                    cache.put(request, responseToCache);
+                });
+
+                return fetchResponse;
+            }).catch(() => caches.match(request))
+        );
+        return;
+    }
+
     event.respondWith(
-        caches.match(event.request)
+        caches.match(request)
             .then(response => {
                 if (response) {
                     return response;
                 }
-                return fetch(event.request).then(fetchResponse => {
+                return fetch(request).then(fetchResponse => {
                     // Check if we received a valid response
                     if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
                         return fetchResponse;
@@ -55,7 +81,7 @@ self.addEventListener('fetch', event => {
                     // Dynamically cache new assets (like JS modules)
                     const responseToCache = fetchResponse.clone();
                     caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, responseToCache);
+                        cache.put(request, responseToCache);
                     });
 
                     return fetchResponse;

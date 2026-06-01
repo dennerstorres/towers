@@ -12,6 +12,7 @@ export class StateStore {
             money: Config.initialMoney,
             lives: Config.initialLives,
             gameRunning: false,
+            isSetupPhase: false,
             isGameOver: false,
             isVictory: false,
             towerManager: null, // Will be set by Game

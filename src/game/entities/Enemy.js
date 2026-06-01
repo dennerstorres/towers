@@ -122,7 +122,7 @@ export class Enemy {
     }
 
     checkHazards(gameState) {
-        const currentMap = gameState?.state?.currentMap;
+        const currentMap = gameState?.currentMap;
         if (!currentMap || !currentMap.hazards) return;
 
         const gridX = Math.floor(this.x / Config.gridSize);

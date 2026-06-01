@@ -448,6 +448,53 @@ Transformar em produto.
 
 ---
 
+# FASE 19 — Estabilização Jogável
+
+## Objetivo
+Garantir que o jogo abre, joga e persiste progresso antes de novas features.
+
+## Smoke Tests
+- [x] Menu inicial
+- [x] Settings
+- [x] Tavern
+- [x] Editor
+- [x] PWA/service worker
+- [x] Start/placement/wave/camp
+- [x] Save/load
+- [x] Mapas com hazards e split paths
+
+## Fixes
+- [x] Sincronizar managers no estado apos reset/load/restart
+- [x] Evitar cache antigo de HTML/JS/JSON no service worker
+- [x] Corrigir leitura de `currentMap` em render, spawn e hazards
+
+---
+
+# FASE 20 — Redesign Visual e UX Jogável
+
+## Objetivo
+Transformar a experiência visual em uma interface jogável, clara e bonita para desktop/tablet.
+
+## UX
+- [x] Layout full-screen
+- [x] HUD HTML responsivo
+- [x] Painel de torres legível com hints
+- [x] Barra de instruções contextual
+- [x] Novo jogo inicia em preparação, antes da primeira onda
+- [x] Botão Iniciar Onda só habilita após posicionar torre
+
+## Editor
+- [x] Editor full-screen com painéis separados
+- [x] Abas, listas, campos e ações alinhados
+- [x] Hitboxes conectadas ao novo layout
+- [x] Instruções e hints para ferramentas
+
+## Validação
+- [x] Smoke test atualizado
+- [x] Checagens de layout desktop/tablet
+
+---
+
 # PRIORIDADE REAL
 
 ## PRIORIDADE MÁXIMA

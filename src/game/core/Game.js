@@ -39,15 +39,12 @@ export class Game {
         
         this.stateStore = new StateStore();
         this.state = this.stateStore.state;
-        this.state.towerManager = this.towerManager;
-        this.state.spatialSystem = this.spatialSystem;
-        this.state.projectileManager = this.projectileManager;
-        this.state.dataManager = this.dataManager;
         this.renderSystem = new RenderSystem(this.renderer, this.ui);
 
         // Initialize Managers before systems that depend on them
         this.localeManager = new LocaleManager();
         this.settingsManager = new SettingsManager();
+        this.syncStateReferences();
 
         this.inputSystem = new InputSystem(canvas, {
             onKeyDown: (e) => this.handleKeyDown(e),
@@ -58,9 +55,377 @@ export class Game {
         this.gameLoopController = new GameLoop({
             onUpdate: (timeStep) => this.updateLogic(timeStep),
             onRender: () => this.renderSystem.render(this.state, this.waveSystem, this.particleSystem, this.floatingTexts, this.canvas),
-            shouldRun: () => this.state.gameRunning || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp || this.state.showEditor || this.state.showSettings,
+            shouldRun: () => this.state.gameRunning || this.state.isSetupPhase || this.state.isGameOver || this.state.isVictory || this.state.showTavern || this.state.showCamp || this.state.showEditor || this.state.showSettings,
             isPaused: () => this.state.isPaused,
             getGameSpeed: () => this.state.gameSpeed
+        });
+    }
+
+    attachHtmlUI(elements, callbacks = {}) {
+        this.htmlUI = elements;
+        this.htmlCallbacks = callbacks;
+        this.state.htmlUIEnabled = true;
+    }
+
+    syncStateReferences() {
+        this.state.towerManager = this.towerManager;
+        this.state.spatialSystem = this.spatialSystem;
+        this.state.projectileManager = this.projectileManager;
+        this.state.dataManager = this.dataManager;
+        this.state.metaManager = this.metaManager;
+        this.state.settingsManager = this.settingsManager;
+        this.state.htmlUIEnabled = !!this.htmlUI;
+    }
+
+    resize(width, height) {
+        this.spatialSystem = new SpatialSystem(width, height);
+        this.renderer.bgCanvas.width = width;
+        this.renderer.bgCanvas.height = height;
+        this.renderer.bgCtx = this.renderer.bgCanvas.getContext('2d');
+        this.renderer.isBgRendered = false;
+        this.syncStateReferences();
+        this.syncHtmlUI();
+    }
+
+    syncHtmlUI() {
+        if (!this.htmlUI) return;
+
+        const shell = this.htmlUI.shell;
+        if (shell) {
+            shell.classList.toggle('editor-active', !!this.state.showEditor);
+            shell.classList.toggle('modal-active', !!(this.state.showTavern || this.state.showCamp || this.state.showSettings || this.state.isGameOver || this.state.isVictory));
+        }
+
+        this.renderHudHtml();
+        this.renderTowerPanelHtml();
+        this.renderHintHtml();
+        this.renderEditorHtml();
+    }
+
+    renderHudHtml() {
+        const ui = this.htmlUI;
+        if (!ui.hudStats) return;
+
+        const stats = [
+            { icon: 'G', label: 'Ouro', value: this.state.money, hint: 'Ouro disponivel para contratar e posicionar defesas.' },
+            { icon: 'HP', label: 'Vidas', value: this.state.lives, hint: 'Se inimigos chegarem ao fim, voce perde vidas.' },
+            { icon: 'W', label: 'Onda', value: this.waveSystem.currentWave, hint: 'Onda atual da partida.' },
+            { icon: 'K', label: 'Inimigos', value: `${this.waveSystem.enemiesKilled}/${this.waveSystem.enemiesToSpawn}`, hint: 'Inimigos derrotados nesta onda.' },
+            { icon: 'P', label: 'Grupo', value: `${this.towerManager.placedTowers.length}/${Config.maxPartySlots}`, hint: 'Quantidade de herois posicionados.' },
+            { icon: 'A', label: 'Asc', value: this.metaManager.state.currentAscension || 0, hint: 'Nivel de ascensao ativo.' },
+            { icon: 'M', label: 'Mod', value: this.state.activeModifier ? this.state.activeModifier.name : 'Nenhum', hint: 'Modificador desta run.' }
+        ];
+
+        ui.hudStats.innerHTML = stats.map(stat => `
+            <div class="stat-pill" data-hint="${stat.hint}">
+                <span class="stat-icon">${stat.icon}</span>
+                <span>${stat.label}: ${stat.value}</span>
+            </div>
+        `).join('');
+
+        if (ui.pauseButton) ui.pauseButton.textContent = this.state.isPaused ? 'Retomar' : 'Pausar';
+        if (ui.speedButton) ui.speedButton.textContent = `${this.state.gameSpeed}x`;
+    }
+
+    renderTowerPanelHtml() {
+        const ui = this.htmlUI;
+        if (!ui.towerList) return;
+
+        const selected = this.towerManager.selectedTowerType;
+        const costMultiplier = this.state.metaBonuses ? this.state.metaBonuses.costMultiplier : 1.0;
+        ui.towerList.innerHTML = this.towerManager.availableTowers.map(tower => {
+            const cost = Math.floor(tower.cost * costMultiplier);
+            const canAfford = this.state.money >= cost;
+            const hint = `${tower.type}: custo ${cost}G, dano ${tower.damage}, alcance ${tower.range}. Clique para selecionar.`;
+            return `
+                <button class="tower-card ${tower.type === selected ? 'active' : ''} ${canAfford ? '' : 'disabled'}"
+                    data-tower-type="${tower.type}"
+                    data-hint="${hint}">
+                    <span class="tower-icon">${this.getTowerGlyph(tower.type)}</span>
+                    <span>
+                        <span class="tower-name">${tower.type}</span>
+                        <span class="tower-meta">Dano ${tower.damage} | Alcance ${tower.range}</span>
+                    </span>
+                    <span class="tower-cost">${cost}G</span>
+                </button>
+            `;
+        }).join('');
+
+        ui.towerList.querySelectorAll('[data-tower-type]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.towerManager.selectTower(button.getAttribute('data-tower-type'));
+                this.syncHtmlUI();
+            });
+        });
+    }
+
+    getTowerGlyph(type) {
+        const glyphs = {
+            archer: 'A',
+            ranger: 'R',
+            fighter: 'F',
+            wizard: 'W',
+            cannon: 'C',
+            cleric: '+',
+            rogue: 'D',
+            paladin: 'P'
+        };
+        return glyphs[type] || type.charAt(0).toUpperCase();
+    }
+
+    renderHintHtml() {
+        const ui = this.htmlUI;
+        if (!ui.hintText || !ui.startWaveButton) return;
+
+        let text = 'Escolha uma defesa, clique no mapa para posicionar e use os controles quando a onda comecar.';
+        if (this.state.isSetupPhase) {
+            text = this.towerManager.placedTowers.length === 0
+                ? 'Preparacao: selecione uma defesa no painel e posicione sua primeira torre antes de iniciar a onda.'
+                : 'Preparacao pronta: ajuste posicionamento ou clique em Iniciar Onda quando estiver satisfeito.';
+        } else if (this.waveSystem.isWaiting) {
+            text = 'A onda esta prestes a comecar. Voce ainda pode clicar em Iniciar agora no centro do mapa.';
+        } else if (this.state.showCamp) {
+            text = 'Acampamento: recrute, equipe, treine ou avance para a proxima onda.';
+        } else if (this.state.showEditor) {
+            text = 'Editor: use os paineis para escolher modo, editar dados e importar/exportar JSON.';
+        } else if (this.state.showTavern) {
+            text = 'Taverna: gaste progresso permanente para liberar melhorias.';
+        }
+
+        ui.hintText.textContent = text;
+        ui.startWaveButton.disabled = !this.state.isSetupPhase || this.towerManager.placedTowers.length === 0;
+        ui.startWaveButton.style.display = this.state.showEditor || this.state.showTavern || this.state.showSettings || this.state.showCamp ? 'none' : 'inline-block';
+    }
+
+    renderEditorHtml() {
+        const ui = this.htmlUI;
+        if (!ui.editorOverlay || !this.editorSystem) return;
+
+        ui.editorOverlay.classList.toggle('active', !!this.state.showEditor);
+        if (!this.state.showEditor) return;
+
+        const editor = this.editorSystem;
+        ui.editorOverlay.classList.toggle('map-mode', editor.mode === 'map');
+        const tabs = [
+            { label: 'Mapa', mode: 'map', hint: 'Editar caminhos e perigos do mapa.' },
+            { label: 'Inimigos', mode: 'enemies', hint: 'Editar atributos de inimigos.' },
+            { label: 'Magias', mode: 'spells', hint: 'Editar magias e parametros.' },
+            { label: 'Ondas', mode: 'waves', hint: 'Editar crescimento e bosses.' }
+        ];
+
+        ui.editorTabs.innerHTML = tabs.map(tab => `
+            <button class="editor-tab ${editor.mode === tab.mode ? 'active' : ''}" data-editor-mode="${tab.mode}" data-hint="${tab.hint}">
+                ${tab.label}
+            </button>
+        `).join('');
+        ui.editorTabs.querySelectorAll('[data-editor-mode]').forEach(button => {
+            button.addEventListener('click', () => {
+                editor.setMode(button.getAttribute('data-editor-mode'));
+                this.syncHtmlUI();
+            });
+        });
+
+        if (editor.mode === 'map') this.renderMapEditorHtml();
+        else if (editor.mode === 'enemies') this.renderEntityEditorHtml('enemy');
+        else if (editor.mode === 'spells') this.renderEntityEditorHtml('spell');
+        else this.renderWaveEditorHtml();
+    }
+
+    renderMapEditorHtml() {
+        const { editorWorkspace, editorSide } = this.htmlUI;
+        const editor = this.editorSystem;
+        const map = editor.draftMap;
+
+        editorWorkspace.innerHTML = `
+            <h2>Editor de Mapa</h2>
+            <p class="editor-help">Clique direto no mapa para adicionar/remover pontos da ferramenta ativa. O caminho atual fica destacado no canvas.</p>
+            <div class="tool-grid">
+                <button class="tool-button" data-editor-action="rename-map" data-hint="Renomeia o mapa atual.">Nome: ${map.name}</button>
+                <button class="tool-button" data-editor-action="new-path" data-hint="Cria um novo caminho alternativo.">Novo Caminho</button>
+                <button class="tool-button ${editor.selectedTool === 'path' ? 'active' : ''}" data-editor-tool="path" data-hint="Clique no grid para adicionar/remover pontos do caminho.">Ferramenta: Caminho</button>
+                <button class="tool-button ${editor.selectedTool === 'hazard' ? 'active' : ''}" data-editor-tool="hazard" data-hint="Clique no grid para adicionar/remover perigos.">Ferramenta: Perigo</button>
+            </div>
+        `;
+
+        editorSide.innerHTML = `
+            <h3>Mapa</h3>
+            <p class="editor-help">Caminhos: ${map.paths.length}<br>Perigos: ${map.hazards.length}</p>
+            <div class="tool-grid">
+                ${['thick_brush', 'lava_pool', 'spike_trap', 'poison_cloud', 'slippery_ice'].map(type => `
+                    <button class="tool-button ${editor.selectedHazard === type ? 'active' : ''}" data-editor-hazard="${type}">
+                        ${type}
+                    </button>
+                `).join('')}
+            </div>
+            ${this.editorActionsHtml()}
+        `;
+
+        this.bindEditorCommonButtons();
+    }
+
+    renderEntityEditorHtml(kind) {
+        const { editorWorkspace, editorSide } = this.htmlUI;
+        const editor = this.editorSystem;
+        const isEnemy = kind === 'enemy';
+        const data = isEnemy ? editor.draftEnemies : editor.draftSpells;
+        const selectedKey = isEnemy ? editor.selectedEnemyKey : editor.selectedSpellKey;
+        const keys = Object.keys(data);
+        const fields = isEnemy
+            ? [
+                { label: 'Nome', key: 'name' },
+                { label: 'HP', key: 'hp', type: 'number' },
+                { label: 'AC', key: 'ac', type: 'number' },
+                { label: 'Velocidade', key: 'speed', type: 'number' },
+                { label: 'XP', key: 'xp', type: 'number' },
+                { label: 'Ouro', key: 'gold', type: 'number' }
+            ]
+            : [
+                { label: 'Nome', key: 'name' },
+                { label: 'Dano', key: 'damage', type: 'number' },
+                { label: 'Raio', key: 'radius', type: 'number' },
+                { label: 'Cooldown', key: 'cooldown', type: 'number' },
+                { label: 'Cast Time', key: 'castTime', type: 'number' },
+                { label: 'Tipo', key: 'type' },
+                { label: 'Dano Tipo', key: 'damageType' }
+            ];
+        const selected = selectedKey ? data[selectedKey] : null;
+
+        editorWorkspace.innerHTML = `
+            <h2>Editor de ${isEnemy ? 'Inimigos' : 'Magias'}</h2>
+            <p class="editor-help">Selecione um registro e clique em um campo para editar. Alteracoes ficam no draft ate exportar.</p>
+            <div class="editor-list">
+                <button data-editor-create="${kind}" data-hint="Cria um novo registro no draft.">+ Novo ${isEnemy ? 'Inimigo' : 'Magia'}</button>
+                ${keys.map(key => `
+                    <button class="${selectedKey === key ? 'active' : ''}" data-editor-select-${kind}="${key}">
+                        ${key}
+                    </button>
+                `).join('')}
+            </div>
+        `;
+
+        editorSide.innerHTML = `
+            <h3>${selectedKey || 'Nada selecionado'}</h3>
+            <p class="editor-help">${selected ? 'Clique em qualquer campo para alterar.' : 'Selecione um item na lista.'}</p>
+            <div class="field-grid">
+                ${selected ? fields.map(field => `
+                    <button class="field-button" data-editor-field-kind="${kind}" data-editor-field="${field.key}" data-editor-field-type="${field.type || 'text'}">
+                        <strong>${field.label}</strong>
+                        <span>${selected[field.key] ?? ''}</span>
+                    </button>
+                `).join('') : ''}
+            </div>
+            ${this.editorActionsHtml()}
+        `;
+
+        this.bindEditorCommonButtons();
+    }
+
+    renderWaveEditorHtml() {
+        const { editorWorkspace, editorSide } = this.htmlUI;
+        const editor = this.editorSystem;
+        const wave = editor.draftWaves;
+        const bossKeys = Object.keys(wave.bossWaves);
+
+        editorWorkspace.innerHTML = `
+            <h2>Editor de Ondas</h2>
+            <p class="editor-help">Ajuste a quantidade base de inimigos e os encontros especiais.</p>
+            <div class="field-grid">
+                <button class="field-button" data-editor-wave-field="initialEnemies" data-editor-field-type="number"><strong>Inimigos Iniciais</strong><span>${wave.initialEnemies}</span></button>
+                <button class="field-button" data-editor-wave-field="increasePerWave" data-editor-field-type="number"><strong>Aumento por Onda</strong><span>${wave.increasePerWave}</span></button>
+            </div>
+        `;
+
+        editorSide.innerHTML = `
+            <h3>Bosses</h3>
+            <p class="editor-help">Clique para editar o boss de uma onda ou adicione outro encontro.</p>
+            <div class="field-grid">
+                ${bossKeys.map(key => `
+                    <button class="field-button" data-editor-boss-wave="${key}"><strong>Onda ${key}</strong><span>${wave.bossWaves[key]}</span></button>
+                `).join('')}
+                <button class="tool-button" data-editor-action="add-boss-wave">+ Adicionar Onda de Boss</button>
+            </div>
+            ${this.editorActionsHtml()}
+        `;
+
+        this.bindEditorCommonButtons();
+    }
+
+    editorActionsHtml() {
+        return `
+            <div class="editor-actions">
+                <button class="ui-button" data-editor-action="import">Importar JSON</button>
+                <button class="ui-button" data-editor-action="export">Exportar JSON</button>
+                <button class="ui-button danger" data-editor-action="exit">Sair</button>
+            </div>
+        `;
+    }
+
+    bindEditorCommonButtons() {
+        const root = this.htmlUI.editorOverlay;
+        root.querySelectorAll('[data-editor-action]').forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-editor-action');
+                if (action === 'rename-map') this.editorSystem.promptRenameMap();
+                else if (action === 'new-path') this.editorSystem.addPath();
+                else if (action === 'add-boss-wave') this.editorSystem.addBossWave();
+                else this.editorSystem.handleAction(action);
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-tool]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.setTool(button.getAttribute('data-editor-tool'));
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-hazard]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.selectedHazard = button.getAttribute('data-editor-hazard');
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-select-enemy]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.selectedEnemyKey = button.getAttribute('data-editor-select-enemy');
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-select-spell]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.selectedSpellKey = button.getAttribute('data-editor-select-spell');
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-create]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.createRecord(button.getAttribute('data-editor-create'));
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-field]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.editField(
+                    button.getAttribute('data-editor-field-kind'),
+                    button.getAttribute('data-editor-field'),
+                    button.getAttribute('data-editor-field-type')
+                );
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-wave-field]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.editWaveField(
+                    button.getAttribute('data-editor-wave-field'),
+                    button.getAttribute('data-editor-field-type')
+                );
+                this.syncHtmlUI();
+            });
+        });
+        root.querySelectorAll('[data-editor-boss-wave]').forEach(button => {
+            button.addEventListener('click', () => {
+                this.editorSystem.editBossWave(button.getAttribute('data-editor-boss-wave'));
+                this.syncHtmlUI();
+            });
         });
     }
 
@@ -94,10 +459,7 @@ export class Game {
 
             this.stateStore.reset();
             this.state = this.stateStore.state;
-            this.state.towerManager = this.towerManager;
-            this.state.spatialSystem = this.spatialSystem;
-            this.state.projectileManager = this.projectileManager;
-            this.state.dataManager = this.dataManager;
+            this.syncStateReferences();
             // Aplica bônus de meta-progressão ao estado inicial
             this.applyMetaBonuses(true);
             this.updateCurrentMap();
@@ -188,7 +550,12 @@ export class Game {
             return;
         }
 
-        if (!this.state.gameRunning) return;
+        if (this.state.showEditor) {
+            this.handleEditorClick(clickX, clickY);
+            return;
+        }
+
+        if (!this.state.gameRunning && !this.state.isSetupPhase) return;
 
         // Verifica clique no modal de Level Up
         if (this.state.levelUpTower) {
@@ -232,40 +599,15 @@ export class Game {
             }
         }
 
-        // Verifica clique nos botões de controle
-        if (this.handleControlsClick(clickX, clickY)) {
-            return;
-        }
-
-        // Verifica clique no botão de settings do HUD
-        const items = this.ui.getHUDData(this.state, this.waveSystem, this.localeManager);
-        const settingsIcon = items.find(i => i.icon === 'settings');
-        if (settingsIcon) {
-            const index = items.indexOf(settingsIcon);
-            const itemWidth = 95;
-            const padding = 15;
-            const x = padding + index * (index < 5 ? itemWidth : itemWidth * 1.2);
-            const radius = 20;
-            const dist = Math.sqrt((clickX - (x + radius)) ** 2 + (clickY - (this.ui.hudHeight / 2)) ** 2);
-            if (dist < radius) {
-                this.state.showSettings = true;
-                return;
-            }
-        }
+        if (!this.state.htmlUIEnabled && this.handleControlsClick(clickX, clickY)) return;
 
         // Se estiver pausado, não permite outras interações no canvas (exceto controles)
         if (this.state.isPaused) return;
 
         // Verifica clique no painel lateral
         const panelX = this.canvas.width - this.ui.panelWidth;
-        if (clickX >= panelX) {
+        if (!this.state.htmlUIEnabled && clickX >= panelX) {
             this.handlePanelClick(clickY);
-            return;
-        }
-
-        // Clique no grid para posicionar torre
-        if (this.state.showEditor) {
-            this.handleEditorClick(clickX, clickY);
             return;
         }
 
@@ -290,6 +632,7 @@ export class Game {
         } else if (this.canPlaceTower(x, y)) {
             this.placeTower(x, y);
             this.state.selectedPlacedTower = null;
+            this.syncHtmlUI();
         } else {
             this.state.selectedPlacedTower = null;
         }
@@ -473,6 +816,7 @@ export class Game {
             this.state.editorSystem = this.editorSystem;
         }
         this.gameLoopController.start();
+        this.syncHtmlUI();
     }
 
     handleEditorClick(clickX, clickY) {
@@ -491,10 +835,15 @@ export class Game {
             this.state.showTavern = false;
             if (!this.state.gameRunning) {
                 // If we came from the start screen, go back there
-                this.canvas.style.display = 'none';
-                document.getElementById('startScreen').style.display = 'block';
+                if (this.htmlCallbacks?.showStartScreen) {
+                    this.htmlCallbacks.showStartScreen();
+                } else {
+                    this.canvas.style.display = 'none';
+                    document.getElementById('startScreen').style.display = 'block';
+                }
                 this.gameLoopController.stop();
             }
+            this.syncHtmlUI();
             return;
         }
 
@@ -653,10 +1002,15 @@ export class Game {
             clickY >= layout.backButton.y && clickY <= layout.backButton.y + layout.backButton.height) {
             this.state.showSettings = false;
             if (!this.state.gameRunning) {
-                this.canvas.style.display = 'none';
-                document.getElementById('startScreen').style.display = 'block';
+                if (this.htmlCallbacks?.showStartScreen) {
+                    this.htmlCallbacks.showStartScreen();
+                } else {
+                    this.canvas.style.display = 'none';
+                    document.getElementById('startScreen').style.display = 'block';
+                }
                 this.gameLoopController.stop();
             }
+            this.syncHtmlUI();
         }
     }
 
@@ -684,8 +1038,8 @@ export class Game {
         if (this.towerManager.placedTowers.length >= Config.maxPartySlots) return false;
         
         // Verifica se clicou fora da área de jogo (painel lateral)
-        if (x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
-        if (y * Config.gridSize < this.ui.hudHeight) return false;
+        if (!this.state.htmlUIEnabled && x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
+        if (!this.state.htmlUIEnabled && y * Config.gridSize < this.ui.hudHeight) return false;
 
         // Verifica se está no caminho
         for (let point of Config.path) {
@@ -717,6 +1071,7 @@ export class Game {
         }
 
         this.state.money -= actualCost;
+        this.syncHtmlUI();
     }
 
     generateBlacksmithPool() {
@@ -785,6 +1140,32 @@ export class Game {
         }
     }
 
+    prepareNewRun(options = {}) {
+        this.towerManager.reset(this.metaManager);
+        this.waveSystem.reset();
+        this.stateStore.reset();
+        this.state = this.stateStore.state;
+        this.syncStateReferences();
+        this.state.isHardcore = !!options.hardcore;
+        this.metaManager.state.currentAscension = options.ascension || 0;
+        this.applyMetaBonuses(true);
+        this.updateCurrentMap();
+        this.generateBlacksmithPool();
+        this.state.isSetupPhase = true;
+        this.state.gameRunning = false;
+        this.state.activeModifier = null;
+        this.particleSystem.particles = [];
+        this.floatingTexts.texts = [];
+        this.gameLoopController.start();
+        this.syncHtmlUI();
+    }
+
+    startPreparedWave() {
+        if (!this.state.isSetupPhase || this.towerManager.placedTowers.length === 0) return;
+        this.state.isSetupPhase = false;
+        this.start();
+    }
+
     start() {
         console.log('Game iniciado');
         this.audio.resume();
@@ -804,6 +1185,7 @@ export class Game {
         this.waveSystem.startCountdown();
 
         this.gameLoopController.start();
+        this.syncHtmlUI();
     }
 
     stop() {
@@ -825,10 +1207,7 @@ export class Game {
         this.waveSystem.reset();
         this.stateStore.reset();
         this.state = this.stateStore.state;
-        this.state.towerManager = this.towerManager;
-        this.state.spatialSystem = this.spatialSystem;
-        this.state.projectileManager = this.projectileManager;
-        this.state.dataManager = this.dataManager;
+        this.syncStateReferences();
         // Restore Run Data
         this.state.money = runData.money;
         this.state.lives = runData.lives;
@@ -865,9 +1244,11 @@ export class Game {
         // Start directly in Camp Hub
         this.state.showCamp = true;
         this.state.gameRunning = true;
+        this.state.isSetupPhase = false;
         this.towerManager.generateRecruitmentPool(this.dataManager);
         this.generateBlacksmithPool();
         this.gameLoopController.start();
+        this.syncHtmlUI();
     }
 
     restart() {
@@ -876,10 +1257,7 @@ export class Game {
         this.waveSystem.reset();
         this.stateStore.reset();
         this.state = this.stateStore.state;
-        this.state.towerManager = this.towerManager;
-        this.state.spatialSystem = this.spatialSystem;
-        this.state.projectileManager = this.projectileManager;
-        this.state.dataManager = this.dataManager;
+        this.syncStateReferences();
         this.applyMetaBonuses(true);
 
         this.particleSystem.particles = [];
@@ -889,6 +1267,7 @@ export class Game {
 
     updateLogic(timeStep) {
         this.inputSystem.update();
+        if (this.state.isSetupPhase) return;
         if (!this.state.gameRunning || this.state.isPaused || this.state.isGameOver || this.state.isVictory) return;
 
         // Hit Stop Logic
@@ -1010,6 +1389,7 @@ export class Game {
             this.state.gameRunning = false;
             this.audio.playGameOver();
             this.stateStore.updateHighscore(this.waveSystem.currentWave - 1);
+            this.syncHtmlUI();
         }
 
         // Atualiza o gerenciador de ondas se o jogo ainda estiver rodando
@@ -1037,6 +1417,7 @@ export class Game {
                     this.metaManager.addShards(shardsGained);
                     this.floatingTexts.add(this.canvas.width / 2, this.canvas.height / 2 + 30, `+${shardsGained} ✨`, '#9b59b6');
                 }
+                this.syncHtmlUI();
             }
 
             if (this.waveSystem.currentWave > waveBefore && this.waveSystem.currentWave <= Config.maxWaves) {
