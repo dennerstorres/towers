@@ -1,6 +1,11 @@
 export const Config = {
     gridSize: 40,
-    path: [], // Agora carregado via mapas
+    path: [], // Agora carregado via mapas (compatibilidade — primeiro caminho)
+    // Set de células "x,y" bloqueadas pelo caminho (todos os caminhos do mapa).
+    // Pré-calculado ao carregar o mapa para validação barata de placement.
+    pathCells: null,
+    // Folga em células ao redor do caminho considerada bloqueada (0 = exato).
+    pathBlockMargin: 0,
     initialMoney: 100,
     initialLives: 10,
     UPGRADE_MULTIPLIER: 1.5,
@@ -87,6 +92,5 @@ export const Config = {
         };
 
         mergeDeep(this, data);
-        console.log('Configurações carregadas com sucesso:', this);
     }
 };

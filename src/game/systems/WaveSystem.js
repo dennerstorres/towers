@@ -140,7 +140,6 @@ export class WaveSystem {
                             const randomRelic = unownedRelics[Math.floor(Math.random() * unownedRelics.length)];
                             gameState.metaManager.state.relics.push(randomRelic);
                             gameState.metaManager.save();
-                            console.log(`Relic dropped: ${randomRelic}`);
                         }
                     }
                 }

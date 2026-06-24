@@ -27,7 +27,6 @@ export class SaveSystem {
         };
 
         localStorage.setItem(this.RUN_STORAGE_KEY, JSON.stringify(saveData));
-        console.log('Run autosaved.');
     }
 
     /**

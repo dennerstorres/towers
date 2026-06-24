@@ -4,6 +4,8 @@ export class Projectile {
     constructor(x, y, target, damage, attacker = null, damageType = 'piercing') {
         this.x = x;
         this.y = y;
+        this.prevX = x;
+        this.prevY = y;
         this.target = target;
         this.damage = damage;
         this.attacker = attacker;
@@ -26,6 +28,10 @@ export class Projectile {
         const dx = this.target.x - this.x;
         const dy = this.target.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+
+        // Guarda posição anterior para desenhar a trilha.
+        this.prevX = this.x;
+        this.prevY = this.y;
 
         if (distance < this.speed) {
             this.x = this.target.x;

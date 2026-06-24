@@ -69,12 +69,10 @@ export class InputSystem {
 
         // Gamepad support
         window.addEventListener("gamepadconnected", (e) => {
-            console.log("Gamepad connected:", e.gamepad.id);
             this.gamepads[e.gamepad.index] = e.gamepad;
         });
 
         window.addEventListener("gamepaddisconnected", (e) => {
-            console.log("Gamepad disconnected:", e.gamepad.id);
             delete this.gamepads[e.gamepad.index];
         });
     }

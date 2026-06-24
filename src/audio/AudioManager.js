@@ -87,6 +87,11 @@ export class AudioManager {
         this.createOscillator('sawtooth', 150, 0.2, 0.4);
     }
 
+    playError() {
+        // Som curto e grave de "ação inválida"
+        this.createOscillator('square', 140, 0.08, 0.25);
+    }
+
     playWaveStart() {
         // Som de início de onda: trombeta simples
         if (!this.ctx) return;

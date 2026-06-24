@@ -37,10 +37,15 @@ export class GameLoop {
         if (this.shouldRun() && !this.isPaused()) {
             this.accumulator += deltaTime * this.getGameSpeed();
 
-            while (this.accumulator >= this.timeStep) {
+            // Cap de atualizações por frame para evitar "espiral da morte"
+            // (quando updates demoram mais que o timestep e acumulam indefinidamente).
+            let maxUpdates = 5;
+            while (this.accumulator >= this.timeStep && maxUpdates-- > 0) {
                 this.onUpdate(this.timeStep);
                 this.accumulator -= this.timeStep;
             }
+            // Se ainda houver acúmulo após o cap, descarta para não arrastar o atraso.
+            if (this.accumulator > this.timeStep * 5) this.accumulator = 0;
         } else if (!this.shouldRun()) {
             // Se não deve estar rodando, para o loop e limpa lastTime
             this.isRunning = false;

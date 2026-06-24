@@ -62,6 +62,12 @@ export class Enemy {
         this.tauntTimer = 0;
         this.flashTimer = 0;
         this.activeEffects = new Map(); // Effect name -> effect object
+
+        // Estado de morte animada (fade/scale antes de ser removido)
+        this.dying = false;
+        this.deathTimer = 0;
+        this.deathDuration = 12; // frames
+        this.deathAwarded = false;
     }
 
     /**
@@ -184,6 +190,12 @@ export class Enemy {
      * @param {Object} gameState - Full game state for managers and context
      */
     update(gameState) {
+        // Morta: conta o timer de fade e não se move mais.
+        if (this.dying) {
+            if (this.deathTimer > 0) this.deathTimer--;
+            return;
+        }
+
         // Check for map hazards
         this.checkHazards(gameState);
 

@@ -15,8 +15,6 @@ export const SpellSystem = {
         const spell = dataManager.get('spells')[spellKey];
         if (!spell) return;
 
-        console.log(`Executing spell: ${spell.name}`);
-
         // Visual feedback for spell start
         particleSystem.emit(
             tower.x * Config.gridSize + Config.gridSize / 2,

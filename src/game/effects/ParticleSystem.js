@@ -3,10 +3,18 @@ export class ParticleSystem {
         this.particles = [];
         this.pool = [];
         this.maxPoolSize = 500;
+        // Teto duro de partículas ativas para evitar crescimento indefinido
+        // sob carga pesada (lag). emit() descarta o excedente.
+        this.maxParticles = 800;
     }
 
     emit(x, y, color, count = 8, type = 'explosion') {
-        for (let i = 0; i < count; i++) {
+        // Respeita o teto: não emite além do limite, evitando acúmulo infinito.
+        const remaining = this.maxParticles - this.particles.length;
+        if (remaining <= 0) return;
+        const toEmit = Math.min(count, remaining);
+
+        for (let i = 0; i < toEmit; i++) {
             let angle, speed, decay, size, gravity = 0;
 
             if (type === 'spark') {
@@ -61,7 +69,10 @@ export class ParticleSystem {
     }
 
     update() {
-        for (let i = this.particles.length - 1; i >= 0; i--) {
+        // Compactação in-place (swap-pop): O(n), sem splice.
+        // Partículas vivas são movidas para a frente; mortas recicladas para o pool.
+        let write = 0;
+        for (let i = 0; i < this.particles.length; i++) {
             const p = this.particles[i];
             p.x += p.vx;
             p.y += p.vy;
@@ -74,14 +85,16 @@ export class ParticleSystem {
                 p.size += 0.1;
             }
 
-            if (p.life <= 0) {
+            if (p.life > 0) {
+                this.particles[write++] = p;
+            } else {
                 p.active = false;
                 if (this.pool.length < this.maxPoolSize) {
                     this.pool.push(p);
                 }
-                this.particles.splice(i, 1);
             }
         }
+        this.particles.length = write;
     }
 
     getParticles() {

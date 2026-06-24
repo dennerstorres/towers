@@ -3,6 +3,8 @@ export class FloatingText {
         this.texts = [];
         this.pool = [];
         this.maxPoolSize = 100;
+        // Teto duro de textos ativos para evitar acúmulo infinito.
+        this.maxTexts = 150;
     }
 
     /**
@@ -44,23 +46,29 @@ export class FloatingText {
                 active: true
             };
         }
+        // Respeita o teto: descarta se já estiver no limite.
+        if (this.texts.length >= this.maxTexts) return;
         this.texts.push(t);
     }
 
     update() {
-        for (let i = this.texts.length - 1; i >= 0; i--) {
+        // Compactação in-place (swap-pop): O(n), sem splice.
+        let write = 0;
+        for (let i = 0; i < this.texts.length; i++) {
             const t = this.texts[i];
             t.x += t.vx;
             t.y += t.vy;
             t.life -= t.decay;
 
-            if (t.life <= 0) {
+            if (t.life > 0) {
+                this.texts[write++] = t;
+            } else {
                 t.active = false;
                 if (this.pool.length < this.maxPoolSize) {
                     this.pool.push(t);
                 }
-                this.texts.splice(i, 1);
             }
         }
+        this.texts.length = write;
     }
 }

@@ -358,6 +358,9 @@ export class Tower extends Character {
         const targetPool = spatialSystem ? spatialSystem.getEnemiesInRange(centerX, centerY, currentRange) : enemies;
 
         for (const enemy of targetPool) {
+            // Ignora inimigos em animação de morte (não atira em cadáveres)
+            if (enemy.dying) continue;
+
             const dx = centerX - enemy.x;
             const dy = centerY - enemy.y;
             const distSq = dx * dx + dy * dy;
@@ -430,6 +433,9 @@ export class Tower extends Character {
     }
 
     update(currentTime, deltaTime, enemies, towers, gameState) {
+        // Decai o recuo visual do tiro
+        if (this.recoilTimer > 0) this.recoilTimer -= deltaTime;
+
         // Update Timers
         if (this.blessedTimer > 0) {
             this.blessedTimer -= deltaTime;
@@ -550,6 +556,10 @@ export class Tower extends Character {
         const enemy = this.getTarget(enemies, gameState);
 
         if (enemy) {
+            // Recuo visual: guarda direção do tiro e ativa o timer.
+            this.recoilAngle = Math.atan2(enemy.y - centerY, enemy.x - centerX);
+            this.recoilTimer = 120; // ms de recuo
+
             let damage = this.getDamage(gameState);
             let splash = this.splashRadius;
             let type = this.type;

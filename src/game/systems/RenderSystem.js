@@ -1,9 +1,10 @@
 import { Config } from '../core/Config.js';
 
 export class RenderSystem {
-    constructor(renderer, ui) {
+    constructor(renderer, ui, game = null) {
         this.renderer = renderer;
         this.ui = ui;
+        this.game = game;
     }
 
     /**
@@ -95,6 +96,21 @@ export class RenderSystem {
         const panelX = gameState.htmlUIEnabled ? canvas.width : canvas.width - this.ui.panelWidth;
 
         if (selectedType && gameState.mouseX < panelX && gameState.mouseY > this.ui.hudHeight) {
+            // Ghost tile: verde se pode posicionar, vermelho se inválido.
+            let valid = false;
+            if (this.game && typeof this.game.isCellBlocked === 'function') {
+                const blocked = this.game.isCellBlocked(mouseGridX, mouseGridY);
+                const costMult = gameState.metaBonuses ? gameState.metaBonuses.costMultiplier : 1.0;
+                const cost = Math.floor(selectedType.cost * costMult);
+                const slotsOk = gameState.towerManager.placedTowers.length < Config.maxPartySlots;
+                valid = !blocked && gameState.money >= cost && slotsOk;
+            }
+            this.renderer.drawPlacementGhost(
+                mouseGridX * Config.gridSize,
+                mouseGridY * Config.gridSize,
+                valid,
+                selectedType
+            );
             this.renderer.drawRangeCircle(
                 mouseGridX * Config.gridSize + Config.gridSize / 2,
                 mouseGridY * Config.gridSize + Config.gridSize / 2,

@@ -12,6 +12,8 @@ export class ProjectileManager {
             p = this.pool.pop();
             p.x = x;
             p.y = y;
+            p.prevX = x;
+            p.prevY = y;
             p.target = target;
             p.damage = damage;
             p.attacker = attacker;

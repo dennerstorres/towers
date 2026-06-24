@@ -18,6 +18,62 @@ export class CanvasRenderer {
 
         // Cache para bases de torres
         this.towerCache = new Map(); // type -> canvas
+
+        // Cache de sprites de glow (radial gradient) por cor.
+        // Substitui ctx.shadowBlur (caro) no hot path de projéteis.
+        this.glowCache = new Map(); // color -> canvas
+    }
+
+    /**
+     * Retorna (criando se preciso) um sprite offscreen com glow radial da cor.
+     * O sprite é quadrado de lado 2*radius, com o glow centrado.
+     */
+    _getGlowSprite(color, radius) {
+        const key = color + '|' + radius;
+        let sprite = this.glowCache.get(key);
+        if (sprite) return sprite;
+
+        const size = Math.ceil(radius * 2);
+        const c = document.createElement('canvas');
+        c.width = size;
+        c.height = size;
+        const g = c.getContext('2d');
+        const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+        grad.addColorStop(0, color);
+        grad.addColorStop(0.4, color);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = grad;
+        g.globalAlpha = 0.5;
+        g.fillRect(0, 0, size, size);
+        this.glowCache.set(key, c);
+        return c;
+    }
+
+    /**
+     * Desenha uma estrelinha dourada indicando sinergia ativa.
+     * Versão leve: contorno escuro + preenchimento dourado, sem shadowBlur.
+     */
+    _drawSynergyStar(cx, cy, r) {
+        const ctx = this.ctx;
+        ctx.save();
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            const outer = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+            const inner = outer + Math.PI / 5;
+            const ox = cx + Math.cos(outer) * r;
+            const oy = cy + Math.sin(outer) * r;
+            const ix = cx + Math.cos(inner) * r * 0.45;
+            const iy = cy + Math.sin(inner) * r * 0.45;
+            if (i === 0) ctx.moveTo(ox, oy); else ctx.lineTo(ox, oy);
+            ctx.lineTo(ix, iy);
+        }
+        ctx.closePath();
+        ctx.fillStyle = Config.THEME.colors.gold;
+        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+        ctx.lineWidth = 1;
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
     }
 
     preRenderBackground(gameState) {
@@ -675,6 +731,40 @@ export class CanvasRenderer {
         this.ctx.restore();
     }
 
+    /**
+     * Desenha o "ghost" da torre sob o cursor durante o placement.
+     * Verde = célula válida; vermelho = inválida (no caminho, ocupada, sem ouro, fora da área).
+     */
+    drawPlacementGhost(x, y, valid, selectedType) {
+        const size = Config.gridSize;
+        this.ctx.save();
+
+        // Preenchimento do tile
+        this.ctx.fillStyle = valid ? 'rgba(46, 204, 113, 0.35)' : 'rgba(231, 76, 60, 0.35)';
+        this.ctx.fillRect(x, y, size, size);
+
+        // Borda
+        this.ctx.strokeStyle = valid ? 'rgba(46, 204, 113, 0.9)' : 'rgba(231, 76, 60, 0.9)';
+        this.ctx.lineWidth = 2;
+        this.ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+
+        // Ícone da torre (cor do tipo) para dar pista visual
+        if (selectedType && selectedType.type) {
+            const colorMap = {
+                archer: Config.THEME.colors.archer,
+                cannon: Config.THEME.colors.cannon,
+                wizard: Config.THEME.colors.wizard
+            };
+            this.ctx.fillStyle = colorMap[selectedType.type] || Config.THEME.colors.gold;
+            this.ctx.globalAlpha = 0.6;
+            this.ctx.beginPath();
+            this.ctx.arc(x + size / 2, y + size / 2, size * 0.22, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
+        this.ctx.restore();
+    }
+
     drawProjectile(projectile) {
         this.ctx.save();
 
@@ -691,10 +781,22 @@ export class CanvasRenderer {
             radius = 5;
         }
 
-        // Trail effect
+        // Glow via sprite em cache (bem mais barato que shadowBlur por projétil)
         if (glow) {
-            this.ctx.shadowBlur = 10;
-            this.ctx.shadowColor = color;
+            const sprite = this._getGlowSprite(color, radius * 2.2);
+            this.ctx.drawImage(sprite, projectile.x - sprite.width / 2, projectile.y - sprite.height / 2);
+        }
+
+        // Trilha: linha da posição anterior até a atual.
+        if (projectile.prevX !== undefined && projectile.prevX !== projectile.x) {
+            this.ctx.strokeStyle = color;
+            this.ctx.globalAlpha = 0.4;
+            this.ctx.lineWidth = radius;
+            this.ctx.beginPath();
+            this.ctx.moveTo(projectile.prevX, projectile.prevY);
+            this.ctx.lineTo(projectile.x, projectile.y);
+            this.ctx.stroke();
+            this.ctx.globalAlpha = 1;
         }
 
         this.ctx.fillStyle = color;
@@ -821,7 +923,17 @@ export class CanvasRenderer {
 
         // Draw cached tower base
         const baseCanvas = this.getTowerBaseCanvas(tower.type);
-        this.ctx.drawImage(baseCanvas, x, y);
+
+        // Recuo do tiro: desloca a torre levemente na direção oposta ao tiro.
+        if (!isIcon && tower.recoilTimer && tower.recoilTimer > 0) {
+            const k = Math.min(1, tower.recoilTimer / 120); // 0 → 1
+            const offset = k * 4;
+            const rx = -Math.cos(tower.recoilAngle || 0) * offset;
+            const ry = -Math.sin(tower.recoilAngle || 0) * offset;
+            this.ctx.drawImage(baseCanvas, x + rx, y + ry);
+        } else {
+            this.ctx.drawImage(baseCanvas, x, y);
+        }
 
         // Distinct colors based on type for specific visual elements
         let accentColor = Config.THEME.colors.gold;
@@ -834,15 +946,9 @@ export class CanvasRenderer {
         if (tower.type === 'rogue') accentColor = Config.THEME.colors.rogue;
         if (tower.type === 'paladin') accentColor = Config.THEME.colors.paladin;
 
-        // Synergy Glow
+        // Synergy indicator: small gold star (top-right) — discreet, no shadowBlur.
         if (!isIcon && tower.activeSynergies && tower.activeSynergies.length > 0) {
-            this.ctx.save();
-            this.ctx.shadowBlur = 15;
-            this.ctx.shadowColor = Config.THEME.colors.gold;
-            this.ctx.strokeStyle = Config.THEME.colors.gold;
-            this.ctx.lineWidth = 2;
-            this.ctx.strokeRect(x + 5, y + 5, 30, 30);
-            this.ctx.restore();
+            this._drawSynergyStar(x + size - 9, y + 9, 5);
         }
 
         // Type specific visual elements
@@ -1013,24 +1119,31 @@ export class CanvasRenderer {
 
         this.ctx.save();
 
+        // Animação de morte: fade + encolhimento em torno do centro.
+        if (enemy.dying) {
+            const t = Math.max(0, enemy.deathTimer / (enemy.deathDuration || 1)); // 1 → 0
+            const scale = 0.5 + 0.5 * t;
+            this.ctx.globalAlpha = Math.max(0, t);
+            this.ctx.translate(enemy.x, enemy.y);
+            this.ctx.scale(scale, scale);
+            this.ctx.translate(-enemy.x, -enemy.y);
+        }
+
         // Shadow under enemy
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
         this.ctx.beginPath();
         this.ctx.ellipse(enemy.x, enemy.y + size / 2 - 2, size / 3, size / 8, 0, 0, Math.PI * 2);
         this.ctx.fill();
 
-        // Impact Flash
-        if (enemy.flashTimer > 0) {
-            this.ctx.filter = 'brightness(2) contrast(1.5)';
-            enemy.flashTimer--;
-        } else {
-            this.ctx.filter = 'none';
-        }
+        // Impact Flash — sem ctx.filter (caro); clareia a cor do corpo.
+        const flashing = enemy.flashTimer > 0;
+        if (flashing) enemy.flashTimer--;
 
         // Body color based on type
         let bodyColor = '#27ae60'; // Goblin (Green)
         if (enemy.type === 'orc') bodyColor = '#8e44ad'; // Orc (Purple/Dark)
         if (enemy.type === 'scout') bodyColor = '#d35400'; // Scout (Orange)
+        if (flashing) bodyColor = '#ffffff';
 
         // Body
         this.ctx.fillStyle = bodyColor;

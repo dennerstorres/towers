@@ -20,6 +20,7 @@ import { GameUI } from '../../ui/GameUI.js';
 import { ParticleSystem } from '../effects/ParticleSystem.js';
 import { FloatingText } from '../effects/FloatingText.js';
 import { AudioManager } from '../../audio/AudioManager.js';
+import { computePathCells, isOnPath } from './Path.js';
 
 export class Game {
     constructor(canvas) {
@@ -39,7 +40,7 @@ export class Game {
         
         this.stateStore = new StateStore();
         this.state = this.stateStore.state;
-        this.renderSystem = new RenderSystem(this.renderer, this.ui);
+        this.renderSystem = new RenderSystem(this.renderer, this.ui, this);
 
         // Initialize Managers before systems that depend on them
         this.localeManager = new LocaleManager();
@@ -100,6 +101,32 @@ export class Game {
         this.renderTowerPanelHtml();
         this.renderHintHtml();
         this.renderEditorHtml();
+    }
+
+    /**
+     * Atualização leve (por diff) do ouro no HUD HTML e do estado "disabled"
+     * das cartas de torre — sem refazer innerHTML inteiro.
+     * Usada quando só o dinheiro muda (ex.: ouro por kill) para evitar custo
+     * de re-render completo a cada kill.
+     */
+    refreshMoneyHtml() {
+        const ui = this.htmlUI;
+        if (!ui || !ui.hudStats) return;
+
+        // Atualiza só o texto do pill de ouro (primeiro stat).
+        const goldPill = ui.hudStats.querySelector('.stat-pill:nth-child(1) span:last-child');
+        if (goldPill) goldPill.textContent = `Ouro: ${this.state.money}`;
+
+        // Atualiza affordability das cartas sem reconstruir o DOM.
+        const costMultiplier = this.state.metaBonuses ? this.state.metaBonuses.costMultiplier : 1.0;
+        if (ui.towerList) {
+            ui.towerList.querySelectorAll('[data-tower-type]').forEach(button => {
+                const tower = this.towerManager.availableTowers.find(t => t.type === button.getAttribute('data-tower-type'));
+                if (!tower) return;
+                const cost = Math.floor(tower.cost * costMultiplier);
+                button.classList.toggle('disabled', this.state.money < cost);
+            });
+        }
     }
 
     renderHudHtml() {
@@ -430,8 +457,6 @@ export class Game {
     }
 
     async init() {
-        console.log('Inicializando sistemas de dados...');
-
         // Localização e Configurações
         await this.localeManager.init(this.dataManager);
         this.audio.updateVolumes(this.settingsManager.state);
@@ -484,13 +509,14 @@ export class Game {
         this.state.currentMap = mapData;
         // Pega o primeiro caminho como padrão para o Config (compatibilidade)
         Config.path = mapData.paths[0];
+        // Pré-calcula TODAS as células bloqueadas pelo(s) caminho(s) do mapa
+        // (segmentos inteiros, não só waypoints) para validação de placement.
+        Config.pathCells = computePathCells(mapData.paths, Config.pathBlockMargin);
 
         // Se houver renderer, reseta o fundo
         if (this.renderer) {
             this.renderer.isBgRendered = false;
         }
-
-        console.log(`Mapa atualizado para: ${mapData.name}`);
     }
 
     handleKeyDown(e) {
@@ -624,7 +650,6 @@ export class Game {
         const existingTower = this.towerManager.getTowerAt(x, y);
         if (existingTower) {
             if (existingTower.pendingLevelUps > 0) {
-                console.log('Opening Level Up Modal for', existingTower.name);
                 this.state.levelUpTower = existingTower;
                 this.state.isPaused = true;
                 return;
@@ -635,7 +660,27 @@ export class Game {
             this.state.selectedPlacedTower = null;
             this.syncHtmlUI();
         } else {
+            // Clique inválido: só dá feedback se uma torre estiver selecionada
+            // (caso contrário é apenas "desselecionar" espaço vazio).
+            if (this.towerManager.getSelectedTower()) {
+                this.notifyInvalidPlacement(clickX, clickY);
+            }
             this.state.selectedPlacedTower = null;
+        }
+    }
+
+    /**
+     * Feedback de placement inválido: partículas vermelhas + shake + som de erro.
+     */
+    notifyInvalidPlacement(worldX, worldY) {
+        if (this.particleSystem) {
+            this.particleSystem.emit(worldX, worldY, '#e74c3c', 6, 'spark');
+        }
+        if (this.renderer && typeof this.renderer.triggerShake === 'function') {
+            this.renderer.triggerShake(3, 4);
+        }
+        if (this.audioManager && typeof this.audioManager.playError === 'function') {
+            this.audioManager.playError();
         }
     }
 
@@ -799,17 +844,8 @@ export class Game {
     }
 
     canPlaceMovedTower(x, y) {
-        if (x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
-        if (y * Config.gridSize < this.ui.hudHeight) return false;
-
-        for (let point of Config.path) {
-            if (point.x === x && point.y === y) return false;
-        }
-
-        const existing = this.towerManager.getTowerAt(x, y);
-        if (existing && existing !== this.state.towerToMove) return false;
-
-        return true;
+        // Reaproveita a validação única, ignorando a própria torre sendo movida.
+        return !this.isCellBlocked(x, y, this.state.towerToMove);
     }
 
     async openEditor() {
@@ -951,12 +987,10 @@ export class Game {
     togglePause() {
         if (this.state.isGameOver || this.state.isVictory || this.state.levelUpTower) return;
         this.state.isPaused = !this.state.isPaused;
-        console.log(this.state.isPaused ? 'Jogo Pausado' : 'Jogo Retomado');
     }
 
     toggleSpeed() {
         this.state.gameSpeed = this.state.gameSpeed === 1 ? 2 : 1;
-        console.log(`Velocidade: ${this.state.gameSpeed}x`);
     }
 
     handleSettingsClick(clickX, clickY) {
@@ -1040,20 +1074,38 @@ export class Game {
 
         // Limite de Party Slots
         if (this.towerManager.placedTowers.length >= Config.maxPartySlots) return false;
-        
-        // Verifica se clicou fora da área de jogo (painel lateral)
-        if (!this.state.htmlUIEnabled && x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return false;
-        if (!this.state.htmlUIEnabled && y * Config.gridSize < this.ui.hudHeight) return false;
 
-        // Verifica se está no caminho
-        for (let point of Config.path) {
-            if (point.x === x && point.y === y) return false;
-        }
-        
-        // Verifica se já existe uma torre
-        if (this.towerManager.getTowerAt(x, y)) return false;
-        
+        // Verifica se a célula é inválida (fora da área jogável, no caminho ou já ocupada)
+        if (this.isCellBlocked(x, y)) return false;
+
         return true;
+    }
+
+    /**
+     * Verifica se uma célula de grade está bloqueada para placement de torre.
+     * Considera: fora da área jogável (painel/HUD), sobre o caminho dos inimigos,
+     * e já ocupada por outra torre.
+     *
+     * Único ponto de verdade — usado por canPlaceTower, canPlaceMovedTower e
+     * pelo preview visual (ghost tile).
+     * @param {number} x índice da coluna da grade
+     * @param {number} y índice da linha da grade
+     * @param {object} [excludeTower] torre a ignorar na checagem de ocupação (usado ao mover)
+     * @returns {boolean}
+     */
+    isCellBlocked(x, y, excludeTower = null) {
+        // Fora da área de jogo (painel lateral / HUD superior)
+        if (!this.state.htmlUIEnabled && x * Config.gridSize >= this.canvas.width - this.ui.panelWidth) return true;
+        if (!this.state.htmlUIEnabled && y * Config.gridSize < this.ui.hudHeight) return true;
+
+        // Sobre o caminho dos inimigos (segmentos inteiros, não só waypoints)
+        if (isOnPath(Config.pathCells, x, y)) return true;
+
+        // Já existe uma torre na célula
+        const existing = this.towerManager.getTowerAt(x, y);
+        if (existing && existing !== excludeTower) return true;
+
+        return false;
     }
 
     placeTower(x, y) {
@@ -1171,7 +1223,6 @@ export class Game {
     }
 
     start() {
-        console.log('Game iniciado');
         this.audio.resume();
         this.state.gameRunning = true;
         this.state.isSetupPhase = false;
@@ -1183,7 +1234,6 @@ export class Game {
                 const keys = Object.keys(modifiers);
                 const randomKey = keys[Math.floor(Math.random() * keys.length)];
                 this.state.activeModifier = modifiers[randomKey];
-                console.log(`Active Modifier: ${this.state.activeModifier.name}`);
             }
         }
 
@@ -1205,7 +1255,6 @@ export class Game {
             return;
         }
 
-        console.log('Loading saved run...', runData);
 
         // Reset systems first
         this.towerManager.reset(this.metaManager);
@@ -1231,6 +1280,7 @@ export class Game {
             if (mapData) {
                 this.state.currentMap = mapData;
                 Config.path = mapData.paths[0];
+                Config.pathCells = computePathCells(mapData.paths, Config.pathBlockMargin);
             }
         }
         if (this.renderer) this.renderer.isBgRendered = false;
@@ -1329,16 +1379,23 @@ export class Game {
             }
         }
 
-        // Atualiza projéteis
-        for (let i = this.state.projectiles.length - 1; i >= 0; i--) {
-            const p = this.state.projectiles[i];
-            p.update();
+        // Atualiza projéteis (compactação in-place, sem splice)
+        {
+            const projectiles = this.state.projectiles;
+            let write = 0;
+            for (let i = 0; i < projectiles.length; i++) {
+                const p = projectiles[i];
+                p.update();
 
-            if (p.reached) {
-                CombatSystem.applyDamage(p, this.state, this.floatingTexts, this.particleSystem, this.dataManager, this.spatialSystem);
-                this.projectileManager.release(p);
-                this.state.projectiles.splice(i, 1);
+                if (p.reached) {
+                    CombatSystem.applyDamage(p, this.state, this.floatingTexts, this.particleSystem, this.dataManager, this.spatialSystem);
+                    this.projectileManager.release(p);
+                    // não copia para write → descarta
+                } else {
+                    projectiles[write++] = p;
+                }
             }
+            projectiles.length = write;
         }
 
         // Atualiza inimigos
@@ -1361,17 +1418,41 @@ export class Game {
                 return false;
             }
             if (enemy.health <= 0) {
-                this.audio.playEnemyDeath();
-                // Award XP to the tower that killed the enemy
-                if (enemy.lastHitBy && typeof enemy.lastHitBy.addXp === 'function') {
-                    const xpMultiplier = this.state.metaBonuses ? this.state.metaBonuses.xpMultiplier : 1.0;
-                    enemy.lastHitBy.addXp((enemy.xp || 10) * xpMultiplier);
+                // Transição para morte animada: premia (xp/ouro/som) uma única vez
+                // e mantém o inimigo no array pelo tempo do fade antes de remover.
+                if (!enemy.dying) {
+                    enemy.dying = true;
+                    enemy.deathTimer = enemy.deathDuration;
+                    this.audio.playEnemyDeath();
+                    // Award XP to the tower that killed the enemy
+                    if (enemy.lastHitBy && typeof enemy.lastHitBy.addXp === 'function') {
+                        const xpMultiplier = this.state.metaBonuses ? this.state.metaBonuses.xpMultiplier : 1.0;
+                        enemy.lastHitBy.addXp((enemy.xp || 10) * xpMultiplier);
+                    }
+                    // Award gold for the kill (renda por kill, além do bônus de onda)
+                    const goldMultiplier = (this.state.metaBonuses && this.state.metaBonuses.goldMultiplier) ? this.state.metaBonuses.goldMultiplier : 1.0;
+                    const killGold = Math.max(0, Math.floor((enemy.gold || 0) * goldMultiplier));
+                    if (killGold > 0) {
+                        this.state.money += killGold;
+                        this.floatingTexts.add(enemy.x, enemy.y, `+${killGold}g`, Config.THEME.colors.gold);
+                        this._moneyDirty = true;
+                    }
+                    this.particleSystem.emit(enemy.x, enemy.y, '#333', 8, 'smoke');
+                    return true; // mantém durante a animação de morte
                 }
-                return false;
+                // Animação de morte terminou → remove
+                if (enemy.deathTimer <= 0) {
+                    return false;
+                }
+                return true;
             }
             return true;
         });
         this.waveSystem.enemiesKilled += enemiesBefore - this.state.enemies.length;
+        if (this._moneyDirty) {
+            this._moneyDirty = false;
+            this.refreshMoneyHtml();
+        }
 
         // Verifica vitória
         if (this.waveSystem.currentWave > Config.maxWaves && !this.state.endlessConfirmed) {
