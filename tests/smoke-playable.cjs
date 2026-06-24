@@ -223,6 +223,39 @@ async function run() {
       game.updateLogic(1000 / 60);
     });
     await expectState(page, () => window.game.state.showCamp, 'wave completion opens camp');
+    await page.evaluate(() => {
+      const game = window.game;
+      const before = {
+        currentWave: game.waveSystem.currentWave,
+        enemiesSpawned: game.waveSystem.enemiesSpawned,
+        enemies: game.state.enemies.length
+      };
+
+      for (let i = 0; i < 120; i++) {
+        game.updateLogic(1000 / 60);
+      }
+
+      if (!game.state.showCamp || game.state.gameRunning || game.waveSystem.isWaiting) {
+        throw new Error('camp did not pause the run after wave completion');
+      }
+      if (game.waveSystem.currentWave !== before.currentWave ||
+        game.waveSystem.enemiesSpawned !== before.enemiesSpawned ||
+        game.state.enemies.length !== before.enemies) {
+        throw new Error('wave advanced while camp was open');
+      }
+    });
+    await page.evaluate(() => {
+      const game = window.game;
+      const layout = game.ui.getCampLayout(game.canvas, game.state, game.dataManager, game.localeManager);
+      const expectedCenter = game.canvas.width / 2;
+      const actualCenter = layout.modal.x + layout.modal.width / 2;
+      if (Math.abs(actualCenter - expectedCenter) > 1) {
+        throw new Error('camp modal is not centered in the visible canvas');
+      }
+      if (layout.tabs.some((tab) => tab.label === 'camp_party')) {
+        throw new Error('camp party tab is missing a localized label');
+      }
+    });
 
     await page.evaluate(() => {
       const saved = JSON.parse(localStorage.getItem('towers_current_run') || 'null');
@@ -235,7 +268,7 @@ async function run() {
     await waitForGameReady(page);
     await page.waitForSelector('#continueButton', { state: 'visible', timeout: 10000 });
     await page.click('#continueButton');
-    await expectState(page, () => window.game.state.showCamp && window.game.towerManager.placedTowers.length === 1, 'saved run continues into camp');
+    await expectState(page, () => window.game.state.showCamp && !window.game.state.gameRunning && window.game.towerManager.placedTowers.length === 1, 'saved run continues into paused camp');
 
     await clickLayoutButton(page, () => window.game.ui.getCampLayout(
       window.game.canvas,
@@ -243,7 +276,18 @@ async function run() {
       window.game.dataManager,
       window.game.localeManager
     ).nextWaveButton);
-    await expectState(page, () => !window.game.state.showCamp && window.game.waveSystem.isWaiting, 'camp starts next wave');
+    await expectState(page, () => !window.game.state.showCamp && window.game.state.isSetupPhase && !window.game.waveSystem.isWaiting, 'camp returns to setup');
+    await expectState(page, () => getComputedStyle(document.getElementById('startWaveButton')).display !== 'none' && !document.getElementById('startWaveButton').disabled, 'next wave start button is available');
+    await page.click('#settingsHudButton');
+    await expectState(page, () => window.game.state.showSettings, 'settings opens during setup');
+    await clickLayoutButton(page, () => window.game.ui.getSettingsLayout(
+      window.game.canvas,
+      window.game.settingsManager.state,
+      window.game.localeManager
+    ).backButton);
+    await expectState(page, () => !window.game.state.showSettings && window.game.state.isSetupPhase && document.getElementById('gameShell').classList.contains('active'), 'settings returns to setup');
+    await page.click('#startWaveButton');
+    await expectState(page, () => window.game.state.gameRunning && window.game.waveSystem.isWaiting && !window.game.state.isSetupPhase, 'next wave starts only after confirmation');
 
     await page.evaluate(async () => {
       const game = window.game;

@@ -194,7 +194,7 @@ export class Game {
 
         ui.hintText.textContent = text;
         ui.startWaveButton.disabled = !this.state.isSetupPhase || this.towerManager.placedTowers.length === 0;
-        ui.startWaveButton.style.display = this.state.showEditor || this.state.showTavern || this.state.showSettings || this.state.showCamp ? 'none' : 'inline-block';
+        ui.startWaveButton.style.display = this.state.showEditor || this.state.showTavern || this.state.showSettings || this.state.showCamp ? 'none' : 'inline-flex';
     }
 
     renderEditorHtml() {
@@ -517,6 +517,7 @@ export class Game {
 
         if (this.state.showCamp) {
             this.handleCampClick(clickX, clickY);
+            this.syncHtmlUI();
             return;
         }
 
@@ -711,7 +712,10 @@ export class Game {
         if (clickX >= layout.nextWaveButton.x && clickX <= layout.nextWaveButton.x + layout.nextWaveButton.width &&
             clickY >= layout.nextWaveButton.y && clickY <= layout.nextWaveButton.y + layout.nextWaveButton.height) {
             this.state.showCamp = false;
-            this.waveSystem.startCountdown();
+            this.state.isSetupPhase = true;
+            this.state.gameRunning = false;
+            this.waveSystem.isWaiting = false;
+            this.waveSystem.countdown = 0;
             return;
         }
 
@@ -1001,7 +1005,7 @@ export class Game {
         if (clickX >= layout.backButton.x && clickX <= layout.backButton.x + layout.backButton.width &&
             clickY >= layout.backButton.y && clickY <= layout.backButton.y + layout.backButton.height) {
             this.state.showSettings = false;
-            if (!this.state.gameRunning) {
+            if (!this.state.gameRunning && !this.state.isSetupPhase) {
                 if (this.htmlCallbacks?.showStartScreen) {
                     this.htmlCallbacks.showStartScreen();
                 } else {
@@ -1170,6 +1174,7 @@ export class Game {
         console.log('Game iniciado');
         this.audio.resume();
         this.state.gameRunning = true;
+        this.state.isSetupPhase = false;
 
         // Pick random modifier ONLY if not already set (e.g. from a continue or load)
         if (!this.state.activeModifier) {
@@ -1241,9 +1246,9 @@ export class Game {
         this.applyMetaBonuses(false);
         this.partySystem.update(this.towerManager.placedTowers);
 
-        // Start directly in Camp Hub
+        // Resume in Camp Hub; the player explicitly starts the next wave.
         this.state.showCamp = true;
-        this.state.gameRunning = true;
+        this.state.gameRunning = false;
         this.state.isSetupPhase = false;
         this.towerManager.generateRecruitmentPool(this.dataManager);
         this.generateBlacksmithPool();
@@ -1268,6 +1273,7 @@ export class Game {
     updateLogic(timeStep) {
         this.inputSystem.update();
         if (this.state.isSetupPhase) return;
+        if (this.state.showCamp || this.state.showSettings || this.state.showTavern || this.state.showEditor) return;
         if (!this.state.gameRunning || this.state.isPaused || this.state.isGameOver || this.state.isVictory) return;
 
         // Hit Stop Logic
@@ -1408,6 +1414,10 @@ export class Game {
 
                 // Enter Camp Mode
                 this.state.showCamp = true;
+                this.state.gameRunning = false;
+                this.state.isSetupPhase = false;
+                this.waveSystem.isWaiting = false;
+                this.waveSystem.countdown = 0;
                 this.towerManager.generateRecruitmentPool(this.dataManager);
                 this.generateBlacksmithPool();
 
@@ -1420,7 +1430,7 @@ export class Game {
                 this.syncHtmlUI();
             }
 
-            if (this.waveSystem.currentWave > waveBefore && this.waveSystem.currentWave <= Config.maxWaves) {
+            if (this.state.gameRunning && this.waveSystem.currentWave > waveBefore && this.waveSystem.currentWave <= Config.maxWaves) {
                 this.audio.playWaveStart();
             }
         }

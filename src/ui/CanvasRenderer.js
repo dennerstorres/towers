@@ -419,9 +419,9 @@ export class CanvasRenderer {
 
         this.ctx.save();
 
-        // Background overlay for the play area only
+        // Background overlay for the visible canvas.
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        this.ctx.fillRect(0, ui.hudHeight, this.canvas.width - ui.panelWidth, this.canvas.height - ui.hudHeight);
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Text
         this.ctx.fillStyle = Config.THEME.colors.gold;
@@ -430,7 +430,7 @@ export class CanvasRenderer {
 
         this.ctx.font = `bold 30px ${Config.THEME.font}`;
         this.ctx.fillText(`${t('ui_wave')} ${waveManager.currentWave} ${seconds}...`,
-            (this.canvas.width - ui.panelWidth) / 2,
+            this.canvas.width / 2,
             this.canvas.height / 2 - 30
         );
 
@@ -461,6 +461,7 @@ export class CanvasRenderer {
     }
 
     drawButton(btn, color, label, disabled = false) {
+        this.ctx.save();
         this.ctx.fillStyle = 'rgba(44, 62, 80, 0.9)';
         this.ctx.fillRect(btn.x, btn.y, btn.width, btn.height);
 
@@ -469,7 +470,16 @@ export class CanvasRenderer {
         this.ctx.strokeRect(btn.x, btn.y, btn.width, btn.height);
 
         this.ctx.fillStyle = disabled ? '#95a5a6' : '#ecf0f1';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        let fontSize = Math.max(12, Math.min(18, Math.floor(btn.height * 0.42)));
+        this.ctx.font = `bold ${fontSize}px ${Config.THEME.font}`;
+        while (fontSize > 11 && this.ctx.measureText(String(label)).width > btn.width - 16) {
+            fontSize--;
+            this.ctx.font = `bold ${fontSize}px ${Config.THEME.font}`;
+        }
         this.ctx.fillText(label, btn.x + btn.width / 2, btn.y + btn.height / 2);
+        this.ctx.restore();
     }
 
     drawTowerSelectionPanel(gameState, ui) {
@@ -1878,9 +1888,10 @@ export class CanvasRenderer {
         // Volumes
         volumes.forEach(vol => {
             this.ctx.fillStyle = '#bdc3c7';
-            this.ctx.font = `14px ${Config.THEME.font}`;
+            this.ctx.font = `15px ${Config.THEME.font}`;
             this.ctx.textAlign = 'left';
-            this.ctx.fillText(vol.label, vol.x, vol.y - 10);
+            this.ctx.textBaseline = 'alphabetic';
+            this.ctx.fillText(vol.label, vol.x, vol.y - 14);
 
             // Bar background
             this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
@@ -1889,6 +1900,10 @@ export class CanvasRenderer {
             // Bar fill
             this.ctx.fillStyle = Config.THEME.colors.gold;
             this.ctx.fillRect(vol.x, vol.y, vol.width * vol.value, vol.height);
+
+            this.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(vol.x, vol.y, vol.width, vol.height);
         });
 
         // Keybinds

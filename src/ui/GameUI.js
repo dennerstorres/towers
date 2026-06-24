@@ -150,13 +150,13 @@ export class GameUI {
 
         return {
             container: {
-                x: (canvas.width - this.panelWidth) / 2 - width / 2,
+                x: canvas.width / 2 - width / 2,
                 y: canvas.height / 2 - height / 2,
                 width: width,
                 height: height
             },
             button: {
-                x: (canvas.width - this.panelWidth) / 2 - buttonWidth / 2,
+                x: canvas.width / 2 - buttonWidth / 2,
                 y: canvas.height / 2 + 20,
                 width: buttonWidth,
                 height: buttonHeight,
@@ -410,7 +410,7 @@ export class GameUI {
         const t = (key) => localeManager ? localeManager.t(key) : key;
         const width = 700;
         const height = 500;
-        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
+        const x = canvas.width / 2 - width / 2;
         const y = canvas.height / 2 - height / 2;
 
         const tab = gameState.campTab || 'recruit';
@@ -422,14 +422,16 @@ export class GameUI {
             { label: t('camp_training'), id: 'training_grounds' }
         ];
 
-        const tabWidth = 150;
+        const tabWidth = 130;
         const tabHeight = 40;
-        const tabsX = x + (width - (tabWidth * tabs.length)) / 2;
+        const tabGap = 8;
+        const totalTabsWidth = tabWidth * tabs.length + tabGap * (tabs.length - 1);
+        const tabsX = x + (width - totalTabsWidth) / 2;
         const tabsY = y + 70;
 
         const formattedTabs = tabs.map((t, i) => ({
             ...t,
-            x: tabsX + i * tabWidth,
+            x: tabsX + i * (tabWidth + tabGap),
             y: tabsY,
             width: tabWidth,
             height: tabHeight,
@@ -599,15 +601,16 @@ export class GameUI {
     getSettingsLayout(canvas, settings, localeManager) {
         const t = (key) => localeManager ? localeManager.t(key) : key;
         const width = 500;
-        const height = 450;
-        const x = (canvas.width - this.panelWidth) / 2 - width / 2;
+        const height = 430;
+        const x = canvas.width / 2 - width / 2;
         const y = canvas.height / 2 - height / 2;
 
-        const sliderWidth = 300;
-        const sliderHeight = 10;
+        const sliderWidth = 320;
+        const sliderHeight = 12;
         const contentX = x + (width - sliderWidth) / 2;
-        const startY = y + 100;
-        const spacing = 50;
+        const startY = y + 88;
+        const volumeStartY = y + 180;
+        const volumeSpacing = 58;
 
         return {
             modal: { x, y, width, height, title: t('settings_title') },
@@ -615,17 +618,17 @@ export class GameUI {
                 x: contentX,
                 y: startY,
                 width: sliderWidth,
-                height: 40,
+                height: 42,
                 label: `${t('settings_language')}: ${settings.language}`
             },
             volumes: [
-                { id: 'master', label: t('settings_volume_master'), value: settings.masterVolume, x: contentX, y: startY + spacing, width: sliderWidth, height: sliderHeight },
-                { id: 'music', label: t('settings_volume_music'), value: settings.musicVolume, x: contentX, y: startY + spacing * 2, width: sliderWidth, height: sliderHeight },
-                { id: 'sfx', label: t('settings_volume_sfx'), value: settings.sfxVolume, x: contentX, y: startY + spacing * 3, width: sliderWidth, height: sliderHeight }
+                { id: 'master', label: t('settings_volume_master'), value: settings.masterVolume, x: contentX, y: volumeStartY, width: sliderWidth, height: sliderHeight },
+                { id: 'music', label: t('settings_volume_music'), value: settings.musicVolume, x: contentX, y: volumeStartY + volumeSpacing, width: sliderWidth, height: sliderHeight },
+                { id: 'sfx', label: t('settings_volume_sfx'), value: settings.sfxVolume, x: contentX, y: volumeStartY + volumeSpacing * 2, width: sliderWidth, height: sliderHeight }
             ],
             keybinds: {
                 x: contentX,
-                y: startY + spacing * 4,
+                y: y + 330,
                 width: sliderWidth,
                 height: 40,
                 label: t('settings_keybinds')
